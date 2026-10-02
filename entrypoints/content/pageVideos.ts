@@ -9,6 +9,13 @@ import {
 import type { ContentScriptContext } from '#imports'
 import type { PageVideos, VideoPost } from '~/types/video'
 
+/**
+ * Resolves an article's own post ID from analytics, timestamp, or media permalinks.
+ * Quoted-post timestamp links are excluded when selecting the owning post.
+ *
+ * @param article - Timeline article whose owning post should be identified.
+ * @returns The post identifier, or undefined when no supported permalink is found.
+ */
 export function getArticlePostId(article: Element): string | undefined {
   const analytics = article.querySelector<HTMLAnchorElement>(
     '[role="group"] a[href*="/analytics"]',
@@ -34,18 +41,36 @@ export function getArticlePostId(article: Element): string | undefined {
   }
 }
 
+/**
+ * Creates a bounded video cache and a reactive snapshot for the current page.
+ * Capture messages, replay requests, DOM scans, and teardown share the supplied context.
+ *
+ * @param ctx - WXT context controlling page events and resource invalidation.
+ * @returns The snapshot and operations for observing, scanning, and requesting captured posts.
+ */
 export function createPageVideos(ctx: ContentScriptContext) {
   const cache = new Map<string, VideoPost>()
   const snapshot = shallowRef<PageVideos>({ posts: [], captureReady: false })
   let scanTimer: number | undefined
+  /**
+   * Provides a no-op scan observer until a consumer subscribes.
+   */
   let onScan = () => {}
 
+  /**
+   * Cancels the pending DOM scan and clears its scheduling marker.
+   */
   function cancelScan() {
     window.clearTimeout(scanTimer)
     scanTimer = undefined
   }
   ctx.onInvalidated(cancelScan)
 
+  /**
+   * Refreshes a post's cache position and evicts the oldest entry when the cache is full.
+   *
+   * @param post - Normalized captured post or a direct-DOM fallback post.
+   */
   function remember(post: VideoPost) {
     cache.delete(post.id)
     cache.set(post.id, post)
@@ -57,6 +82,10 @@ export function createPageVideos(ctx: ContentScriptContext) {
     }
   }
 
+  /**
+   * Rebuilds the visible-post snapshot from captured data and safe direct-video fallbacks.
+   * Pending scans are cancelled and invalidated contexts perform no further DOM work.
+   */
   function scan() {
     cancelScan()
     if (ctx.isInvalid) {
@@ -139,6 +168,9 @@ export function createPageVideos(ctx: ContentScriptContext) {
     onScan()
   }
 
+  /**
+   * Schedules one debounced DOM scan while the content-script context remains valid.
+   */
   function scheduleScan() {
     if (scanTimer === undefined && ctx.isValid) {
       // One page-lifetime cleanup replaces WXT's per-timeout registrations.
@@ -146,6 +178,9 @@ export function createPageVideos(ctx: ContentScriptContext) {
     }
   }
 
+  /**
+   * Requests cached posts from the capture script and schedules a page scan.
+   */
   function requestReplay() {
     window.postMessage(
       { channel: VIDEO_CHANNEL, type: 'ready' },
@@ -182,6 +217,12 @@ export function createPageVideos(ctx: ContentScriptContext) {
   })
   requestReplay()
 
+  /**
+   * Observes timeline mutations and invokes the subscriber after each completed scan.
+   * The mutation observer is disconnected when the content-script context is invalidated.
+   *
+   * @param callback - Subscriber notified after the visible-post snapshot has been refreshed.
+   */
   function observe(callback: () => void) {
     onScan = callback
     const observer = new MutationObserver(scheduleScan)

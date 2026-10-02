@@ -9,6 +9,13 @@ const isSaving = shallowRef(false)
 const requestError = shallowRef('')
 const statusMessage = shallowRef('')
 
+/**
+ * Persists a save-dialog or quality selection from its form control.
+ * Storage failures restore the effective setting and show a localized error.
+ *
+ * @param event - Change event from the save-dialog checkbox or quality select.
+ * @returns A promise resolving after the save attempt, or immediately for an unrelated target.
+ */
 async function updatePreference(event: Event) {
   const target = event.target
   if (

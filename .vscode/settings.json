@@ -42,6 +42,8 @@
     "oxlint",
     "pinia",
     "shadcn",
+    "twimg",
+    "uniquify",
     "unplugin",
     "unrs",
     "VITE",

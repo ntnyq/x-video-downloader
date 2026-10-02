@@ -11,6 +11,13 @@ import {
 } from '../utils/preferences'
 import { extractVideoPosts, normalizeVariants } from '../utils/video'
 
+/**
+ * Creates a raw video-version fixture with dimensions embedded in its URL.
+ *
+ * @param size - Width and height segment, such as 1280x720.
+ * @param bitrate - Optional bitrate in bits per second, defaulting to unknown.
+ * @returns A raw version object for normalization and quality-selection tests.
+ */
 function variant(size: string, bitrate = 0) {
   return {
     url: `https://video.twimg.com/ext_tw_video/1/pu/vid/${size}/video.mp4`,

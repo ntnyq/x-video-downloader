@@ -14,31 +14,90 @@ const request = {
   url: 'https://video.twimg.com/ext_tw_video/1/pu/vid/1280x720/sample.mp4',
 }
 const popupUrl = 'chrome-extension://test/popup.html'
-type Sender = { id: string; url: string; tab?: object }
+type Sender = {
+  /**
+   * Extension identifier supplied to the simulated message listener.
+   */
+  id: string
+  /**
+   * Popup or content-script URL supplied by the simulated sender.
+   */
+  url: string
+  /**
+   * Optional tab marker used to simulate a content-script sender.
+   */
+  tab?: object
+}
 type Listener = (
   message: unknown,
   sender: Sender,
   respond: (value: unknown) => void,
 ) => unknown
 
+/**
+ * Runs the background entrypoint against in-memory browser and storage adapters.
+ *
+ * @param shouldFail - Whether native download attempts should simulate user cancellation.
+ * @returns Recorded download options and a helper for sending runtime messages.
+ * @throws When the entrypoint cannot be loaded or requests an unexpected dependency.
+ */
 function createBackground(shouldFail = false) {
   const calls: unknown[] = []
   let listener: Listener | undefined
   const browser = {
     runtime: {
       id: 'test',
+      /**
+       * Returns the popup URL used by the sender-validation fixture.
+       *
+       * @returns The fixed test extension popup URL.
+       */
       getURL: () => popupUrl,
       onMessage: {
+        /**
+         * Captures the background message listener for test-driven message delivery.
+         *
+         * @param callback - Listener registered by the background entrypoint.
+         */
         addListener(callback: Listener) {
           listener = callback
         },
       },
-      onInstalled: { addListener() {} },
+      onInstalled: {
+        /**
+         * Ignores installation listeners because installation is outside these message tests.
+         */
+        addListener() {},
+      },
     },
-    commands: { onCommand: { addListener() {} } },
+    commands: {
+      onCommand: {
+        /**
+         * Ignores command listeners because keyboard shortcuts are outside these message tests.
+         */
+        addListener() {},
+      },
+    },
     downloads: {
+      /**
+       * Simulates the absence of previously recorded browser downloads.
+       *
+       * @returns A promise resolving to an empty native-download list.
+       */
       search: async () => [],
+      /**
+       * Accepts cancellation without a native browser in this harness.
+       *
+       * @returns A resolved cancellation promise.
+       */
       cancel: async () => {},
+      /**
+       * Records native download options and simulates browser acceptance or cancellation.
+       *
+       * @param options - Options passed to the mocked downloads API.
+       * @returns The fixed browser download identifier 42.
+       * @throws With USER_CANCELED when this harness is configured to reject downloads.
+       */
       async download(options: unknown) {
         calls.push(options)
         if (shouldFail) {
@@ -48,7 +107,12 @@ function createBackground(shouldFail = false) {
       },
     },
   }
-  const exports: { default?: () => void } = {}
+  const exports: {
+    /**
+     * Transpiled background initializer exposed by the VM module.
+     */
+    default?: () => void
+  } = {}
   const source = readFileSync(
     new URL('../entrypoints/background/index.ts', import.meta.url),
     'utf8',
@@ -62,9 +126,25 @@ function createBackground(shouldFail = false) {
   runInNewContext(compiled, {
     exports,
     Error,
+    /**
+     * Resolves the background entrypoint's dependencies to controlled test adapters.
+     *
+     * @param id - Module identifier requested by the transpiled entrypoint.
+     * @returns The matching browser, storage, or application module.
+     * @throws When the entrypoint imports an unexpected module.
+     */
     require(id: string) {
       if (id === '#imports') {
-        return { browser, defineBackground: (main: unknown) => main }
+        return {
+          browser,
+          /**
+           * Preserves the background initializer for explicit execution by the harness.
+           *
+           * @param main - Initializer provided by the transpiled entrypoint.
+           * @returns The unchanged initializer.
+           */
+          defineBackground: (main: unknown) => main,
+        }
       }
       if (id === '~/utils/download') {
         return download
@@ -74,6 +154,11 @@ function createBackground(shouldFail = false) {
       }
       if (id === '~/utils/settings') {
         return {
+          /**
+           * Supplies deterministic filename and save-dialog preferences for assertions.
+           *
+           * @returns Preferences disabling save dialogs and using post ID and media index in filenames.
+           */
           async getDownloadPreferences() {
             return {
               saveAs: false,
@@ -81,7 +166,17 @@ function createBackground(shouldFail = false) {
             }
           },
           downloadRecords: {
+            /**
+             * Starts the fixture with no persisted download records.
+             *
+             * @returns An empty record array.
+             */
             getValue: async () => [],
+            /**
+             * Accepts record writes without persisting them across test harnesses.
+             *
+             * @returns A resolved storage-write promise.
+             */
             setValue: async () => {},
           },
         }
@@ -93,6 +188,13 @@ function createBackground(shouldFail = false) {
     },
   })
   exports.default?.()
+  /**
+   * Delivers a message to the captured runtime listener and waits for its response.
+   *
+   * @param message - Payload to deliver to the background entrypoint.
+   * @param sender - Simulated browser sender metadata.
+   * @returns A promise resolving with the listener's response payload.
+   */
   function send(message: unknown, sender: Sender) {
     return new Promise<unknown>(resolve => listener?.(message, sender, resolve))
   }

@@ -2,10 +2,23 @@
 import { formatBytes } from '~/utils/preferences'
 import type { DownloadStatus } from '~/types/download'
 
-defineProps<{ downloads: DownloadStatus[]; disabled: boolean }>()
+defineProps<{
+  /**
+   * Owned downloads whose status and available actions are displayed.
+   */
+  downloads: DownloadStatus[]
+  /**
+   * Whether download actions are temporarily unavailable.
+   */
+  disabled: boolean
+}>()
 const emit = defineEmits<{
+  /**
+   * Requests cancellation or retry with the download ID and originating click.
+   */
   action: [id: number, action: 'cancel' | 'retry', event: MouseEvent]
 }>()
+
 const STATE_LABELS: Record<DownloadStatus['state'], string> = {
   in_progress: i18n.t('stateDownloading'),
   paused: i18n.t('statePaused'),
@@ -14,6 +27,13 @@ const STATE_LABELS: Record<DownloadStatus['state'], string> = {
   cancelled: i18n.t('stateCancelled'),
   missing: i18n.t('stateMissing'),
 }
+
+/**
+ * Calculates whole-number download progress when the total size is known.
+ *
+ * @param item - Current browser download status.
+ * @returns The completion percentage capped at 100, or undefined for an unknown total.
+ */
 function percentage(item: DownloadStatus) {
   if (item.totalBytes <= 0) {
     return undefined

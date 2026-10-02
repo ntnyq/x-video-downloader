@@ -25,6 +25,13 @@ const payload = {
   },
 }
 
+/**
+ * Executes the page capture script with mocked fetch, XHR, and message channels.
+ *
+ * @param response - Native response that the fetch stub should resolve with.
+ * @returns The simulated page APIs, captured messages, replay listeners, and XHR class.
+ * @throws When the entrypoint cannot be loaded or imports an unexpected module.
+ */
 function createHarness(response: Response) {
   const messages: unknown[] = []
   const listeners: Array<(event: unknown) => void> = []
@@ -35,24 +42,65 @@ function createHarness(response: Response) {
     response = payload
     responseText = JSON.stringify(payload)
     openArgs: unknown[] = []
+    /**
+     * Supplies a JSON content type for the XHR response fixture.
+     *
+     * @returns The application/json MIME type.
+     */
     getResponseHeader() {
       return 'application/json'
     }
+    /**
+     * Records arguments passed through the capture script's XHR open wrapper.
+     *
+     * @param args - Native open arguments supplied by the test.
+     */
     open(...args: unknown[]) {
       this.openArgs = args
     }
+    /**
+     * Synchronously emits the load event to exercise XHR response capture.
+     */
     send() {
       this.dispatchEvent(new Event('load'))
     }
   }
   const window = {
+    /**
+     * Returns the original promise so tests can check that capture preserves its identity.
+     *
+     * @returns The promise resolving to the supplied response.
+     */
     fetch: () => promise,
+    /**
+     * Records messages published by the capture script.
+     *
+     * @param message - Payload posted to the simulated page channel.
+     * @returns The number of recorded messages after appending the payload.
+     */
     postMessage: (message: unknown) => messages.push(message),
+    /**
+     * Collects replay listeners for explicit delivery by the test.
+     *
+     * @param _type - Event name accepted but unused by this message-only stub.
+     * @param listener - Callback registered by the capture entrypoint.
+     * @returns The number of registered replay listeners.
+     */
     addEventListener(_type: string, listener: (event: unknown) => void) {
       return listeners.push(listener)
     },
   }
-  const exports: { default?: { main: () => void } } = {}
+  const exports: {
+    /**
+     * Content-script definition exported by the transpiled capture entrypoint.
+     */
+    default?: {
+      /**
+       * Capture initializer invoked in the simulated page environment.
+       */
+      main: () => void
+    }
+  } = {}
   const source = readFileSync(
     new URL('../entrypoints/capture.content.ts', import.meta.url),
     'utf8',
@@ -70,12 +118,27 @@ function createHarness(response: Response) {
     Request,
     XMLHttpRequest: MockXhr,
     location: { href: 'https://x.com/home', origin: 'https://x.com' },
+    /**
+     * Resolves capture dependencies to the actual parsing helpers and a WXT stub.
+     *
+     * @param id - Module identifier requested by the transpiled capture script.
+     * @returns The corresponding fixture or application module.
+     * @throws When the script imports an unexpected module.
+     */
     require(id: string) {
       if (id === '@ntnyq/utils') {
         return { safeParse }
       }
       if (id === '#imports') {
-        return { defineContentScript: (definition: unknown) => definition }
+        return {
+          /**
+           * Preserves the content-script definition for explicit initialization.
+           *
+           * @param definition - Definition supplied by the capture entrypoint.
+           * @returns The unchanged content-script definition.
+           */
+          defineContentScript: (definition: unknown) => definition,
+        }
       }
       if (id === '~/constants/video') {
         return constants

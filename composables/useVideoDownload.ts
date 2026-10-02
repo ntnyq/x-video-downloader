@@ -8,6 +8,12 @@ export function useVideoDownload() {
   const message = shallowRef('')
   const hasError = shallowRef(false)
 
+  /**
+   * Requests a single download and updates the pending, success, and error state.
+   *
+   * @param request - Validated request for the selected MP4 version.
+   * @returns True when queued, false on failure, or undefined while another request is pending.
+   */
   async function download(request: DownloadRequest) {
     if (isPending.value) {
       return
@@ -35,5 +41,6 @@ export function useVideoDownload() {
       isPending.value = false
     }
   }
+
   return { isPending, message, hasError, download }
 }

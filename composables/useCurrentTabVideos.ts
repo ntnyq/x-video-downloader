@@ -9,6 +9,12 @@ export function useCurrentTabVideos() {
   let tabId: number | undefined
   let isRefreshing = false
 
+  /**
+   * Refreshes the active X tab's captured videos while avoiding overlapping requests.
+   * Failures update the localized request error and always release the loading state.
+   *
+   * @returns A promise that settles after the refresh, or immediately when unavailable or busy.
+   */
   async function refresh() {
     if (tabId === undefined || isRefreshing) {
       return
@@ -34,6 +40,8 @@ export function useCurrentTabVideos() {
     }
   }
 
+  const { pause } = useIntervalFn(refresh, 1500)
+
   onMounted(async () => {
     try {
       const [tab] = await browser.tabs.query({
@@ -52,7 +60,7 @@ export function useCurrentTabVideos() {
       isLoading.value = false
     }
   })
-  const { pause } = useIntervalFn(refresh, 1500)
   onUnmounted(pause)
+
   return { snapshot, isLoading, requestError, refresh }
 }

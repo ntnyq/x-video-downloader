@@ -3,10 +3,21 @@
 import { defineESLintConfig } from '@ntnyq/eslint-config'
 
 export default defineESLintConfig(
-  { oxfmt: true, prettier: false, svgo: true },
+  {
+    oxfmt: true,
+    prettier: false,
+    svgo: true,
+    vue: {
+      vuePerfectionist: {
+        overrides: {},
+      },
+    },
+  },
   {
     // Unknown JSON fields require bracket access with our strict tsconfig.
     files: ['**/*.ts'],
-    rules: { 'dot-notation': 'off' },
+    rules: {
+      'dot-notation': 'off',
+    },
   },
 )

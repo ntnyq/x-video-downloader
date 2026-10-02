@@ -10,11 +10,45 @@ import { createDownloadManager } from './downloadManager'
 
 export default defineBackground(() => {
   const manager = createDownloadManager({
+    /**
+     * Reads the stored download records through the extension storage adapter.
+     *
+     * @returns A promise resolving to the persisted records.
+     * @throws When reading extension storage fails.
+     */
     readRecords: () => downloadRecords.getValue(),
+    /**
+     * Persists the manager's latest owned-download snapshot.
+     *
+     * @param records - Complete set of owned records to store.
+     * @returns A promise resolving after the storage write.
+     * @throws When writing extension storage fails.
+     */
     writeRecords: records => downloadRecords.setValue(records),
     readPreferences: getDownloadPreferences,
+    /**
+     * Forwards validated save options to the native downloads API.
+     *
+     * @param options - Media URL and filename settings selected by the manager.
+     * @returns The browser identifier of the new download.
+     * @throws When the native API rejects the request.
+     */
     download: options => browser.downloads.download(options),
+    /**
+     * Looks up a native download for the manager's ownership checks.
+     *
+     * @param id - Browser download identifier to query.
+     * @returns Matching native download records.
+     * @throws When the native search fails.
+     */
     search: id => browser.downloads.search({ id }),
+    /**
+     * Forwards cancellation of an owned download to the browser.
+     *
+     * @param id - Browser download identifier already checked by the manager.
+     * @returns A promise resolving after cancellation is accepted.
+     * @throws When the native cancellation fails.
+     */
     cancel: id => browser.downloads.cancel(id),
   })
 
@@ -44,6 +78,12 @@ export default defineBackground(() => {
         })
         return
       }
+      /**
+       * Validates a trusted sender's message payload and dispatches the requested operation.
+       *
+       * @returns The operation response, an invalid-request result, or undefined for a non-object payload.
+       * @throws When a manager operation fails; the outer listener converts it to an error response.
+       */
       async function handleMessage() {
         if (!isRecord(message)) {
           return

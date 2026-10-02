@@ -15,6 +15,13 @@ const URL_HD =
 const URL_SD = 'https://video.twimg.com/ext_tw_video/1/pu/vid/640x360/low.mp4'
 const URL_HLS = 'https://video.twimg.com/ext_tw_video/1/pu/pl/master.m3u8'
 
+/**
+ * Creates a nested X response fixture with MP4 and HLS video versions.
+ *
+ * @param id - String post identifier used in both modern and legacy response fields.
+ * @param type - Media kind to exercise, defaulting to video.
+ * @returns A post response object suitable for extraction and normalization tests.
+ */
 export function tweet(id: string, type = 'video') {
   return {
     rest_id: id,

@@ -13,6 +13,7 @@ export function useVideoSelection(
 ) {
   const selectedUrls = shallowRef<Record<string, string>>({})
   const excludedIds = shallowRef<string[]>([])
+
   const rows = computed(() =>
     toValue(post).media.map((media, index) => ({
       media,
@@ -37,19 +38,46 @@ export function useVideoSelection(
       && downloadableCount.value === selectedCount.value,
   )
 
+  /**
+   * Stores a manual quality selection for one video.
+   *
+   * @param id - Identifier of the media entry within the current post.
+   * @param url - Selected MP4 URL to prefer over the saved quality setting.
+   */
   function setUrl(id: string, url: string) {
     selectedUrls.value = { ...selectedUrls.value, [id]: url }
   }
+
+  /**
+   * Includes or excludes one video from the batch selection.
+   *
+   * @param id - Identifier of the media entry to update.
+   * @param checked - Whether the video should be included in the batch.
+   */
   function setChecked(id: string, checked: boolean) {
     excludedIds.value = checked
       ? excludedIds.value.filter(value => value !== id)
       : unique([...excludedIds.value, id])
   }
+
+  /**
+   * Includes all downloadable videos or excludes every media entry in the post.
+   *
+   * @param checked - Whether all available videos should be selected.
+   */
   function selectAll(checked: boolean) {
     excludedIds.value = checked
       ? []
       : toValue(post).media.map(media => media.id)
   }
+
+  /**
+   * Builds download requests for the selected batch or one specified media position.
+   *
+   * @param index - Optional one-based position; omitted to use the checked batch selection.
+   * @param highest - Whether to override each chosen version with the highest quality.
+   * @returns Requests for matching rows that have a downloadable MP4 version.
+   */
   function requests(index?: number, highest = false) {
     return rows.value.flatMap(row => {
       if (index === undefined ? !row.checked : row.index !== index) {
@@ -63,6 +91,7 @@ export function useVideoSelection(
         : []
     })
   }
+
   watch(
     () => toValue(post).id,
     () => {
@@ -70,6 +99,7 @@ export function useVideoSelection(
       excludedIds.value = []
     },
   )
+
   return {
     rows,
     selectedCount,

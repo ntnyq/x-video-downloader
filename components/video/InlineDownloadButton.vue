@@ -7,10 +7,22 @@ import {
 } from '~/utils/preferences'
 import type { VideoPost } from '~/types/video'
 
-const props = defineProps<{ post?: VideoPost }>()
-const emit = defineEmits<{ open: [] }>()
+const props = defineProps<{
+  /**
+   * Captured post for the inline button, when its video data is available.
+   */
+  post?: VideoPost
+}>()
+const emit = defineEmits<{
+  /**
+   * Opens the floating panel to inspect or select the post videos.
+   */
+  open: []
+}>()
+
 const { preferences, isReady, preferenceError } = useDownloadPreferences()
 const { isPending, message, hasError, download } = useVideoDownload()
+
 const downloadable = computed(
   () =>
     props.post?.media.flatMap((media, index) => {
@@ -31,6 +43,13 @@ const quickLabel = computed(() =>
       : i18n.t('detectVideos'),
 )
 
+/**
+ * Handles a trusted quick-download click using the saved quality preference.
+ * The panel opens for ambiguous media selection or after a successful single download.
+ *
+ * @param event - User click used to verify that the action is trusted.
+ * @returns A promise resolving after the click has been handled.
+ */
 async function handleQuick(event: MouseEvent) {
   if (!event.isTrusted || isPending.value) {
     return

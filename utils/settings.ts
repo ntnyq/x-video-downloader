@@ -18,6 +18,12 @@ export const downloadRecords = storage.defineItem<DownloadRecord[]>(
   { fallback: [] },
 )
 
+/**
+ * Reads all download settings and normalizes invalid or missing stored values.
+ *
+ * @returns A promise resolving to the effective download preferences.
+ * @throws When reading any setting from extension storage fails.
+ */
 export async function getDownloadPreferences() {
   const [saveAs, quality, filenameTemplate] = await Promise.all([
     saveAsSetting.getValue(),

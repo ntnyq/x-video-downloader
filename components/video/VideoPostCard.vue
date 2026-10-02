@@ -6,7 +6,13 @@ import DownloadProgress from './DownloadProgress.vue'
 import VideoMediaRow from './VideoMediaRow.vue'
 import type { VideoPost } from '~/types/video'
 
-const props = defineProps<{ post: VideoPost }>()
+const props = defineProps<{
+  /**
+   * Captured post whose videos, selections, and download progress are displayed.
+   */
+  post: VideoPost
+}>()
+
 const { preferences, isReady, preferenceError } = useDownloadPreferences()
 const {
   rows,
@@ -31,14 +37,30 @@ const {
   start,
   action,
 } = usePostDownloads(() => props.post.id)
+
 const isDisabled = computed(() => !isReady.value || isPending.value)
 
+/**
+ * Starts the selected batch or a single video after checking user intent and readiness.
+ *
+ * @param event - Click event that must originate from a trusted user interaction.
+ * @param index - Optional one-based media position; omitted to download the selected batch.
+ * @param highest - Whether to override the selected quality with the highest available version.
+ */
 function handleDownload(event: MouseEvent, index?: number, highest = false) {
   if (!event.isTrusted || isDisabled.value) {
     return
   }
   start(requests(index, highest))
 }
+
+/**
+ * Forwards a trusted cancellation or retry action to the post download controller.
+ *
+ * @param id - Browser download identifier targeted by the action.
+ * @param operation - Whether to cancel the download or retry it.
+ * @param event - Click event used to verify a trusted user interaction.
+ */
 function handleAction(
   id: number,
   operation: 'cancel' | 'retry',
@@ -48,6 +70,12 @@ function handleAction(
     action(id, operation)
   }
 }
+
+/**
+ * Applies the select-all checkbox state to every downloadable video.
+ *
+ * @param event - Change event expected from the select-all checkbox.
+ */
 function handleSelectAll(event: Event) {
   if (event.target instanceof HTMLInputElement) {
     selectAll(event.target.checked)

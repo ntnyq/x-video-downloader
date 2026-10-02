@@ -6,7 +6,13 @@ import type { DownloadRequest, VideoPost, VideoVariant } from '../types/video'
 export const DEFAULT_FILENAME_TEMPLATE =
   '{author}_{date}_{postId}_{index}_{quality}'
 export const QUALITY_OPTIONS: Array<{
+  /**
+   * Stored quality preference represented by this option.
+   */
   value: QualityPreference
+  /**
+   * Translation key used to display the quality option.
+   */
   label: 'qualityHighest' | 'quality1080' | 'quality720' | 'qualitySmallest'
 }> = [
   { value: 'highest', label: 'qualityHighest' },
@@ -22,12 +28,24 @@ const FILENAME_TOKENS = new Set([
   'quality',
 ])
 
+/**
+ * Resolves a stored quality value to a supported preference.
+ *
+ * @param value - Untrusted quality value from storage or a form control.
+ * @returns The supported preference, falling back to highest quality.
+ */
 export function normalizeQuality(value: unknown): QualityPreference {
   return (
     QUALITY_OPTIONS.find(option => option.value === value)?.value ?? 'highest'
   )
 }
 
+/**
+ * Checks filename length, path safety, and supported replacement tokens.
+ *
+ * @param value - User-entered filename template.
+ * @returns An empty string when valid, or the translation key for the first error.
+ */
 export function validateFilenameTemplate(
   value: string,
 ):
@@ -54,6 +72,12 @@ export function validateFilenameTemplate(
   return ''
 }
 
+/**
+ * Validates stored preferences and supplies safe defaults for invalid fields.
+ *
+ * @param value - Untrusted preferences read from extension storage.
+ * @returns Preferences with a valid quality, filename template, and save-dialog flag.
+ */
 export function normalizePreferences(value: unknown): DownloadPreferences {
   const input = isRecord(value) ? value : {}
   const template = input['filenameTemplate']
@@ -68,8 +92,12 @@ export function normalizePreferences(value: unknown): DownloadPreferences {
 }
 
 /**
- * For portrait videos, the shorter edge determines the 720p / 1080p class.
- * If no variant fits the cap, use the smallest known resolution.
+ * Selects a normalized MP4 version according to the saved quality preference.
+ * Portrait caps use the shorter edge; if no known resolution fits, the smallest is used.
+ *
+ * @param variants - Available versions, which are normalized without mutating the input.
+ * @param preference - Highest, smallest, or a maximum short-edge resolution.
+ * @returns The selected version, or undefined when no valid MP4 version exists.
  */
 export function selectPreferredVariant(
   variants: VideoVariant[],
@@ -98,6 +126,14 @@ export function selectPreferredVariant(
   )
 }
 
+/**
+ * Builds a single-video request with the post metadata needed for filenames.
+ *
+ * @param post - Post that owns the selected video.
+ * @param mediaIndex - One-based position of the video within the post.
+ * @param variant - Selected normalized MP4 version.
+ * @returns The message payload for starting the selected download.
+ */
 export function createDownloadRequest(
   post: VideoPost,
   mediaIndex: number,
@@ -113,6 +149,14 @@ export function createDownloadRequest(
   }
 }
 
+/**
+ * Expands a filename template and produces a safe, bounded MP4 basename.
+ * Invalid templates and missing metadata use defaults; the stem is capped at 200 UTF-8 bytes.
+ *
+ * @param request - Validated download request with optional post metadata.
+ * @param template - Filename pattern containing supported replacement tokens.
+ * @returns A sanitized filename ending in .mp4 with no directory segments.
+ */
 export function buildFilename(
   request: DownloadRequest,
   template: string,
@@ -151,6 +195,13 @@ export function buildFilename(
   return `${safe.trimEnd().replace(/\.+$/, '')}.mp4`
 }
 
+/**
+ * Formats byte counts using binary B, KB, and MB thresholds.
+ *
+ * @param bytes - Byte count; negative or non-finite values indicate an unknown size.
+ * @param unknownLabel - Localized text to display when the size is unknown.
+ * @returns The formatted size or the supplied unknown-size label.
+ */
 export function formatBytes(
   bytes: number,
   unknownLabel = 'Unknown size',

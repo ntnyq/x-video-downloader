@@ -12,6 +12,7 @@ export const useDownloadPreferences = createSharedComposable(() => {
   const isReady = shallowRef(false)
   const preferenceError = shallowRef('')
   const changed = new Set<string>()
+
   const stops = [
     saveAsSetting.watch(saveAs => {
       changed.add('saveAs')
@@ -48,7 +49,9 @@ export const useDownloadPreferences = createSharedComposable(() => {
     .catch(() => {
       preferenceError.value = i18n.t('preferencesReadFailed')
     })
+
   onScopeDispose(() => stops.forEach(stop => stop()))
+
   return {
     preferences: readonly(preferences),
     isReady: readonly(isReady),

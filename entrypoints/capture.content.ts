@@ -9,10 +9,20 @@ export default defineContentScript({
   matches: X_MATCHES,
   runAt: 'document_start',
   world: 'MAIN',
+  /**
+   * Installs page-world response observers and announces readiness to the isolated script.
+   * Native fetch promises and XHR receivers are preserved while capture remains best-effort.
+   */
   main() {
     const posts = new Map<string, VideoPost>()
     const xhrUrls = new WeakMap<XMLHttpRequest, string>()
 
+    /**
+     * Checks that a request targets an X/Twitter API endpoint outside direct messages.
+     *
+     * @param input - Absolute or page-relative request URL.
+     * @returns Whether the response is eligible for public post-video extraction.
+     */
     function isPostResponse(input: string) {
       try {
         const url = new URL(input, location.href)
@@ -26,6 +36,11 @@ export default defineContentScript({
       }
     }
 
+    /**
+     * Extracts response videos, updates the bounded replay cache, and posts them to the page.
+     *
+     * @param payload - Parsed JSON response body from an eligible fetch or XHR request.
+     */
     function publish(payload: unknown) {
       for (const post of extractVideoPosts(payload)) {
         posts.delete(post.id)
@@ -44,6 +59,13 @@ export default defineContentScript({
     }
 
     const originalFetch = window.fetch
+    /**
+     * Observes eligible JSON responses without replacing the native fetch promise.
+     *
+     * @param args - Request input and options forwarded unchanged to native fetch.
+     * @returns The original fetch promise, including its native rejection behavior.
+     * @throws When the native fetch invocation throws synchronously.
+     */
     window.fetch = function (...args) {
       const promise = Reflect.apply(originalFetch, this, args)
       const input = args[0]
@@ -68,6 +90,14 @@ export default defineContentScript({
 
     const originalOpen = XMLHttpRequest.prototype.open
     const originalSend = XMLHttpRequest.prototype.send
+    /**
+     * Records the request URL while preserving the native XHR receiver and arguments.
+     *
+     * @param method - HTTP method passed to the native open operation.
+     * @param url - Request URL retained for response eligibility checks.
+     * @param rest - Remaining native open arguments forwarded without modification.
+     * @throws When the native open operation rejects its arguments or current state.
+     */
     XMLHttpRequest.prototype.open = function (
       method,
       url,
@@ -80,6 +110,12 @@ export default defineContentScript({
       xhrUrls.set(this, String(url))
       return Reflect.apply(originalOpen, this, [method, url, ...rest])
     }
+    /**
+     * Observes an eligible XHR response after load without changing native sending.
+     *
+     * @param args - Native send arguments, including the optional request body.
+     * @throws When the native send operation fails for the current request state.
+     */
     XMLHttpRequest.prototype.send = function (...args) {
       if (isPostResponse(xhrUrls.get(this) ?? '')) {
         this.addEventListener(

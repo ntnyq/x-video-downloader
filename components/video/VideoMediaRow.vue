@@ -3,32 +3,66 @@ import { formatVariant } from '~/utils/video'
 import type { VideoMedia, VideoVariant } from '~/types/video'
 
 interface Props {
-  /** Available versions of this video. */
+  /**
+   * Available MP4 versions and HLS detection state for this video.
+   */
   media: VideoMedia
-  /** One-based position in the post. */
+  /**
+   * One-based position of this video within the post.
+   */
   index: number
-  /** Effective manual choice or saved quality preference. */
+  /**
+   * Effective manual quality choice or version selected by the saved preference.
+   */
   variant?: VideoVariant
-  /** Whether this video is included in the batch. */
+  /**
+   * Whether this video is included in the batch download.
+   */
   checked: boolean
-  /** Whether the post has multiple downloadable videos. */
+  /**
+   * Whether the post has multiple downloadable videos to select from.
+   */
   selectable: boolean
-  /** Whether a save operation is pending. */
+  /**
+   * Whether download and selection controls are temporarily unavailable.
+   */
   disabled: boolean
 }
+
 defineProps<Props>()
 const emit = defineEmits<{
+  /**
+   * Reports the MP4 URL chosen in the quality selector.
+   */
   select: [url: string]
+  /**
+   * Reports whether this video should be included in the batch.
+   */
   check: [checked: boolean]
+  /**
+   * Requests a single-video download with the originating click event.
+   */
   download: [event: MouseEvent]
 }>()
+
 const selectId = useId()
 
+/**
+ * Emits the selected MP4 URL when the quality control changes.
+ *
+ * @param event - Change event expected from the quality select element.
+ */
 function handleSelect(event: Event) {
   if (event.target instanceof HTMLSelectElement) {
     emit('select', event.target.value)
   }
 }
+
+/**
+ * Emits the video's batch-selection state when its checkbox changes.
+ *
+ * @param event - Change event expected from the selection checkbox.
+ */
 function handleCheck(event: Event) {
   if (event.target instanceof HTMLInputElement) {
     emit('check', event.target.checked)

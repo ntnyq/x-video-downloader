@@ -13,28 +13,83 @@ const request: DownloadRequest = {
   createdAt: '2026-10-02T12:00:00.000Z',
 }
 
+/**
+ * Creates an in-memory download manager with controllable native state and storage.
+ *
+ * @returns The manager, adapters, recorded calls, native records, and a failure selector.
+ */
 function setup() {
   let saved: DownloadRecord[] = []
   let nextId = 1
   let failureUrl = ''
-  const calls: Array<{ url: string; filename: string; saveAs: boolean }> = []
+  const calls: Array<{
+    /**
+     * MP4 URL passed to the mocked native download operation.
+     */
+    url: string
+    /**
+     * Requested or simulated native filename used in filename assertions.
+     */
+    filename: string
+    /**
+     * Whether the mocked browser should be asked to open a save dialog.
+     */
+    saveAs: boolean
+  }> = []
   const items = new Map<
     number,
     {
+      /**
+       * Synthetic browser download identifier assigned by the fixture.
+       */
       id: number
+      /**
+       * Mutable native transfer state used to exercise manager state normalization.
+       */
       state: 'in_progress' | 'complete' | 'interrupted'
+      /**
+       * Simulated number of bytes received by the download.
+       */
       bytesReceived: number
+      /**
+       * Simulated expected byte count, with negative values representing unknown size.
+       */
       totalBytes: number
+      /**
+       * Requested or simulated native filename used in filename assertions.
+       */
       filename?: string
+      /**
+       * Optional native error code used to simulate interruption or cancellation.
+       */
       error?: string
+      /**
+       * Whether the simulated native download is paused.
+       */
       paused?: boolean
     }
   >()
   const ports = {
+    /**
+     * Reads an isolated copy of the fixture's persisted download records.
+     *
+     * @returns The cloned persisted records.
+     */
     readRecords: async () => structuredClone(saved),
+    /**
+     * Persists an isolated snapshot in the fixture's in-memory storage.
+     *
+     * @param records - Owned records written by the manager.
+     * @returns A promise resolving after the fixture snapshot is replaced.
+     */
     async writeRecords(records: DownloadRecord[]) {
       saved = structuredClone(records)
     },
+    /**
+     * Provides deterministic download preferences for manager assertions.
+     *
+     * @returns Preferences using metadata tokens, highest quality, and no save dialog.
+     */
     async readPreferences() {
       return {
         saveAs: false,
@@ -42,9 +97,28 @@ function setup() {
         filenameTemplate: '{author}_{date}_{postId}_{index}_{quality}',
       }
     },
+    /**
+     * Records a native download attempt and creates an active fixture record.
+     *
+     * @param options - Requested media URL, filename, and save-dialog setting.
+     * @param options.url - MP4 URL used to match the configured failure case.
+     * @param options.filename - Requested basename recorded for filename assertions.
+     * @param options.saveAs - Save-dialog preference recorded for assertions.
+     * @returns The newly assigned synthetic download identifier.
+     * @throws With USER_CANCELED when the URL matches the fixture's failure selector.
+     */
     async download(options: {
+      /**
+       * MP4 URL passed to the mocked native download operation.
+       */
       url: string
+      /**
+       * Requested or simulated native filename used in filename assertions.
+       */
       filename: string
+      /**
+       * Whether the mocked browser should be asked to open a save dialog.
+       */
       saveAs: boolean
     }) {
       calls.push(options)
@@ -60,7 +134,19 @@ function setup() {
       })
       return id
     },
+    /**
+     * Looks up a synthetic native download by ID.
+     *
+     * @param id - Browser identifier requested by the manager.
+     * @returns The matching fixture record, or an empty array after it has been erased.
+     */
     search: async (id: number) => (items.has(id) ? [items.get(id)!] : []),
+    /**
+     * Marks an existing native fixture record as interrupted by user cancellation.
+     *
+     * @param id - Identifier of the fixture download to cancel.
+     * @returns A promise resolving after the simulated state update.
+     */
     async cancel(id: number) {
       const item = items.get(id)
       if (item) {
@@ -74,6 +160,11 @@ function setup() {
     ports,
     items,
     calls,
+    /**
+     * Selects a media URL whose subsequent download attempts should be rejected.
+     *
+     * @param url - MP4 URL to simulate user cancellation for.
+     */
     fail(url: string) {
       failureUrl = url
     },
@@ -190,6 +281,13 @@ test('waits for each save dialog before starting the next batch item', async () 
   const started: string[] = []
   const manager = createDownloadManager({
     ...harness.ports,
+    /**
+     * Holds the first save operation until released to verify sequential batch starts.
+     *
+     * @param options - Download options forwarded to the underlying fixture adapter.
+     * @returns The identifier produced by the underlying download adapter.
+     * @throws When the underlying fixture download fails.
+     */
     async download(options) {
       started.push(options.url)
       if (started.length === 1) {
@@ -223,6 +321,12 @@ test('keeps actual downloads manageable when a persistence write fails', async (
   const harness = setup()
   const manager = createDownloadManager({
     ...harness.ports,
+    /**
+     * Simulates a storage failure after a native download has already started.
+     *
+     * @returns A rejected storage-write promise.
+     * @throws Always, with the storage-full fixture error.
+     */
     async writeRecords() {
       throw new Error('storage full')
     },

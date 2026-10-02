@@ -6,11 +6,22 @@ import {
 } from '~/utils/preferences'
 import { filenameSetting } from '~/utils/settings'
 
-const props = defineProps<{ template: string; disabled: boolean }>()
+const props = defineProps<{
+  /**
+   * Persisted filename template used to initialize and synchronize the draft.
+   */
+  template: string
+  /**
+   * Whether the parent settings view currently prevents saving.
+   */
+  disabled: boolean
+}>()
+
 const draft = shallowRef(props.template)
 const isSaving = shallowRef(false)
 const statusMessage = shallowRef('')
 const saveError = shallowRef('')
+
 const validationError = computed(() => validateFilenameTemplate(draft.value))
 const preview = computed(() =>
   buildFilename(
@@ -25,17 +36,13 @@ const preview = computed(() =>
     draft.value,
   ),
 )
-watch(
-  () => props.template,
-  value => {
-    draft.value = value
-  },
-)
-watch(draft, () => {
-  statusMessage.value = ''
-  saveError.value = ''
-})
 
+/**
+ * Saves a trimmed filename template when validation and readiness allow it.
+ * Storage failures are displayed in the form and always release the saving state.
+ *
+ * @returns A promise resolving after the save attempt, or immediately when saving is blocked.
+ */
 async function save() {
   if (validationError.value || props.disabled || isSaving.value) {
     return
@@ -50,6 +57,17 @@ async function save() {
     isSaving.value = false
   }
 }
+
+watch(
+  () => props.template,
+  value => {
+    draft.value = value
+  },
+)
+watch(draft, () => {
+  statusMessage.value = ''
+  saveError.value = ''
+})
 </script>
 
 <template>

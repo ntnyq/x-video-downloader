@@ -1,7 +1,10 @@
 import { i18n } from '#i18n'
 
 /**
- * Translate application error codes while preserving native browser details.
+ * Translates application error codes while preserving native browser details.
+ *
+ * @param error - Application code, browser error message, or unknown failure value.
+ * @returns A localized message, the native error text, or a generic failure label.
  */
 export function localizeDownloadError(error: unknown): string {
   switch (error) {
@@ -23,7 +26,8 @@ export function localizeDownloadError(error: unknown): string {
 }
 
 /**
- * Use the resolved translation language, including the English fallback.
+ * Sets the document language and title using the resolved translation locale.
+ * The resolved locale includes the English fallback when a language is unavailable.
  */
 export function localizeDocument() {
   document.documentElement.lang = i18n.t('uiLanguage')

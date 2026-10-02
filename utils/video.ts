@@ -2,17 +2,32 @@ import { orderBy } from '@ntnyq/utils'
 import type { VideoMedia, VideoPost, VideoVariant } from '../types/video'
 
 /**
- * Page messages must be non-null objects, excluding arrays and functions.
- * The `@ntnyq/utils` isRecord guard also accepts functions.
+ * Checks that a page message is a non-null object, excluding arrays and functions.
+ * The guard from `@ntnyq/utils` also accepts functions, so it cannot serve this boundary.
+ *
+ * @param value - Untrusted value received from a page or browser message.
+ * @returns Whether the value can be inspected as a string-keyed object.
  */
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+/**
+ * Checks that a post identifier is a string containing 1 to 25 decimal digits.
+ *
+ * @param value - Candidate identifier from an external payload.
+ * @returns Whether the value is a supported post identifier.
+ */
 export function isPostId(value: unknown): value is string {
   return typeof value === 'string' && /^\d{1,25}$/.test(value)
 }
 
+/**
+ * Checks for an HTTPS X or Twitter URL without credentials or a non-default port.
+ *
+ * @param value - Candidate page URL.
+ * @returns Whether the URL belongs to X, Twitter, or one of their subdomains.
+ */
 export function isXUrl(value: unknown): value is string {
   if (typeof value !== 'string') {
     return false
@@ -31,6 +46,12 @@ export function isXUrl(value: unknown): value is string {
   }
 }
 
+/**
+ * Extracts a post identifier from an allowed X or Twitter status URL.
+ *
+ * @param value - Candidate URL, including optional photo or video path suffixes.
+ * @returns The string post identifier, or undefined for an unsupported URL.
+ */
 export function getPostId(value: unknown): string | undefined {
   if (!isXUrl(value)) {
     return
@@ -40,6 +61,13 @@ export function getPostId(value: unknown): string | undefined {
   )?.[1]
 }
 
+/**
+ * Validates a video.twimg.com media URL and removes its fragment.
+ *
+ * @param value - Untrusted media URL, limited to 8192 characters.
+ * @param extension - Required file extension; defaults to MP4, with HLS used for detection.
+ * @returns The normalized HTTPS URL, or undefined when validation fails.
+ */
 export function normalizeMediaUrl(
   value: unknown,
   extension: 'mp4' | 'm3u8' = 'mp4',
@@ -64,6 +92,13 @@ export function normalizeMediaUrl(
   } catch {}
 }
 
+/**
+ * Normalizes up to 32 media versions and deduplicates them by MP4 URL.
+ * Later duplicates replace metadata; results are sorted by pixels and then bitrate.
+ *
+ * @param value - Untrusted array of media versions.
+ * @returns Valid MP4 versions, or an empty array when none can be used.
+ */
 export function normalizeVariants(value: unknown): VideoVariant[] {
   if (!Array.isArray(value)) {
     return []
@@ -94,6 +129,12 @@ export function normalizeVariants(value: unknown): VideoVariant[] {
   )
 }
 
+/**
+ * Validates a captured post and retains up to 16 video or HLS media entries.
+ *
+ * @param value - Untrusted post payload with an identifier and media array.
+ * @returns The normalized post, or undefined when no valid video media remains.
+ */
 export function normalizePost(value: unknown): VideoPost | undefined {
   if (
     !isRecord(value)
@@ -132,8 +173,20 @@ export function normalizePost(value: unknown): VideoPost | undefined {
   }
 }
 
+/**
+ * Validates optional author and creation-time metadata for posts and requests.
+ *
+ * @param value - Object containing candidate author and createdAt fields.
+ * @returns Valid metadata only, with creation time converted to ISO 8601.
+ */
 export function normalizePostMetadata(value: Record<string, unknown>): {
+  /**
+   * Validated author screen name without the @ prefix.
+   */
   author?: string
+  /**
+   * Validated post creation time normalized to ISO 8601.
+   */
   createdAt?: string
 } {
   const author = value['author']
@@ -151,7 +204,11 @@ export function normalizePostMetadata(value: Record<string, unknown>): {
 }
 
 /**
- * Keep quoted/retweeted media attached to their own string IDs.
+ * Traverses a response payload while bounding work and avoiding cyclic objects.
+ * Quoted and retweeted videos remain attached to their own string post identifiers.
+ *
+ * @param payload - Parsed response body that may contain nested posts.
+ * @returns Deduplicated video posts with available author and creation-time metadata.
  */
 export function extractVideoPosts(payload: unknown): VideoPost[] {
   const posts = new Map<string, VideoPost>()
@@ -223,6 +280,13 @@ export function extractVideoPosts(payload: unknown): VideoPost[] {
   return [...posts.values()]
 }
 
+/**
+ * Formats the resolution and optional bitrate of an MP4 version for display.
+ *
+ * @param variant - Normalized video version to describe.
+ * @param originalLabel - Localized fallback when dimensions are unknown.
+ * @returns A resolution or fallback label, followed by Mbps when bitrate is available.
+ */
 export function formatVariant(
   variant: VideoVariant,
   originalLabel = 'Original MP4',

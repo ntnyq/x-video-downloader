@@ -15,6 +15,12 @@ export function usePostDownloads(postId: MaybeRefOrGetter<string>) {
   let isRefreshing = false
   let isDisposed = false
 
+  /**
+   * Loads and validates download progress for the current post.
+   * Responses for a previous post or disposed scope cannot replace the current list.
+   *
+   * @returns A promise that settles after the refresh attempt or an overlapping-call skip.
+   */
   async function refresh() {
     if (isRefreshing) {
       return
@@ -65,6 +71,13 @@ export function usePostDownloads(postId: MaybeRefOrGetter<string>) {
     }
   }
 
+  /**
+   * Starts selected downloads and reports individual batch failures in the UI.
+   * The progress list is refreshed after every attempted batch.
+   *
+   * @param requests - Validated requests for the selected videos in one post.
+   * @returns A promise resolving after the batch attempt and progress refresh.
+   */
   async function start(requests: DownloadRequest[]) {
     if (!requests.length || isPending.value) {
       return
@@ -121,6 +134,14 @@ export function usePostDownloads(postId: MaybeRefOrGetter<string>) {
     }
   }
 
+  /**
+   * Cancels or retries an owned download and refreshes its progress.
+   * Concurrent actions are ignored and browser failures become localized UI errors.
+   *
+   * @param downloadId - Browser identifier of the owned download.
+   * @param action - Whether to cancel the transfer or retry its original request.
+   * @returns A promise resolving after the action attempt and progress refresh.
+   */
   async function action(downloadId: number, action: 'cancel' | 'retry') {
     if (isActionPending.value) {
       return
@@ -162,9 +183,11 @@ export function usePostDownloads(postId: MaybeRefOrGetter<string>) {
     { immediate: true },
   )
   useIntervalFn(refresh, 1000)
+
   onScopeDispose(() => {
     isDisposed = true
   })
+
   return {
     downloads,
     isPending,

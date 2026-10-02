@@ -1,7 +1,12 @@
 <script lang="ts" setup>
 import DownloadSettings from './DownloadSettings.vue'
 
-defineProps<{ welcome?: boolean }>()
+defineProps<{
+  /**
+   * Whether to show the first-install introduction above the settings.
+   */
+  welcome?: boolean
+}>()
 </script>
 
 <template>

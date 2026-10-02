@@ -2,8 +2,26 @@
 import VideoPostCard from './VideoPostCard.vue'
 import type { PageVideos } from '~/types/video'
 
-defineProps<{ snapshot: PageVideos; selectedPostId?: string }>()
-const emit = defineEmits<{ refresh: []; showAll: [] }>()
+defineProps<{
+  /**
+   * Captured videos and response-capture readiness for the current page.
+   */
+  snapshot: PageVideos
+  /**
+   * Post to focus when the panel was opened from an inline button.
+   */
+  selectedPostId?: string
+}>()
+const emit = defineEmits<{
+  /**
+   * Requests another capture replay and scan of the current page.
+   */
+  refresh: []
+  /**
+   * Clears the selected-post filter to show every captured post.
+   */
+  showAll: []
+}>()
 </script>
 
 <template>

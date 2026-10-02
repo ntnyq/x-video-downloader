@@ -27,6 +27,12 @@ for (const locale of LOCALES) {
     const parsed = await parseMessagesFile(
       fileURLToPath(new URL(`../locales/${locale}.yaml`, import.meta.url)),
     )
+    /**
+     * Extracts translation keys and substitution contracts for cross-locale comparison.
+     *
+     * @param messages - Parsed locale messages to inspect.
+     * @returns Comparable key and placeholder signatures in source order.
+     */
     const signatures = (messages: typeof reference) =>
       messages.map(({ key, substitutions, namedSubstitutions }) => ({
         key,
@@ -38,19 +44,40 @@ for (const locale of LOCALES) {
     for (const [key, { message }] of Object.entries(messages)) {
       assert.ok(message.trim(), `${locale}.${key} is empty`)
     }
+    /**
+     * Reads a generated locale message and fails immediately when the key is absent.
+     *
+     * @param key - Translation key requested by the module under test.
+     * @returns The generated message text.
+     * @throws When the locale does not provide the requested message.
+     */
     const t = (key: string) => {
       const message = messages[key]?.message
       assert.ok(message, `Missing ${locale}.${key}`)
       return message
     }
     const exports: {
+      /**
+       * Error formatter exported by the transpiled localization module.
+       *
+       * @param error - Error code or browser text to localize.
+       * @returns The localized or preserved error message.
+       */
       localizeDownloadError?: (error: unknown) => string
+      /**
+       * Updates the document fixture using the selected locale.
+       */
       localizeDocument?: () => void
     } = {}
     const document = { documentElement: { lang: '' }, title: '' }
     runInNewContext(source, {
       exports,
       document,
+      /**
+       * Supplies the current locale's translation stub to the transpiled module.
+       *
+       * @returns An i18n module backed by the test locale's generated messages.
+       */
       require: () => ({ i18n: { t } }),
     })
     assert.ok(exports.localizeDownloadError)

@@ -2,54 +2,50 @@
 
 ## Project Structure & Module Organization
 
-This is a WXT browser extension built with Vue 3 and TypeScript. Browser contexts
-live under `entrypoints/`: `background/`, `content/`, `popup/`, `options/`, and
-`welcome/`. Keep context-specific code within its entrypoint; move shared UI,
-state, and logic to `components/`, `stores/`, `composables/`, or `utils/`.
-Extension metadata and build behavior are defined in `wxt.config.ts`. Static
-styles and icons belong in `assets/`, translations in `locales/`, declarations
-in `types/`, and project tooling helpers in `scripts/`. Generated output goes to
-`dist/` and should not be edited directly.
+This WXT extension uses Vue 3, TypeScript, and UnoCSS to download X/Twitter videos.
+
+- `entrypoints/`: capture/content scripts, background download management, and popup, options, and welcome pages.
+- `components/video/`: shared UI; `composables/`: reactive download and selection logic.
+- `utils/`, `types/`, `constants/`: validation, preferences, shared types, and constants.
+- `locales/`: five YAML translations; `assets/images/downloader.svg`: source icon.
+- `tests/*.test.ts`: automated tests; `docs/screenshots/`: UI previews.
+- `dist/` and `.wxt/`: generated output; do not edit or commit.
 
 ## Build, Test, and Development Commands
 
-Use the pinned pnpm version from `package.json`.
+Use Node.js LTS and the pnpm version pinned in `package.json`.
 
-- `pnpm install` installs dependencies and runs `wxt prepare`.
-- `pnpm dev` starts Chromium development; `pnpm dev:firefox` targets Firefox.
-- `pnpm build` creates a production Chromium build; use `build:firefox` for
-  Firefox.
-- `pnpm zip` or `pnpm zip:firefox` creates distributable archives.
-- `pnpm typecheck` runs `vue-tsc` without emitting files.
-- `pnpm lint` checks ESLint rules.
-- `pnpm format:check` verifies oxfmt formatting; `pnpm format` applies it.
+- `pnpm install`: install dependencies and prepare WXT types.
+- `pnpm dev` / `pnpm dev:firefox`: start browser development sessions.
+- `pnpm build` / `pnpm build:firefox`: build into `dist/chrome-mv3` / `dist/firefox-mv3`.
+- `pnpm zip` / `pnpm zip:firefox`: package distributable archives.
+- `pnpm test`: run Node.js tests through `tsx`.
+- `pnpm typecheck`: check TypeScript and Vue types.
+- `pnpm lint`: run ESLint; `pnpm format`: apply oxfmt; `pnpm format:check`: verify formatting.
 
 ## Coding Style & Naming Conventions
 
-Follow the repository ESLint config and `.oxfmtrc.jsonc`: two-space indentation,
-single quotes, no semicolons, trailing commas, and an 80-column target. Use Vue
-Composition API with `<script setup lang="ts">`. Name Vue components in
-PascalCase (`Navbar.vue`), functions and modules in camelCase, composables with a
-`use` prefix, and constants in uppercase. Prefer existing WXT/Vue auto-imports
-and the `~` root alias. Use UnoCSS utilities and define shared tokens or
-shortcuts in `uno.config.ts`.
+Use two-space indentation, single quotes, no semicolons, and trailing commas. Follow `eslint.config.mjs` and `.oxfmtrc.jsonc`. Use TypeScript, Vue Composition API with `<script lang="ts" setup>`, PascalCase component filenames, and `useXxx.ts` composables. Prefer `@ntnyq/utils` for general utilities. Keep translation keys and placeholders consistent across all locales.
 
 ## Testing Guidelines
 
-No automated test framework or coverage threshold is currently configured.
-Before submitting changes, run `pnpm format:check`, `pnpm lint`, `pnpm
-typecheck`, and `pnpm build`. Manually load the generated extension and exercise
-every affected browser context; test Firefox too when changing WebExtension
-APIs or manifest behavior. If adding tests, use `*.test.ts` beside the subject
-or in a clearly named `tests/` directory, and add the runner command to
-`package.json` and CI.
+Use `node:test` and `node:assert/strict` in `tests/<feature>.test.ts`, with descriptive behavior-based test names. Add regression coverage for parsing, message validation, downloads, preferences, and lifecycle changes. No numeric coverage threshold is configured. Before submitting, run tests, formatting checks, lint, typecheck, and both browser builds. For UI changes, check popup/content interactions and narrow layouts; distinguish mocked browser checks from real X/Firefox verification.
 
 ## Commit & Pull Request Guidelines
 
-Recent history follows concise Conventional Commit subjects such as `feat: bump
-wxt to v0.20.0`, `fix: fix notification api`, and `chore: update`. Use a
-lowercase type (`feat`, `fix`, `chore`, `docs`, or `refactor`) and an imperative,
-focused summary. Pull requests should explain the behavior change, link relevant
-issues, list verification commands and tested browsers, and include screenshots
-or recordings for visible popup, options, content, or welcome-page changes.
-Keep changes scoped and call out new permissions or configuration requirements.
+Follow the history's Conventional Commit prefixes: `feat:`, `fix:`, and `chore:`. Keep commits focused. PRs should describe behavior changes, link relevant issues, list validation performed, and include screenshots for UI changes.
+
+## Security Boundaries
+
+Preserve sender and payload validation. Accept downloads only from HTTPS MP4 URLs on `video.twimg.com`. Capture existing page responses without collecting authentication tokens or bypassing access restrictions.
+
+## Agent Instructions
+
+Follow @/Users/ntnyq/.codex/RTK.md. Prefix shell commands with `rtk`, except `pnpm typecheck`. Use the user-managed pnpm and preserve PATH and Node.js:
+
+```sh
+rtk proxy env PATH="/Users/ntnyq/Library/pnpm/bin:$PATH" pnpm test
+PATH="/Users/ntnyq/Library/pnpm/bin:$PATH" pnpm typecheck
+```
+
+Apply that PATH prefix to every pnpm invocation. Never modify Codex's bundled pnpm or runtime cache.
