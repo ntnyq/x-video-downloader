@@ -25,7 +25,6 @@ export default defineConfig({
   shortcuts: [
     {
       'flex-center': 'flex justify-center items-center',
-      'wh-full': 'w-full h-full',
       'xvd-focus':
         'focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-3',
       'xvd-input':

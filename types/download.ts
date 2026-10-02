@@ -30,14 +30,3 @@ export interface DownloadStatus {
     | 'missing'
     | 'paused'
 }
-
-export interface BatchDownloadRequest {
-  requests: DownloadRequest[]
-  type: 'download-videos'
-}
-
-export interface DownloadActionRequest {
-  action: 'cancel' | 'retry'
-  downloadId: number
-  type: 'download-action'
-}

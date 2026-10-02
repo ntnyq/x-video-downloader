@@ -1,12 +1,13 @@
 import '@unocss/reset/tailwind.css'
 import 'uno.css'
 import { createApp, h, shallowRef } from 'vue'
-import { browser, createShadowRootUi, defineContentScript } from '#imports'
+import { browser, defineContentScript } from '#imports'
 import InlineDownloadButton from '~/components/video/InlineDownloadButton.vue'
 import { X_MATCHES } from '~/constants/video'
 import { isRecord } from '~/utils/video'
 import App from './App.vue'
 import { createPageVideos, getArticlePostId } from './pageVideos'
+import { createDisposableShadowRootUi } from './shadowUi'
 import type { ContentScriptContext } from '#imports'
 
 export default defineContentScript({
@@ -52,7 +53,7 @@ export default defineContentScript({
     if (ctx.isInvalid) {
       return
     }
-    const ui = await createShadowRootUi(ctx, {
+    const ui = await createDisposableShadowRootUi(ctx, {
       name: 'x-video-downloader',
       position: 'inline',
       anchor: document.body,
@@ -82,6 +83,7 @@ export default defineContentScript({
       onRemove: app => app?.unmount(),
     })
     if (ctx.isInvalid) {
+      ui.remove()
       return
     }
     ui.mount()
@@ -91,13 +93,14 @@ export default defineContentScript({
         return
       }
       pending.add(article)
+      let removeButton: (() => void) | undefined
       try {
         const actions = article
           .querySelector(
             '[data-testid="reply"], [data-testid="retweet"], [data-testid="like"]',
           )
           ?.closest('[role="group"]')
-        const button = await createShadowRootUi(ctx, {
+        const button = await createDisposableShadowRootUi(ctx, {
           name: 'x-video-download-button',
           position: 'inline',
           anchor: actions ?? article,
@@ -128,16 +131,19 @@ export default defineContentScript({
           },
           onRemove: app => app?.unmount(),
         })
+        removeButton = () => button.remove()
         if (
           ctx.isInvalid
           || !article.isConnected
           || getArticlePostId(article) !== postId
         ) {
+          removeButton()
           return
         }
         button.mount()
-        controls.set(article, { id: postId, remove: () => button.remove() })
+        controls.set(article, { id: postId, remove: removeButton })
       } catch (error) {
+        removeButton?.()
         console.warn(
           '[X Video Downloader] Could not mount an inline button',
           error,
@@ -178,10 +184,7 @@ export default defineContentScript({
       selectedPostId.value = undefined
     })
     ctx.onInvalidated(() => {
-      ui.remove()
-      for (const control of controls.values()) {
-        control.remove()
-      }
+      // Each UI removes itself through its own invalidation callback.
       controls.clear()
     })
   },

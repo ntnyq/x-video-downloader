@@ -40,6 +40,12 @@ export function createPageVideos(ctx: ContentScriptContext) {
   let scanTimer: number | undefined
   let onScan = () => {}
 
+  function cancelScan() {
+    window.clearTimeout(scanTimer)
+    scanTimer = undefined
+  }
+  ctx.onInvalidated(cancelScan)
+
   function remember(post: VideoPost) {
     cache.delete(post.id)
     cache.set(post.id, post)
@@ -52,7 +58,10 @@ export function createPageVideos(ctx: ContentScriptContext) {
   }
 
   function scan() {
-    scanTimer = undefined
+    cancelScan()
+    if (ctx.isInvalid) {
+      return
+    }
     const visibleIds = new Set<string>()
     const currentPostId = getPostId(location.href)
     if (currentPostId) {
@@ -131,8 +140,9 @@ export function createPageVideos(ctx: ContentScriptContext) {
   }
 
   function scheduleScan() {
-    if (scanTimer === undefined) {
-      scanTimer = ctx.setTimeout(scan, 120)
+    if (scanTimer === undefined && ctx.isValid) {
+      // One page-lifetime cleanup replaces WXT's per-timeout registrations.
+      scanTimer = window.setTimeout(scan, 120)
     }
   }
 

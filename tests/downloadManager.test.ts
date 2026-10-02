@@ -25,6 +25,7 @@ function setup() {
       state: 'in_progress' | 'complete' | 'interrupted'
       bytesReceived: number
       totalBytes: number
+      filename?: string
       error?: string
       paused?: boolean
     }
@@ -107,6 +108,29 @@ test('restores progress from owned records after a background restart', async ()
   item.state = 'complete'
   assert.equal((await reopened.list('123'))[0]?.state, 'complete')
   assert.deepEqual(await reopened.list('999'), [])
+})
+
+test('reports renamed and uniquified native filenames without directory paths', async () => {
+  const { manager, ports, items } = setup()
+  await manager.start(request)
+  const item = items.get(1)!
+  item.filename = '/Users/review/Downloads/renamed-by-user.mp4'
+  assert.equal((await manager.list('123'))[0]?.filename, 'renamed-by-user.mp4')
+
+  const reopened = createDownloadManager(ports)
+  item.filename = String.raw`C:\Users\review\Downloads\video (1).mp4`
+  assert.equal((await reopened.list('123'))[0]?.filename, 'video (1).mp4')
+
+  item.filename = ''
+  assert.equal(
+    (await reopened.list('123'))[0]?.filename,
+    'ntnyq_2026-10-02_123_1_1280x720.mp4',
+  )
+  items.delete(1)
+  assert.equal(
+    (await reopened.list('123'))[0]?.filename,
+    'ntnyq_2026-10-02_123_1_1280x720.mp4',
+  )
 })
 
 test('cancels and retries only owned failed downloads', async () => {

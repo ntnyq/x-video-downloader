@@ -10,6 +10,7 @@ interface NativeDownload {
   state: 'in_progress' | 'complete' | 'interrupted'
   bytesReceived: number
   totalBytes: number
+  filename?: string
   paused?: boolean
   error?: string
 }
@@ -168,7 +169,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
           id: record.id,
           postId,
           mediaIndex: record.request.mediaIndex,
-          filename: record.filename,
+          filename: item?.filename?.split(/[\\/]/).at(-1) || record.filename,
           state,
           bytesReceived: item?.bytesReceived ?? 0,
           totalBytes: item?.totalBytes ?? -1,
