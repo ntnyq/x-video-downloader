@@ -1,18 +1,108 @@
-# eslint yml/sort-keys: off
-
-extensionName: WXT Starter
-extensionDescription: Starter for creating browser extension
-
-placeholder: Placeholder $1
-
-popup:
-  greet: Hello from popup
-
-background:
-  greet: Hello from background
-
-content_script:
-  greet: Hello from content_script
-
-options:
-  greet: Hello from options
+actionFailed: Action failed. Please try again.
+cancel: Cancel
+cancelVideo: Cancel video $1
+chooseSaveLocation: Choose a save location for each download
+closePanel: Close download panel
+confirmEachSave: Confirm a save location for each video in order.
+creatingDownload: Starting download…
+creatingDownloads: Starting downloads ($1). Confirm each save location if prompted…
+creatingSave: Starting download. Confirm the save location if prompted…
+currentPageVideos: Videos on this page
+defaultQuality: Default quality
+detectVideos: Find videos
+downloadCancelled: Download cancelled.
+downloadFailed: Download did not start. Please try again.
+downloadHighest: ↓ Download best quality
+downloadNotice: Progress stays in sync with your browser. Only save content you have permission to download.
+downloadProgress: Download progress
+downloadQueued: Added to your browser’s download list. You can check progress there.
+downloadReload: Download did not start. Reload the page and try again.
+downloadRetried: Download restarted.
+downloadSelected: Download selected videos ($1)
+downloadSettings: Download settings
+downloadVideos: Download videos
+downloadsCreated: 'Downloads started: $1.'
+extensionDescription: Save videos from X with your preferred MP4 quality.
+extensionName: X Video Downloader
+filenameEmpty: Enter a filename template.
+filenameHelp: 'Variables: $1 author, $2 post date (UTC), $3 post ID, $4 video number, $5 resolution. Adds .mp4 automatically. Missing authors or dates use unknown / undated.'
+filenamePreview: Preview (sample post)
+filenameTemplate: Filename template
+filenameTokens: Use only the variables listed below and close every brace.
+filenameTooLong: The template must be 160 characters or fewer.
+filenameUnsafe: "Paths, control characters and these symbols are not allowed: \\ / : * ? \" < > |"
+finishedDownload: This download has already ended.
+foreignDownload: This download was not created by the extension.
+formatsHelp: Supports MP4 videos and GIFs stored as video. HLS-only streams are not supported yet. A blob URL is not a directly downloadable MP4.
+guideDescription: Download settings and getting started
+guideStepOne: Open an X post with a video and wait for the player to load.
+guideStepThree: 'Track progress in the panel, cancel a download, or retry a failed one.'
+guideStepTwo: 'Use the download button to save a single video, or open the panel to choose quality and select multiple videos.'
+guideSteps: Save a video in three steps
+highestSuffix: (best quality)
+hlsUnsupported: This video is only available as HLS segments. Merging them is not supported yet.
+interruptedHelp: 'Download interrupted ($1). Retry, or reload the original post if the link has expired.'
+invalidRequest: Invalid download request. Select the video again.
+invalidSender: Invalid download request. Reload X and try again.
+languageHelp: 'The interface follows your browser language. Available in English, Simplified Chinese, Traditional Chinese, Japanese and Korean.'
+networkError: Network error
+noVideos: No downloadable videos found yet
+noVideosReady: 'Play the video, then choose “Scan again”. If you just installed or updated the extension, reload X.'
+noVideosReload: 'Reload X to connect the extension to the player, then play the video.'
+oneClickDownload: ↓ Download now
+openPostFirst: Open an X post containing a video first.
+openX: Open X
+originalMp4: Original MP4
+pageDisconnected: 'The extension is not connected to this page. Reload X, then open the extension again.'
+panelOptions: Video download options
+popupTagline: Choose the quality. Keep it locally.
+post: Post
+preferencesReadFailed: Could not read download settings. Open the page again.
+preferencesSaved: Download preferences saved.
+privacyHelp: 'The extension reads loaded video information locally. No API key is needed, and posts, cookies and login details are never sent to third-party download services.'
+progressReadFailed: Progress is temporarily unavailable. Check your browser’s download list.
+quality1080: Prefer 1080p
+quality720: Prefer 720p
+qualityAndProgress: Quality / progress
+qualityHelp: Used for quick and batch downloads. Chooses the best resolution within the target; portrait videos use the shorter edge. “Save space” prefers a lower bitrate.
+qualityHighest: Best quality
+qualitySmallest: Save space
+quickDownload: ↓ Quick download
+refresh: Scan again
+resetTemplate: Restore default template
+retry: Retry
+retryUnavailable: 'Only failed, cancelled or removed downloads can be retried.'
+retryVideo: Retry video $1
+saveLocationHelp: 'When off, saves to your default download folder. Batch downloads ask for each video separately.'
+saveTemplate: Save template
+saveVideo: ↓ Save video $1
+saving: Saving…
+scanning: Scanning the current page…
+selectAll: Select all available videos ($1 / $2)
+selectVideo: Select video $1
+selectVideos: Select videos
+selectedPostVideos: Videos in the selected post
+settings: Settings
+settingsSaveFailed: Settings could not be saved. Try again.
+shortcutHelp: 'You can also click the toolbar icon or press Alt + O to open the download panel.'
+showAll: Show all
+stateCancelled: Cancelled
+stateComplete: Completed
+stateDownloading: Downloading
+stateInterrupted: Failed
+stateMissing: Record removed
+statePaused: Paused
+tabReadFailed: Could not read the current tab. Open the extension again.
+templateSaveFailed: Template could not be saved. Try again.
+templateSaved: Filename template saved.
+togglePanel: Open or close the video download panel
+troubleshootingHelp: 'Play the video, then choose “Scan again”. Reload X after installing or updating. Restricted posts require an X account with permission to view them.'
+troubleshootingTitle: No video detected?
+uiLanguage: en
+unknownSize: Unknown size
+useHighest: Download at best quality instead
+videoError: 'Video $1: $2'
+videoNumber: Video $1
+videoProgress: Download progress for video $1
+welcomeDescription: X Video Downloader is installed. Reload any open X pages to get started.
+welcomeTitle: Your videos. Saved locally.

@@ -1,0 +1,108 @@
+actionFailed: 操作に失敗しました。再試行してください。
+cancel: キャンセル
+cancelVideo: 動画 $1 をキャンセル
+chooseSaveLocation: ダウンロードごとに保存先を選ぶ
+closePanel: ダウンロードパネルを閉じる
+confirmEachSave: 各動画の保存先を順番に確認してください。
+creatingDownload: ダウンロードを開始中…
+creatingDownloads: ダウンロードを開始中（$1 件）。表示された場合は保存先を順番に確認してください…
+creatingSave: ダウンロードを開始中。表示された場合は保存先を確認してください…
+currentPageVideos: このページの動画
+defaultQuality: 標準の画質
+detectVideos: 動画を検出
+downloadCancelled: ダウンロードをキャンセルしました。
+downloadFailed: ダウンロードを開始できませんでした。再試行してください。
+downloadHighest: ↓ 最高画質でダウンロード
+downloadNotice: 進捗はブラウザーのダウンロード一覧と同期します。保存する権利のあるコンテンツのみダウンロードしてください。
+downloadProgress: ダウンロードの進捗
+downloadQueued: ブラウザーのダウンロード一覧に追加しました。一覧で進捗を確認できます。
+downloadReload: ダウンロードを開始できませんでした。ページを再読み込みして再試行してください。
+downloadRetried: ダウンロードを再開しました。
+downloadSelected: 選択した動画をダウンロード（$1 件）
+downloadSettings: ダウンロード設定
+downloadVideos: 動画をダウンロード
+downloadsCreated: 開始したダウンロード：$1 件。
+extensionDescription: X の動画をお好みの画質で MP4 として保存できます。
+extensionName: X 動画ダウンローダー
+filenameEmpty: ファイル名のテンプレートを入力してください。
+filenameHelp: 変数：$1 投稿者、$2 投稿日（UTC）、$3 ポスト ID、$4 動画番号、$5 解像度。.mp4 は自動で付きます。投稿者や日付が不明な場合は unknown / undated を使用します。
+filenamePreview: プレビュー（サンプルのポスト）
+filenameTemplate: ファイル名のテンプレート
+filenameTokens: 下に記載された変数のみを使い、波括弧を正しく閉じてください。
+filenameTooLong: テンプレートは 160 文字以内で入力してください。
+filenameUnsafe: "パス、制御文字、次の記号は使用できません：\\ / : * ? \" < > |"
+finishedDownload: このダウンロードはすでに終了しています。
+foreignDownload: この拡張機能以外で開始したダウンロードは操作できません。
+formatsHelp: MP4 動画と動画形式の GIF に対応しています。HLS のみのライブ配信や動画には未対応です。blob URL は直接保存できる MP4 ではありません。
+guideDescription: ダウンロード設定と使い方
+guideStepOne: 動画を含む X のポストを開き、プレーヤーの読み込みを待ちます。
+guideStepThree: パネルで進捗を確認し、ダウンロードのキャンセルや再試行ができます。
+guideStepTwo: ダウンロードボタンで動画を保存できます。パネルを開くと、画質の指定や複数の動画の選択もできます。
+guideSteps: 3 ステップで動画を保存
+highestSuffix: （最高画質）
+hlsUnsupported: この動画は HLS 形式のみです。現在、分割された動画の結合ダウンロードには対応していません。
+interruptedHelp: ダウンロードが中断されました（$1）。再試行してください。リンクが無効な場合は元のポストを再読み込みしてください。
+invalidRequest: 無効なダウンロード要求です。動画を選び直してください。
+invalidSender: 無効なダウンロード要求です。X を再読み込みして再試行してください。
+languageHelp: 表示言語はブラウザーの設定に従います。英語、簡体字中国語、繁体字中国語、日本語、韓国語に対応しています。
+networkError: ネットワークエラー
+noVideos: ダウンロードできる動画が見つかりません
+noVideosReady: 動画を再生してから「再検出」を押してください。拡張機能をインストールまたは更新した直後は、X のページを再読み込みしてください。
+noVideosReload: X のページを再読み込みして拡張機能をプレーヤーに接続し、動画を再生してください。
+oneClickDownload: ↓ 今すぐダウンロード
+openPostFirst: まず動画を含む X のポストを開いてください。
+openX: X を開く
+originalMp4: オリジナル MP4
+pageDisconnected: このページに接続できません。X を再読み込みしてから、拡張機能を開き直してください。
+panelOptions: 動画のダウンロード設定
+popupTagline: 画質を選んで、手元に保存。
+post: ポスト
+preferencesReadFailed: ダウンロード設定を読み込めません。ページを開き直してください。
+preferencesSaved: ダウンロード設定を保存しました。
+privacyHelp: 読み込み済みの動画情報を端末内で処理します。API キーは不要で、ポスト、Cookie、ログイン情報を第三者の解析サービスへ送信することはありません。
+progressReadFailed: 進捗を取得できません。ブラウザーのダウンロード一覧で確認してください。
+quality1080: 1080p を優先
+quality720: 720p を優先
+qualityAndProgress: 画質／進捗
+qualityHelp: クイックダウンロードと一括ダウンロードに使用します。指定値以下で最も高い解像度を選び、縦動画は短辺を基準にします。「容量を節約」は低ビットレートを優先します。
+qualityHighest: 最高画質
+qualitySmallest: 容量を節約
+quickDownload: ↓ クイックダウンロード
+refresh: 再検出
+resetTemplate: 標準のテンプレートに戻す
+retry: 再試行
+retryUnavailable: 失敗、キャンセル、または削除されたダウンロードのみ再試行できます。
+retryVideo: 動画 $1 を再試行
+saveLocationHelp: オフの場合は標準のダウンロードフォルダーに保存します。一括ダウンロードでは動画ごとに保存先を確認します。
+saveTemplate: テンプレートを保存
+saveVideo: ↓ 動画 $1 を保存
+saving: 保存中…
+scanning: このページを確認中…
+selectAll: 保存可能な動画をすべて選択（$1 / $2）
+selectVideo: 動画 $1 を選択
+selectVideos: 動画を選択
+selectedPostVideos: 選択したポストの動画
+settings: 設定
+settingsSaveFailed: 設定を保存できませんでした。再試行してください。
+shortcutHelp: 'ツールバーのアイコンをクリックするか、Alt + O を押してもパネルを開けます。'
+showAll: すべて表示
+stateCancelled: キャンセル済み
+stateComplete: 完了
+stateDownloading: ダウンロード中
+stateInterrupted: 失敗
+stateMissing: 履歴が削除されました
+statePaused: 一時停止中
+tabReadFailed: 現在のタブを読み取れません。拡張機能を開き直してください。
+templateSaveFailed: テンプレートを保存できませんでした。再試行してください。
+templateSaved: ファイル名のテンプレートを保存しました。
+togglePanel: 動画ダウンロードパネルを開く／閉じる
+troubleshootingHelp: 動画を再生してから「再検出」を押してください。インストールや更新後は X を再読み込みしてください。閲覧制限のあるポストには、閲覧権限のあるアカウントでのログインが必要です。
+troubleshootingTitle: 動画が検出されない場合
+uiLanguage: ja
+unknownSize: サイズ不明
+useHighest: 最高画質でダウンロード
+videoError: 動画 $1：$2
+videoNumber: 動画 $1
+videoProgress: 動画 $1 のダウンロード進捗
+welcomeDescription: X 動画ダウンローダーをインストールしました。開いている X のページを再読み込みして始めましょう。
+welcomeTitle: 動画を、手元に。

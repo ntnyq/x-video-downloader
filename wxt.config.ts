@@ -8,10 +8,11 @@ import { defineConfig } from 'wxt'
 import { resolve } from './scripts/utils'
 
 export default defineConfig({
+  manifestVersion: 3,
   outDir: 'dist',
 
   autoIcons: {
-    baseIconPath: 'assets/images/icon.png',
+    baseIconPath: 'assets/images/downloader.svg',
   },
 
   imports: {
@@ -20,8 +21,6 @@ export default defineConfig({
     },
     presets: [
       'vue',
-      'pinia',
-      'vue-router',
       {
         package: '@vueuse/core',
         ignore: [
@@ -36,40 +35,43 @@ export default defineConfig({
     ],
   },
 
-  manifest: {
-    default_locale: 'en',
-    description: '__MSG_extensionDescription__',
-    homepage_url: 'https://github.com/ntnyq/wxt-starter',
-    host_permissions: [],
-    name: '__MSG_extensionName__',
-    optional_host_permissions: [],
-    commands: {
-      toggleExtension: {
-        description: 'Activate or deactivate extension',
-        suggested_key: {
-          default: 'Alt+O',
-        },
-      },
-    },
-    optional_permissions: [
-      // macOS requires `setting - Notifications`
-      'notifications',
-    ],
-    permissions: [
-      'storage',
-      // Open tabs in background
-      'activeTab',
-      'tabs',
-      'contextMenus',
-    ],
-  },
-
   modules: [
     '@wxt-dev/unocss',
     '@wxt-dev/auto-icons',
     '@wxt-dev/i18n/module',
     '@wxt-dev/module-vue',
   ],
+
+  manifest({ browser }) {
+    return {
+      ...(browser === 'firefox'
+        ? {
+            browser_specific_settings: {
+              gecko: {
+                data_collection_permissions: { required: ['none'] },
+                id: 'x-video-downloader@ntnyq',
+                strict_min_version: '140.0',
+              },
+            },
+          }
+        : { minimum_chrome_version: '111' }),
+      default_locale: 'en',
+      description: '__MSG_extensionDescription__',
+      homepage_url: 'https://github.com/ntnyq/x-video-downloader',
+      host_permissions: [],
+      name: '__MSG_extensionName__',
+      optional_host_permissions: [],
+      permissions: ['storage', 'activeTab', 'downloads'],
+      commands: {
+        toggleExtension: {
+          description: '__MSG_togglePanel__',
+          suggested_key: {
+            default: 'Alt+O',
+          },
+        },
+      },
+    }
+  },
 
   vite() {
     return {

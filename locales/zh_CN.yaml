@@ -1,0 +1,108 @@
+actionFailed: 操作失败，请重试。
+cancel: 取消
+cancelVideo: 取消视频 $1
+chooseSaveLocation: 每次下载时选择保存位置
+closePanel: 关闭下载面板
+confirmEachSave: 按顺序确认每个视频的保存位置。
+creatingDownload: 正在创建下载…
+creatingDownloads: 正在创建 $1 个下载，请按提示确认保存位置…
+creatingSave: 正在创建下载，请按提示确认保存位置…
+currentPageVideos: 当前页面的视频
+defaultQuality: 默认画质
+detectVideos: 检测视频
+downloadCancelled: 已取消下载。
+downloadFailed: 下载未开始，请重试。
+downloadHighest: ↓ 下载最高画质
+downloadNotice: 进度与浏览器下载列表同步。仅下载你有权保存的内容。
+downloadProgress: 下载进度
+downloadQueued: 已加入浏览器下载列表，可在那里查看进度。
+downloadReload: 下载未开始，请刷新页面后重试。
+downloadRetried: 已重新创建下载。
+downloadSelected: 下载已选 $1 个视频
+downloadSettings: 下载设置
+downloadVideos: 下载视频
+downloadsCreated: 已创建 $1 个下载。
+extensionDescription: 在 X 视频旁显示下载按钮，选择画质并保存 MP4。
+extensionName: X 视频下载器
+filenameEmpty: 请输入文件名模板。
+filenameHelp: 可用变量：$1 作者、$2 帖子日期（UTC）、$3 帖子 ID、$4 视频序号、$5 分辨率。自动添加 .mp4，缺少作者或日期时使用 unknown / undated。
+filenamePreview: 预览（示例帖子）
+filenameTemplate: 文件名模板
+filenameTokens: 请仅使用下方列出的变量，并确保花括号完整。
+filenameTooLong: 模板不能超过 160 个字符。
+filenameUnsafe: "模板不能包含路径、控制字符或 \\ / : * ? \" < > |。"
+finishedDownload: 这个任务已经结束。
+foreignDownload: 无法操作其他来源的下载任务。
+formatsHelp: 支持 MP4 视频和以视频形式存储的 GIF；暂不支持仅有 HLS 分片的直播或视频。页面中的 blob 地址不是可直接保存的 MP4。
+guideDescription: 下载设置与使用说明
+guideStepOne: 打开包含视频的 X 帖子，等待播放器加载。
+guideStepThree: 在面板查看下载进度、取消任务或重试失败的下载。
+guideStepTwo: 单视频点击下载按钮即可保存；也可以展开面板选择画质或勾选多个视频。
+guideSteps: 三步保存视频
+highestSuffix: （最高画质）
+hlsUnsupported: 这个视频只提供 HLS 分片，当前版本暂不支持合并下载。
+interruptedHelp: 下载中断（$1）。可以重试；地址失效时请刷新原帖。
+invalidRequest: 下载请求无效，请重新选择视频。
+invalidSender: 下载请求无效，请刷新 X 页面后重试。
+languageHelp: 界面跟随浏览器语言，支持英文、简体中文、繁体中文、日文和韩文。
+networkError: 网络错误
+noVideos: 还没有找到可下载的视频
+noVideosReady: 先播放一下视频，再点击「重新检测」。如果刚安装或更新插件，请刷新 X 页面。
+noVideosReload: 请刷新 X 页面，让插件连接视频播放器，然后播放视频。
+oneClickDownload: ↓ 一键下载
+openPostFirst: 请先打开一个包含视频的 X 帖子。
+openX: 打开 X
+originalMp4: MP4 原始视频
+pageDisconnected: 插件尚未连接这个页面。请刷新 X 页面，再打开插件。
+panelOptions: 视频下载选项
+popupTagline: 选好画质，保存到本地。
+post: 帖子
+preferencesReadFailed: 无法读取下载设置，请重新打开页面。
+preferencesSaved: 下载偏好已保存。
+privacyHelp: 插件在本机读取页面已加载的视频信息，不需要 API Key，也不会向第三方解析站发送帖子、Cookie 或登录信息。
+progressReadFailed: 暂时无法读取进度，可在浏览器下载列表查看。
+quality1080: 优先 1080p
+quality720: 优先 720p
+qualityAndProgress: 选择画质 / 进度
+qualityHelp: 用于快速下载与批量下载的默认选择。优先选择不超过目标的清晰度；竖屏按短边计算。节省空间优先选低码率。
+qualityHighest: 最高画质
+qualitySmallest: 节省空间
+quickDownload: ↓ 快速下载
+refresh: 重新检测
+resetTemplate: 恢复默认模板
+retry: 重试
+retryUnavailable: 只能重试失败、取消或已移除的任务。
+retryVideo: 重试视频 $1
+saveLocationHelp: 关闭后保存到默认下载目录。批量下载时逐个确认保存位置。
+saveTemplate: 保存模板
+saveVideo: ↓ 保存视频 $1
+saving: 保存中…
+scanning: 正在检测当前页面…
+selectAll: 全选可下载视频（$1 / $2）
+selectVideo: 选择视频 $1
+selectVideos: 选择视频
+selectedPostVideos: 已选帖子的视频
+settings: 设置
+settingsSaveFailed: 设置未保存，请重试。
+shortcutHelp: '也可以点击工具栏插件图标，或使用 Alt + O 打开下载面板。'
+showAll: 查看全部
+stateCancelled: 已取消
+stateComplete: 已完成
+stateDownloading: 下载中
+stateInterrupted: 下载失败
+stateMissing: 记录已移除
+statePaused: 已暂停
+tabReadFailed: 无法读取当前标签页，请重新打开插件。
+templateSaveFailed: 模板未保存，请重试。
+templateSaved: 文件名模板已保存。
+togglePanel: 打开或关闭视频下载面板
+troubleshootingHelp: 先播放视频，再点击「重新检测」。安装或更新后需要刷新 X 页面。受限帖子需要你在 X 中正常登录并有权查看。
+troubleshootingTitle: 没有检测到视频？
+uiLanguage: zh-CN
+unknownSize: 大小未知
+useHighest: 改用最高画质下载
+videoError: 视频 $1：$2
+videoNumber: 视频 $1
+videoProgress: 视频 $1 下载进度
+welcomeDescription: X 视频下载器已安装。刷新已打开的 X 页面，即可开始。
+welcomeTitle: 视频，留在本地。

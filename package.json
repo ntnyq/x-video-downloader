@@ -1,10 +1,10 @@
 {
-  "name": "wxt-starter",
+  "name": "x-video-downloader",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.2.0",
   "private": true,
   "packageManager": "pnpm@12.8.1",
-  "description": "__TODO__",
+  "description": "Download videos from X with quality selection",
   "keywords": [
     "wxt"
   ],
@@ -20,6 +20,7 @@
     "postinstall": "wxt prepare",
     "prepare": "husky",
     "release": "bumpp",
+    "test": "tsx --test tests/*.test.ts",
     "typecheck": "vue-tsc --noEmit",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox"
@@ -28,13 +29,7 @@
     "@ntnyq/utils": "^0.23.0",
     "@unocss/reset": "^66.10.5",
     "@vueuse/core": "^15.0.0",
-    "consola": "^3.4.2",
-    "dayjs": "^1.11.23",
-    "ofetch": "^1.5.1",
-    "pinia": "^4.0.3",
-    "vue": "^3.5.43",
-    "vue-router": "^5.3.1",
-    "webext-bridge": "^6.0.1"
+    "vue": "^3.5.43"
   },
   "devDependencies": {
     "@ntnyq/eslint-config": "^7.0.0-beta.22",
@@ -48,7 +43,6 @@
     "eslint": "^10.11.0",
     "husky": "^9.1.7",
     "nano-staged": "^1.0.2",
-    "npm-run-all2": "^9.0.3",
     "oxfmt": "^0.71.0",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",

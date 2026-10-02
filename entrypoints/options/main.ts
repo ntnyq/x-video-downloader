@@ -1,12 +1,10 @@
 import '@unocss/reset/tailwind.css'
 import 'uno.css'
-import pinia from '~/stores'
+import { localizeDocument } from '~/utils/i18n'
 import App from './App.vue'
-import { router } from './router'
+
+localizeDocument()
 
 const app = createApp(App)
-
-app.use(router)
-app.use(pinia)
 
 app.mount('#app')

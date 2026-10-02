@@ -1,0 +1,108 @@
+actionFailed: 操作失敗，請重試。
+cancel: 取消
+cancelVideo: 取消影片 $1
+chooseSaveLocation: 每次下載時選擇儲存位置
+closePanel: 關閉下載面板
+confirmEachSave: 依序確認每部影片的儲存位置。
+creatingDownload: 正在建立下載…
+creatingDownloads: 正在建立 $1 個下載，請依提示確認儲存位置…
+creatingSave: 正在建立下載，請依提示確認儲存位置…
+currentPageVideos: 目前頁面的影片
+defaultQuality: 預設畫質
+detectVideos: 偵測影片
+downloadCancelled: 已取消下載。
+downloadFailed: 下載未開始，請重試。
+downloadHighest: ↓ 下載最高畫質
+downloadNotice: 進度與瀏覽器下載清單同步。僅下載你有權儲存的內容。
+downloadProgress: 下載進度
+downloadQueued: 已加入瀏覽器下載清單，可在該處查看進度。
+downloadReload: 下載未開始，請重新整理頁面後重試。
+downloadRetried: 已重新建立下載。
+downloadSelected: 下載所選的 $1 部影片
+downloadSettings: 下載設定
+downloadVideos: 下載影片
+downloadsCreated: 已建立 $1 個下載。
+extensionDescription: 在 X 影片旁顯示下載按鈕，選擇畫質並儲存 MP4。
+extensionName: X 影片下載器
+filenameEmpty: 請輸入檔名範本。
+filenameHelp: 可用變數：$1 作者、$2 貼文日期（UTC）、$3 貼文 ID、$4 影片序號、$5 解析度。自動加上 .mp4，缺少作者或日期時使用 unknown / undated。
+filenamePreview: 預覽（範例貼文）
+filenameTemplate: 檔名範本
+filenameTokens: 請僅使用下方列出的變數，並確認大括號完整。
+filenameTooLong: 範本不能超過 160 個字元。
+filenameUnsafe: "範本不能包含路徑、控制字元或 \\ / : * ? \" < > |。"
+finishedDownload: 這個下載工作已結束。
+foreignDownload: 無法操作其他來源的下載工作。
+formatsHelp: 支援 MP4 影片與以影片形式儲存的 GIF；暫不支援僅有 HLS 分段的直播或影片。頁面中的 blob 網址不是可直接儲存的 MP4。
+guideDescription: 下載設定與使用說明
+guideStepOne: 開啟包含影片的 X 貼文，等待播放器載入。
+guideStepThree: 在面板查看下載進度、取消工作或重試失敗的下載。
+guideStepTwo: 單部影片點選下載按鈕即可儲存；也可以展開面板選擇畫質或勾選多部影片。
+guideSteps: 三步儲存影片
+highestSuffix: （最高畫質）
+hlsUnsupported: 這部影片僅提供 HLS 分段，目前版本尚不支援合併下載。
+interruptedHelp: 下載中斷（$1）。可以重試；若網址已失效，請重新整理原貼文。
+invalidRequest: 下載請求無效，請重新選取影片。
+invalidSender: 下載請求無效，請重新整理 X 頁面後重試。
+languageHelp: 介面跟隨瀏覽器語言，支援英文、簡體中文、繁體中文、日文與韓文。
+networkError: 網路錯誤
+noVideos: 尚未找到可下載的影片
+noVideosReady: 先播放影片，再點選「重新偵測」。若剛安裝或更新擴充功能，請重新整理 X 頁面。
+noVideosReload: 請重新整理 X 頁面，讓擴充功能連接播放器，再播放影片。
+oneClickDownload: ↓ 一鍵下載
+openPostFirst: 請先開啟包含影片的 X 貼文。
+openX: 開啟 X
+originalMp4: MP4 原始影片
+pageDisconnected: 擴充功能尚未連接此頁面。請重新整理 X 頁面，再開啟擴充功能。
+panelOptions: 影片下載選項
+popupTagline: 選好畫質，儲存到本機。
+post: 貼文
+preferencesReadFailed: 無法讀取下載設定，請重新開啟頁面。
+preferencesSaved: 下載偏好已儲存。
+privacyHelp: 擴充功能在本機讀取頁面已載入的影片資訊，不需要 API Key，也不會將貼文、Cookie 或登入資訊傳送給第三方解析服務。
+progressReadFailed: 暫時無法讀取進度，可在瀏覽器下載清單查看。
+quality1080: 優先 1080p
+quality720: 優先 720p
+qualityAndProgress: 選擇畫質／進度
+qualityHelp: 用於快速與批次下載的預設選擇。優先選擇不超過目標的解析度；直式影片以短邊計算。「節省空間」優先選擇低位元率。
+qualityHighest: 最高畫質
+qualitySmallest: 節省空間
+quickDownload: ↓ 快速下載
+refresh: 重新偵測
+resetTemplate: 還原預設範本
+retry: 重試
+retryUnavailable: 只能重試失敗、取消或已移除的下載工作。
+retryVideo: 重試影片 $1
+saveLocationHelp: 關閉後儲存到預設下載資料夾。批次下載時逐一確認儲存位置。
+saveTemplate: 儲存範本
+saveVideo: ↓ 儲存影片 $1
+saving: 儲存中…
+scanning: 正在偵測目前頁面…
+selectAll: 全選可下載的影片（$1 / $2）
+selectVideo: 選取影片 $1
+selectVideos: 選取影片
+selectedPostVideos: 所選貼文的影片
+settings: 設定
+settingsSaveFailed: 設定未儲存，請重試。
+shortcutHelp: '也可以點選工具列的擴充功能圖示，或按 Alt + O 開啟下載面板。'
+showAll: 查看全部
+stateCancelled: 已取消
+stateComplete: 已完成
+stateDownloading: 下載中
+stateInterrupted: 下載失敗
+stateMissing: 紀錄已移除
+statePaused: 已暫停
+tabReadFailed: 無法讀取目前分頁，請重新開啟擴充功能。
+templateSaveFailed: 範本未儲存，請重試。
+templateSaved: 檔名範本已儲存。
+togglePanel: 開啟或關閉影片下載面板
+troubleshootingHelp: 先播放影片，再點選「重新偵測」。安裝或更新後需要重新整理 X 頁面。受限貼文需要登入 X 並有權查看。
+troubleshootingTitle: 沒有偵測到影片？
+uiLanguage: zh-TW
+unknownSize: 大小未知
+useHighest: 改用最高畫質下載
+videoError: 影片 $1：$2
+videoNumber: 影片 $1
+videoProgress: 影片 $1 的下載進度
+welcomeDescription: X 影片下載器已安裝。重新整理已開啟的 X 頁面，即可開始。
+welcomeTitle: 影片，留在本機。

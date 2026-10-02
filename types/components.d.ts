@@ -11,8 +11,15 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    Navbar: typeof import('./../components/Navbar.vue')['default']
-    RouterLink: typeof import('vue-router')['RouterLink']
-    RouterView: typeof import('vue-router')['RouterView']
+    AppIcon: typeof import('./../components/AppIcon.vue')['default']
+    DownloadPanel: typeof import('./../components/video/DownloadPanel.vue')['default']
+    DownloadProgress: typeof import('./../components/video/DownloadProgress.vue')['default']
+    DownloadSettings: typeof import('./../components/video/DownloadSettings.vue')['default']
+    ExtensionGuide: typeof import('./../components/video/ExtensionGuide.vue')['default']
+    FilenameSettings: typeof import('./../components/video/FilenameSettings.vue')['default']
+    InlineDownloadButton: typeof import('./../components/video/InlineDownloadButton.vue')['default']
+    PopupDownloader: typeof import('./../components/video/PopupDownloader.vue')['default']
+    VideoMediaRow: typeof import('./../components/video/VideoMediaRow.vue')['default']
+    VideoPostCard: typeof import('./../components/video/VideoPostCard.vue')['default']
   }
 }

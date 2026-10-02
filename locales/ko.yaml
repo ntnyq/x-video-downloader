@@ -1,0 +1,108 @@
+actionFailed: 작업에 실패했습니다. 다시 시도하세요.
+cancel: 취소
+cancelVideo: 동영상 $1 취소
+chooseSaveLocation: 다운로드할 때마다 저장 위치 선택
+closePanel: 다운로드 패널 닫기
+confirmEachSave: 각 동영상의 저장 위치를 순서대로 확인하세요.
+creatingDownload: 다운로드 시작 중…
+creatingDownloads: 다운로드 $1개를 시작하는 중입니다. 메시지가 표시되면 저장 위치를 확인하세요…
+creatingSave: 다운로드를 시작하는 중입니다. 메시지가 표시되면 저장 위치를 확인하세요…
+currentPageVideos: 현재 페이지의 동영상
+defaultQuality: 기본 화질
+detectVideos: 동영상 검색
+downloadCancelled: 다운로드를 취소했습니다.
+downloadFailed: 다운로드를 시작하지 못했습니다. 다시 시도하세요.
+downloadHighest: ↓ 최고 화질로 다운로드
+downloadNotice: 진행 상황은 브라우저 다운로드 목록과 동기화됩니다. 저장할 권한이 있는 콘텐츠만 다운로드하세요.
+downloadProgress: 다운로드 진행 상황
+downloadQueued: 브라우저 다운로드 목록에 추가했습니다. 목록에서 진행 상황을 확인할 수 있습니다.
+downloadReload: 다운로드를 시작하지 못했습니다. 페이지를 새로고침한 뒤 다시 시도하세요.
+downloadRetried: 다운로드를 다시 시작했습니다.
+downloadSelected: 선택한 동영상 $1개 다운로드
+downloadSettings: 다운로드 설정
+downloadVideos: 동영상 다운로드
+downloadsCreated: 다운로드 $1개를 시작했습니다.
+extensionDescription: X 동영상을 원하는 화질의 MP4로 저장하세요.
+extensionName: X 동영상 다운로더
+filenameEmpty: 파일 이름 템플릿을 입력하세요.
+filenameHelp: '변수: $1 작성자, $2 게시 날짜(UTC), $3 게시물 ID, $4 동영상 번호, $5 해상도. .mp4가 자동으로 추가됩니다. 작성자나 날짜가 없으면 unknown / undated를 사용합니다.'
+filenamePreview: 미리 보기 (예시 게시물)
+filenameTemplate: 파일 이름 템플릿
+filenameTokens: 아래에 나열된 변수만 사용하고 중괄호를 올바르게 닫으세요.
+filenameTooLong: 템플릿은 160자 이하여야 합니다.
+filenameUnsafe: "경로, 제어 문자 및 다음 기호는 사용할 수 없습니다: \\ / : * ? \" < > |"
+finishedDownload: 이 다운로드는 이미 종료되었습니다.
+foreignDownload: 이 확장 프로그램에서 만든 다운로드만 관리할 수 있습니다.
+formatsHelp: MP4 동영상과 동영상 형식으로 저장된 GIF를 지원합니다. HLS만 제공되는 스트림은 아직 지원하지 않습니다. blob 주소는 직접 저장할 수 있는 MP4가 아닙니다.
+guideDescription: 다운로드 설정 및 사용 안내
+guideStepOne: 동영상이 있는 X 게시물을 열고 플레이어가 로드될 때까지 기다리세요.
+guideStepThree: 패널에서 진행 상황을 확인하고 다운로드를 취소하거나 실패한 다운로드를 다시 시도하세요.
+guideStepTwo: '다운로드 버튼으로 동영상을 저장하거나, 패널을 열어 화질을 고르고 여러 동영상을 선택하세요.'
+guideSteps: 세 단계로 동영상 저장
+highestSuffix: (최고 화질)
+hlsUnsupported: 이 동영상은 HLS 세그먼트로만 제공됩니다. 현재 버전에서는 병합 다운로드를 지원하지 않습니다.
+interruptedHelp: '다운로드가 중단되었습니다 ($1). 다시 시도하거나, 링크가 만료되었다면 원래 게시물을 새로고침하세요.'
+invalidRequest: 잘못된 다운로드 요청입니다. 동영상을 다시 선택하세요.
+invalidSender: 잘못된 다운로드 요청입니다. X를 새로고침한 뒤 다시 시도하세요.
+languageHelp: '화면 언어는 브라우저 언어 설정을 따릅니다. 영어, 중국어 간체, 중국어 번체, 일본어, 한국어를 지원합니다.'
+networkError: 네트워크 오류
+noVideos: 다운로드할 동영상을 아직 찾지 못했습니다
+noVideosReady: 동영상을 재생한 뒤 “다시 검색”을 누르세요. 확장 프로그램을 설치하거나 업데이트한 직후라면 X 페이지를 새로고침하세요.
+noVideosReload: X 페이지를 새로고침하여 확장 프로그램을 플레이어에 연결한 뒤 동영상을 재생하세요.
+oneClickDownload: ↓ 바로 다운로드
+openPostFirst: 먼저 동영상이 있는 X 게시물을 여세요.
+openX: X 열기
+originalMp4: 원본 MP4
+pageDisconnected: 확장 프로그램이 이 페이지에 연결되지 않았습니다. X를 새로고침한 뒤 확장 프로그램을 다시 여세요.
+panelOptions: 동영상 다운로드 옵션
+popupTagline: 화질을 고르고 내 기기에 저장하세요.
+post: 게시물
+preferencesReadFailed: 다운로드 설정을 읽을 수 없습니다. 페이지를 다시 여세요.
+preferencesSaved: 다운로드 설정을 저장했습니다.
+privacyHelp: '확장 프로그램은 로드된 동영상 정보를 기기에서 읽습니다. API 키가 필요 없으며 게시물, 쿠키, 로그인 정보를 타사 다운로드 서비스로 보내지 않습니다.'
+progressReadFailed: 일시적으로 진행 상황을 확인할 수 없습니다. 브라우저 다운로드 목록을 확인하세요.
+quality1080: 1080p 우선
+quality720: 720p 우선
+qualityAndProgress: 화질 선택 / 진행 상황
+qualityHelp: '빠른 다운로드와 일괄 다운로드에 적용됩니다. 목표 이하의 가장 높은 해상도를 선택하며, 세로 동영상은 짧은 변을 기준으로 합니다. “용량 절약”은 낮은 비트레이트를 우선합니다.'
+qualityHighest: 최고 화질
+qualitySmallest: 용량 절약
+quickDownload: ↓ 빠른 다운로드
+refresh: 다시 검색
+resetTemplate: 기본 템플릿 복원
+retry: 다시 시도
+retryUnavailable: 실패했거나 취소 또는 삭제된 다운로드만 다시 시도할 수 있습니다.
+retryVideo: 동영상 $1 다시 시도
+saveLocationHelp: 끄면 기본 다운로드 폴더에 저장합니다. 일괄 다운로드 시 각 동영상의 저장 위치를 따로 확인합니다.
+saveTemplate: 템플릿 저장
+saveVideo: ↓ 동영상 $1 저장
+saving: 저장 중…
+scanning: 현재 페이지 검색 중…
+selectAll: 다운로드 가능한 동영상 모두 선택 ($1 / $2)
+selectVideo: 동영상 $1 선택
+selectVideos: 동영상 선택
+selectedPostVideos: 선택한 게시물의 동영상
+settings: 설정
+settingsSaveFailed: 설정을 저장하지 못했습니다. 다시 시도하세요.
+shortcutHelp: '도구 모음의 확장 프로그램 아이콘을 누르거나 Alt + O로 다운로드 패널을 열 수 있습니다.'
+showAll: 모두 보기
+stateCancelled: 취소됨
+stateComplete: 완료됨
+stateDownloading: 다운로드 중
+stateInterrupted: 다운로드 실패
+stateMissing: 기록이 삭제됨
+statePaused: 일시 중지됨
+tabReadFailed: 현재 탭을 읽을 수 없습니다. 확장 프로그램을 다시 여세요.
+templateSaveFailed: 템플릿을 저장하지 못했습니다. 다시 시도하세요.
+templateSaved: 파일 이름 템플릿을 저장했습니다.
+togglePanel: 동영상 다운로드 패널 열기 또는 닫기
+troubleshootingHelp: 동영상을 재생한 뒤 “다시 검색”을 누르세요. 설치나 업데이트 후에는 X를 새로고침해야 합니다. 제한된 게시물은 열람 권한이 있는 X 계정으로 로그인해야 합니다.
+troubleshootingTitle: 동영상이 검색되지 않나요?
+uiLanguage: ko
+unknownSize: 크기 알 수 없음
+useHighest: 최고 화질로 다운로드
+videoError: '동영상 $1: $2'
+videoNumber: 동영상 $1
+videoProgress: 동영상 $1 다운로드 진행 상황
+welcomeDescription: X 동영상 다운로더가 설치되었습니다. 열려 있는 X 페이지를 새로고침하면 시작할 수 있습니다.
+welcomeTitle: 동영상을 내 기기에.
