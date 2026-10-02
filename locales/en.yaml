@@ -1,0 +1,18 @@
+# eslint yml/sort-keys: off
+
+extensionName: WXT Starter
+extensionDescription: Starter for creating browser extension
+
+placeholder: Placeholder $1
+
+popup:
+  greet: Hello from popup
+
+background:
+  greet: Hello from background
+
+content_script:
+  greet: Hello from content_script
+
+options:
+  greet: Hello from options
