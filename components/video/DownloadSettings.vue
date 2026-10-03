@@ -5,6 +5,7 @@ import { qualitySetting, saveAsSetting } from '~/utils/settings'
 import FilenameSettings from './FilenameSettings.vue'
 
 const { preferences, isReady, preferenceError } = useDownloadPreferences()
+
 const isSaving = shallowRef(false)
 const requestError = shallowRef('')
 const statusMessage = shallowRef('')
@@ -93,7 +94,7 @@ async function updatePreference(event: Event) {
     </label>
     <p
       v-if="preferenceError || requestError || statusMessage"
-      :class="preferenceError || requestError ? 'text-red-700' : 'text-muted'"
+      :class="preferenceError || requestError ? 'text-danger' : 'text-muted'"
       role="status"
       class="text-xs"
     >

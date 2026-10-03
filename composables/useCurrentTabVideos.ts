@@ -3,9 +3,13 @@ import { isRecord, isXUrl, normalizePost } from '~/utils/video'
 import type { PageVideos } from '~/types/video'
 
 export function useCurrentTabVideos() {
-  const snapshot = shallowRef<PageVideos>({ posts: [], captureReady: false })
+  const snapshot = shallowRef<PageVideos>({
+    posts: [],
+    captureReady: false,
+  })
   const isLoading = shallowRef(true)
   const requestError = shallowRef('')
+
   let tabId: number | undefined
   let isRefreshing = false
 
@@ -62,5 +66,11 @@ export function useCurrentTabVideos() {
   })
   onUnmounted(pause)
 
-  return { snapshot, isLoading, requestError, refresh }
+  return {
+    snapshot,
+    isLoading,
+    requestError,
+
+    refresh,
+  }
 }

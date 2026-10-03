@@ -82,7 +82,7 @@ export function normalizePreferences(value: unknown): DownloadPreferences {
   const input = isRecord(value) ? value : {}
   const template = input['filenameTemplate']
   return {
-    saveAs: typeof input['saveAs'] === 'boolean' ? input['saveAs'] : true,
+    saveAs: typeof input['saveAs'] === 'boolean' ? input['saveAs'] : false,
     quality: normalizeQuality(input['quality']),
     filenameTemplate:
       typeof template === 'string' && !validateFilenameTemplate(template)

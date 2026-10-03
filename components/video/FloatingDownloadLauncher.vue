@@ -35,7 +35,9 @@ defineExpose({
   /**
    * Restores keyboard focus when the download panel closes.
    */
-  focus: () => buttonRef.value?.focus({ preventScroll: true }),
+  focus() {
+    buttonRef.value?.focus({ preventScroll: true })
+  },
 })
 </script>
 
@@ -67,19 +69,8 @@ defineExpose({
         : 'cursor-grab transition-[left,top,background-color] duration-200 ease-out motion-reduce:transition-none'
     "
     type="button"
-    class="pointer-events-auto fixed flex-center touch-none select-none border-0 rounded-full bg-primary p-0 text-white shadow-lg xvd-focus hover:bg-blue-700"
+    class="xvd-panel-shadow pointer-events-auto fixed flex-center touch-none select-none border border-control-line rounded-full bg-background p-0 text-ink xvd-focus hover:bg-hover"
   >
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      class="pointer-events-none h-5 w-5"
-    >
-      <path d="M12 4v12m-5-5 5 5 5-5M5 17v3h14v-3" />
-    </svg>
+    <UiIcon :name="isOpen ? 'close' : 'download'" />
   </button>
 </template>

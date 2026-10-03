@@ -61,6 +61,7 @@ export default defineBackground(() => {
           'download-videos',
           'get-downloads',
           'download-action',
+          'open-settings',
         ].includes(String(message['type']))
       ) {
         return
@@ -87,6 +88,10 @@ export default defineBackground(() => {
       async function handleMessage() {
         if (!isRecord(message)) {
           return
+        }
+        if (message['type'] === 'open-settings') {
+          await browser.runtime.openOptionsPage()
+          return { ok: true }
         }
         if (message['type'] === 'download-video') {
           const request = normalizeDownloadRequest(message)

@@ -20,6 +20,8 @@ declare module 'vue' {
     FloatingDownloadLauncher: typeof import('./../components/video/FloatingDownloadLauncher.vue')['default']
     InlineDownloadButton: typeof import('./../components/video/InlineDownloadButton.vue')['default']
     PopupDownloader: typeof import('./../components/video/PopupDownloader.vue')['default']
+    ThemeSettings: typeof import('./../components/video/ThemeSettings.vue')['default']
+    UiIcon: typeof import('./../components/UiIcon.vue')['default']
     VideoMediaRow: typeof import('./../components/video/VideoMediaRow.vue')['default']
     VideoPostCard: typeof import('./../components/video/VideoPostCard.vue')['default']
   }

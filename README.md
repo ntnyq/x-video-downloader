@@ -1,99 +1,99 @@
 # X Video Downloader
 
-<img src="assets/images/downloader.svg" width="80" height="80" alt="X Video Downloader 图标" />
+<img src="assets/images/downloader.svg" width="80" height="80" alt="X Video Downloader icon" />
 
-基于 **WXT + Vue 3 + TypeScript + UnoCSS** 的 X / Twitter 视频下载插件。
+A browser extension for downloading videos from X / Twitter, built with **WXT + Vue 3 + TypeScript + UnoCSS**.
 
-## 功能
+## Features
 
-- 自动在视频帖子下方添加「下载视频」，右下角始终保留下载入口。
-- 工具栏弹窗列出当前页面已检测到的视频，支持多视频与 GIF 视频。
-- 单视频一键下载；默认最高画质，可设置优先 1080p、720p 或节省空间，竖屏按短边计算。
-- 同帖多视频支持全选 / 勾选批量保存，HLS-only 视频自动排除。
-- 自定义文件名模板：`{author}`、`{date}`、`{postId}`、`{index}`、`{quality}`，支持即时预览与校验。
-- 显示真实下载字节数、百分比和完成 / 失败状态，支持取消与重试。
-- 使用浏览器下载管理器保存文件，支持选择保存位置和文件重名处理。
-- 动态加载、切换帖子与引用帖分别保留视频归属；脚本启动顺序不影响已捕获数据的回放。
-- `Alt + O` 打开或关闭下载面板。
-- 界面支持英文、简体中文、繁体中文、日文和韩文，自动跟随浏览器语言。
+- Automatically adds download buttons below video posts, with a persistent download button in the bottom-right corner.
+- Lists videos detected on the current page in the toolbar popup, including multiple videos and GIFs stored as video.
+- Downloads a single video with one click. Uses the best quality by default, with options to prefer 1080p, 720p, or smaller files. Portrait video resolution is measured by the shorter edge.
+- Supports selecting all or individual videos from the same post for batch downloads, automatically excluding HLS-only videos.
+- Custom filename templates with `{author}`, `{date}`, `{postId}`, `{index}`, and `{quality}`, plus instant previews and validation.
+- Displays actual downloaded bytes, percentages, and completion or failure status, with cancellation and retry support.
+- Uses the browser's download manager and saves directly to its download folder by default. Optionally prompts for a save location for each download. Duplicate filenames receive a numeric suffix automatically.
+- Keeps videos associated with their original posts across dynamic loading, post navigation, and quoted posts. Captured data can be replayed regardless of script startup order.
+- Opens or closes the download panel with `Alt + O`.
+- Supports English, Simplified Chinese, Traditional Chinese, Japanese, and Korean, automatically following the browser's language.
 
-## 安装与使用
+## Installation and Usage
 
 ### Chrome / Edge
 
-需要 Chromium 111 或更新版本。
+Requires Chromium 111 or later.
 
-1. 执行 `pnpm install` 和 `pnpm build`。
-2. 在浏览器扩展管理页开启「开发者模式」。
-3. 选择「加载已解压的扩展程序」，加载 **`dist/chrome-mv3`**。
-4. **刷新已打开的 X 页面**，必要时播放一下视频。
-5. 单视频点击「下载最高画质」；多视频点击「选择视频」，勾选后批量保存。
-6. 点击「选择画质 / 进度」或右下角「下载视频」，查看任务进度、取消或重试。
+1. Run `pnpm install` and `pnpm build`.
+2. Enable **Developer mode** on your browser's extensions page.
+3. Select **Load unpacked** and load **`dist/chrome-mv3`**.
+4. **Reload any open X pages** and play the video if needed.
+5. For a single video, click **Download best quality**. For multiple videos, click **Select videos**, choose the videos, and download them together.
+6. Click **Quality / progress** or **Download videos** in the bottom-right corner to view progress, cancel downloads, or retry them.
 
-更新代码后重新构建，在扩展管理页点击重新加载，再刷新 X 页面。旧原型和此插件同时启用时可能出现两个按钮，建议关闭旧原型。
+After updating the code, rebuild the extension, reload it on the extensions page, and refresh X. If an older prototype is enabled alongside this extension, duplicate buttons may appear; disable the older prototype.
 
-`pnpm zip` 输出可解压加载的插件包到 `dist/`。
+`pnpm zip` creates an extension archive in `dist/` that can be extracted and loaded as an unpacked extension.
 
 ### Firefox
 
-需要 Firefox 140 或更新版本。执行 `pnpm build:firefox`，在 `about:debugging#/runtime/this-firefox` 中加载 `dist/firefox-mv3/manifest.json` 进行临时测试；临时扩展在重启后失效。正式分发需要 Mozilla 签名。
+Requires Firefox 140 or later. Run `pnpm build:firefox`, then load `dist/firefox-mv3/manifest.json` at `about:debugging#/runtime/this-firefox` for temporary testing. Temporary extensions are removed when Firefox restarts. Distribution requires signing by Mozilla.
 
-## 工作原理
+## How It Works
 
-`capture.content.ts` 在页面开始加载时运行于 MAIN world，只观察 X 自己发起的 fetch / XHR 响应，从帖子媒体数据中提取 `video_info.variants`。不主动调用 X 私有接口，不读取或转发认证令牌，不需要 API Key、后端或第三方解析站。
+`capture.content.ts` runs in the MAIN world when the page starts loading. It only observes fetch / XHR responses initiated by X itself and extracts `video_info.variants` from post media data. It does not call X's private APIs or read or forward authentication tokens. No API key, backend, or third-party video extraction service is required.
 
-隔离环境中的 content script 校验这些记录，通过 Shadow DOM 挂载 Vue 界面，避免影响 X 的样式。页面播放器暴露直接 MP4 地址时也能作为补充来源。用户点击保存后，background 再次校验发送方、帖子 ID 和下载 URL，调用原生下载 API。
+The isolated content script validates these records and mounts the Vue interface inside a Shadow DOM to avoid affecting X's styles. Direct MP4 URLs exposed by the page's video player can serve as an additional source. When the user saves a video, the background script validates the sender, post ID, and download URL again before calling the native downloads API.
 
-检测到的视频列表只缓存在当前页面内存中，最多保留 250 条帖子。画质、保存位置和文件名偏好写入本地扩展存储。为恢复进度与支持重试，本地也会保存本插件创建的下载 ID、视频地址、文件名及帖子元数据；达到清理阈值后删除较早的已结束任务，保留进行中的下载，不读取或显示其他来源的下载历史。
+Detected videos are cached only in the current page's memory, with a limit of 250 posts. Quality, save location, and filename preferences are saved in local extension storage. To restore progress and support retries, the extension also stores the download IDs, video URLs, filenames, and post metadata for downloads it creates. Once the cleanup threshold is reached, older finished tasks are removed while active downloads are retained. Download history from other sources is neither read nor displayed.
 
-面板打开时按秒查询原生下载进度；总大小未知时显示已下载字节数，不生成虚假百分比。关闭面板或弹窗不影响已开始的浏览器下载。批量保存按顺序创建下载；开启“每次选择保存位置”时逐个弹窗，取消其中一个不会阻止后续视频。
+While the panel is open, native download progress is polled once per second. When the total size is unknown, the interface shows downloaded bytes without inventing a percentage. Closing the panel or popup does not affect browser downloads already in progress. Single and batch downloads save directly to the browser's download folder by default. You can change this folder in browser settings (Chrome: `chrome://settings/downloads`). Batch downloads are created sequentially. Enabling **Choose a save location for each download** in the extension settings opens a separate dialog for each video; cancelling one does not prevent subsequent downloads. Updates preserve saved preferences. If a save dialog still appears for every download, turn this option off.
 
-文件名中的 `{date}` 是帖子的 UTC 日期。缺少作者 / 日期时分别使用 `unknown` / `undated`；自动添加 `.mp4` 并由浏览器处理重名。
+The `{date}` filename variable uses the post's UTC date. Missing authors and dates fall back to `unknown` and `undated`, respectively. The `.mp4` extension is added automatically, and the browser handles duplicate filenames.
 
-相关官方文档：[WXT Content Scripts](https://wxt.dev/guide/essentials/content-scripts)、[downloads.download](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/downloads/download)、[Firefox MAIN world](https://blog.mozilla.org/addons/2024/07/10/manifest-v3-updates-landed-in-firefox-128/)、[Firefox 数据声明](https://extensionworkshop.com/documentation/develop/firefox-builtin-data-consent/)。
+Related official documentation: [WXT Content Scripts](https://wxt.dev/guide/essentials/content-scripts), [downloads.download](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/downloads/download), [Firefox MAIN world](https://blog.mozilla.org/addons/2024/07/10/manifest-v3-updates-landed-in-firefox-128/), and [Firefox data collection declarations](https://extensionworkshop.com/documentation/develop/firefox-builtin-data-consent/).
 
-## 权限
+## Permissions
 
-| 权限 / 站点范围                                | 用途                                       |
-| ---------------------------------------------- | ------------------------------------------ |
-| `downloads`                                    | 将选中的 MP4 加入浏览器下载列表            |
-| `storage`                                      | 保存下载偏好、文件名模板和本插件的任务记录 |
-| `activeTab`                                    | 用户打开弹窗或按快捷键时识别当前标签页     |
-| `https://*.x.com/*`、`https://*.twitter.com/*` | 注入视频捕获脚本和下载按钮                 |
+| Permission / Site Scope                        | Purpose                                                                |
+| ---------------------------------------------- | ---------------------------------------------------------------------- |
+| `downloads`                                    | Add selected MP4 files to the browser's download list                  |
+| `storage`                                      | Save download preferences, filename templates, and extension task data |
+| `activeTab`                                    | Identify the current tab when the popup or keyboard shortcut is used   |
+| `https://*.x.com/*`, `https://*.twitter.com/*` | Inject video capture scripts and download buttons                      |
 
-下载仅接受 `https://video.twimg.com/` 下的 MP4 地址。移除了模板的全站注入、`tabs`、`contextMenus` 和可选通知权限。Firefox manifest 声明不收集个人数据。
+Downloads accept only MP4 URLs under `https://video.twimg.com/`. The template's all-site injection, `tabs`, `contextMenus`, and optional notification permissions have been removed. The Firefox manifest declares that no personal data is collected.
 
-## 已知限制与排查
+## Known Limitations and Troubleshooting
 
-- 目前支持直接 MP4；**不合并 HLS 分片**，不下载仅提供 HLS 的直播流。遇到这类视频会明确显示说明。
-- `blob:` 是播放器的临时对象地址，不是完整视频下载地址；插件从页面响应中寻找原始 MP4。
-- 安装前已经完成的请求无法被捕获，安装或更新后必须刷新 X 页面。
-- 没有结果时，先播放视频，再点击「重新检测」；仍无结果则刷新页面。
-- 受限帖子必须在你的登录状态下正常可见，插件不会绕过访问限制。
-- X 的响应格式和页面结构不是稳定接口，发生变更后可能需要更新解析和选择器。
-- 下载任务创建后会显示实际进度。失败重试使用原视频地址；如果地址已过期，需要刷新原帖重新检测。面板中“已暂停”的任务可取消，继续下载请使用浏览器下载管理器。
+- Currently supports direct MP4 files. **HLS segments are not merged**, and live streams available only through HLS cannot be downloaded. The interface explains this when such a video is detected.
+- A `blob:` URL is a temporary object URL used by the player, not a complete video download URL. The extension looks for the original MP4 in page responses.
+- Requests completed before installation cannot be captured. Reload X after installing or updating the extension.
+- If no videos are found, play the video and click **Scan again**. If there are still no results, reload the page.
+- Restricted posts must already be accessible in your signed-in session. The extension does not bypass access restrictions.
+- X's response formats and page structure are not stable interfaces. Changes may require updates to the parser and selectors.
+- Actual progress is displayed once a download task is created. Retrying a failed download reuses the original video URL. If it has expired, reload the original post and scan again. Tasks marked **Paused** can be cancelled in the panel; use the browser's download manager to resume them.
 
-## 语言与图标
+## Languages and Icon
 
-| 语言     | Locale  |
-| -------- | ------- |
-| English  | `en`    |
-| 简体中文 | `zh_CN` |
-| 繁體中文 | `zh_TW` |
-| 日本語   | `ja`    |
-| 한국어   | `ko`    |
+| Language            | Locale  |
+| ------------------- | ------- |
+| English             | `en`    |
+| Simplified Chinese  | `zh_CN` |
+| Traditional Chinese | `zh_TW` |
+| Japanese            | `ja`    |
+| Korean              | `ko`    |
 
-五种语言均覆盖扩展名称、简介、快捷键说明、弹窗、帖子按钮、下载面板、设置、欢迎页与应用错误提示。使用浏览器原生 [i18n](https://developer.chrome.com/docs/extensions/reference/api/i18n) 选择语言，不支持的语言回退到英文；修改浏览器界面语言后，重新打开扩展页面并刷新 X 页面。浏览器返回的原始错误代码保留，便于排查。
+All five languages cover the extension name, description, keyboard shortcut description, popup, post buttons, download panel, settings, welcome page, and application error messages. Language selection uses the browser's native [i18n](https://developer.chrome.com/docs/extensions/reference/api/i18n) API, falling back to English for unsupported languages. After changing the browser's interface language, reopen extension pages and reload X. Original error codes returned by the browser are preserved for troubleshooting.
 
-翻译源文件位于 `locales/`。新增语言时复制 `en.yaml`，保留所有键名和 `$1` 等占位符；文件名模板变量不参与翻译。`pnpm test` 会检查语言键、占位符、文档语言和错误提示的完整性。
+Translation source files are in `locales/`. To add a language, copy `en.yaml` and preserve all keys and placeholders such as `$1`. Do not translate filename template variables. `pnpm test` checks translation keys, placeholders, document language declarations, and error message completeness.
 
-图标以深色圆角底、白色播放符号和蓝色下载箭头组成。`assets/images/downloader.svg` 是唯一源文件，WXT 自动生成浏览器需要的 PNG 尺寸；弹窗、下载面板、设置、欢迎页与 favicon 共用该图标。
+The icon combines a dark rounded background, a white play symbol, and a blue download arrow. `assets/images/downloader.svg` is the single source file, and WXT automatically generates the PNG sizes required by browsers. The popup, download panel, settings, welcome page, and favicon share this icon.
 
-## 开发与检查
+## Development and Checks
 
-使用 `package.json` 中固定的 pnpm 版本。
+Use the pnpm version pinned in `package.json`.
 
-通用排序、去重、JSON 解析、字节换算及串行批量任务使用 `@ntnyq/utils`。视频来源与下载请求校验仍由领域函数处理；批量保存保持单个对话框依次确认，取消或失败后继续处理后续视频。
+General sorting, deduplication, JSON parsing, byte formatting, and sequential batch tasks use `@ntnyq/utils`. Domain-specific functions handle video source and download request validation. When save dialogs are enabled, batch downloads prompt for one video at a time and continue with subsequent videos after a cancellation or failure.
 
 ```sh
 pnpm dev
@@ -107,21 +107,21 @@ pnpm build
 pnpm build:firefox
 ```
 
-测试使用现有 `tsx` 与 Node.js 内置测试运行器，没有引入新的测试框架。覆盖 URL 与消息校验、真实捕获入口启动、fetch 响应不被消耗、跨脚本回放、嵌套引用帖、作者和日期、多视频、画质策略、文件名安全、批量请求、HLS 降级、下载进度恢复、取消重试与部分失败。
+Tests use the existing `tsx` dependency and Node.js's built-in test runner, with no additional test framework. Coverage includes URL and message validation, startup of the actual capture entrypoint, preserving fetch response bodies, replay across scripts, nested quoted posts, authors and dates, multiple videos, quality selection, filename safety, batch requests, HLS fallback behavior, download progress recovery, cancellation, retries, and partial failures.
 
-多语言改动另以本地模拟浏览器 API 检查日文设置保存与文件名校验、韩文批量选择和下载反馈、繁体中文内容面板的窄屏布局。以下截图为模拟页面，不代表已完成真实 X 视频下载或 Firefox 实机验证。
+Localization changes were also checked locally with mocked browser APIs: saving settings and validating filenames in Japanese, batch selection and download feedback in Korean, and the Traditional Chinese content panel at narrow widths. The following screenshots show mocked pages and do not establish that real X video downloads or behavior in Firefox have been verified.
 
-![日文设置页](docs/screenshots/settings-ja.png)
+![Japanese settings page](docs/screenshots/settings-ja.png)
 
-![韩文下载弹窗](docs/screenshots/popup-ko.png)
+![Korean download popup](docs/screenshots/popup-ko.png)
 
-![繁体中文窄屏内容面板](docs/screenshots/content-zh-TW.png)
+![Traditional Chinese content panel at a narrow width](docs/screenshots/content-zh-TW.png)
 
-本地浏览器已使用**模拟帖子和模拟浏览器 API**检查构建后的按钮、面板、一键下载、批量勾选、画质偏好、文件名校验与保存、进度恢复、取消重试、错误状态、帖子切换、设置与欢迎页。目标 X 页面的访问超时，**真实登录会话中的视频下载以及 Firefox 实机行为仍需验证**。
+The built extension has been checked in a local browser using **mocked posts and browser APIs**, covering buttons, panels, one-click downloads, batch selection, quality preferences, filename validation and saving, progress recovery, cancellation, retries, error states, post navigation, settings, and the welcome page. Access to the target X page timed out, so **video downloads in a real signed-in session and behavior in Firefox still need verification**.
 
-![本地模拟帖子中的批量下载面板](docs/screenshots/batch-progress-preview.png)
+![Batch download panel on a locally mocked post](docs/screenshots/batch-progress-preview.png)
 
-![下载偏好与文件名模板](docs/screenshots/settings-preview.png)
+![Download preferences and filename template](docs/screenshots/settings-preview.png)
 
 ## License
 

@@ -1,5 +1,7 @@
 <script lang="ts" setup>
+import { useTheme } from '~/composables/useTheme'
 import DownloadSettings from './DownloadSettings.vue'
+import ThemeSettings from './ThemeSettings.vue'
 
 defineProps<{
   /**
@@ -7,10 +9,15 @@ defineProps<{
    */
   welcome?: boolean
 }>()
+
+const { themeStyle } = useTheme()
 </script>
 
 <template>
-  <main class="min-h-screen bg-surface px-6 py-12 text-ink font-sans sm:py-20">
+  <main
+    :style="themeStyle"
+    class="min-h-screen bg-background px-5 py-10 text-ink font-sans sm:px-6 sm:py-16"
+  >
     <div class="mx-auto max-w-160">
       <AppIcon class="mb-8 h-16 w-16" />
       <h1 class="text-3xl font-bold">
@@ -22,6 +29,7 @@ defineProps<{
         }}
       </p>
       <p class="mb-8 text-sm text-muted">{{ i18n.t('languageHelp') }}</p>
+      <ThemeSettings />
       <DownloadSettings />
       <section class="py-8">
         <h2 class="mb-5 text-lg font-semibold">{{ i18n.t('guideSteps') }}</h2>

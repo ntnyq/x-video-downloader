@@ -1,6 +1,10 @@
 <script lang="ts" setup>
+import { browser } from '#imports'
 import DownloadPanel from '~/components/video/DownloadPanel.vue'
 import FloatingDownloadLauncher from '~/components/video/FloatingDownloadLauncher.vue'
+import { usePageTheme } from '~/composables/usePageTheme'
+import { useTheme } from '~/composables/useTheme'
+import { isRecord } from '~/utils/video'
 import type { PageVideos } from '~/types/video'
 
 interface Props {
@@ -38,9 +42,30 @@ const emit = defineEmits<{
   showAll: []
 }>()
 
+const pageTheme = usePageTheme()
+const { themeStyle } = useTheme()
 const panelId = useId()
 const closeButtonRef = useTemplateRef('closeButtonRef')
 const toggleButtonRef = useTemplateRef('toggleButtonRef')
+const settingsError = shallowRef('')
+
+/**
+ * Asks the background to open settings because content scripts lack openOptionsPage.
+ */
+async function openSettings() {
+  settingsError.value = ''
+  try {
+    const response: unknown = await browser.runtime.sendMessage({
+      type: 'open-settings',
+    })
+    const { ok } = isRecord(response) ? response : { ok: false }
+    if (ok !== true) {
+      settingsError.value = i18n.t('actionFailed')
+    }
+  } catch {
+    settingsError.value = i18n.t('actionFailed')
+  }
+}
 
 watch(
   () => props.isOpen,
@@ -58,6 +83,8 @@ watch(
 <template>
   <aside
     @keydown.esc.stop="emit('close')"
+    :style="themeStyle"
+    :data-xvd-theme="pageTheme"
     :aria-label="i18n.t('extensionName')"
     class="pointer-events-none fixed inset-0 z-[2147483647] text-ink font-sans"
   >
@@ -71,13 +98,16 @@ watch(
         v-if="isOpen"
         :aria-label="i18n.t('panelOptions')"
         :id="panelId"
-        class="max-h-[inherit] w-full of-y-auto border border-line rounded-2xl bg-white shadow-xl"
+        class="xvd-panel-shadow max-h-[inherit] w-full of-y-auto overscroll-contain border border-line rounded-2xl bg-background"
       >
         <header
-          class="sticky top-0 z-1 flex items-center justify-between gap-3 border-b border-line bg-white px-5 py-4"
+          class="sticky top-0 z-1 flex items-center justify-between gap-3 border-b border-line bg-background px-4 py-3"
         >
-          <div class="flex items-center gap-3">
-            <AppIcon class="h-9 w-9" />
+          <div class="min-w-0 flex items-center gap-3">
+            <UiIcon
+              name="download"
+              class="h-6 w-6"
+            />
             <div>
               <h1 class="text-base font-bold">
                 {{ i18n.t('downloadVideos') }}
@@ -87,16 +117,34 @@ watch(
               </p>
             </div>
           </div>
-          <button
-            @click="emit('close')"
-            ref="closeButtonRef"
-            :aria-label="i18n.t('closePanel')"
-            type="button"
-            class="h-8 w-8 xvd-secondary shrink-0 p-0 text-lg"
-          >
-            ×
-          </button>
+          <div class="flex shrink-0 items-center gap-1">
+            <button
+              @click="openSettings"
+              :aria-label="i18n.t('settings')"
+              :title="i18n.t('settings')"
+              type="button"
+              class="xvd-icon"
+            >
+              <UiIcon name="settings" />
+            </button>
+            <button
+              @click="emit('close')"
+              ref="closeButtonRef"
+              :aria-label="i18n.t('closePanel')"
+              type="button"
+              class="xvd-icon"
+            >
+              <UiIcon name="close" />
+            </button>
+          </div>
         </header>
+        <p
+          v-if="settingsError"
+          role="alert"
+          class="px-5 pt-3 text-xs text-danger"
+        >
+          {{ settingsError }}
+        </p>
         <DownloadPanel
           @refresh="emit('refresh')"
           @show-all="emit('showAll')"

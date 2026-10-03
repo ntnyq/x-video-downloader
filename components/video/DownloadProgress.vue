@@ -98,7 +98,7 @@ function percentage(item: DownloadStatus) {
       </template>
       <p
         v-if="item.state === 'interrupted'"
-        class="text-xs text-red-700"
+        class="text-xs text-danger"
       >
         {{ i18n.t('interruptedHelp', [item.error || i18n.t('networkError')]) }}
       </p>

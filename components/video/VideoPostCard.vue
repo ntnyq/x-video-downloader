@@ -89,7 +89,7 @@ function handleSelectAll(event: Event) {
       :href="`https://x.com/i/status/${post.id}`"
       target="_blank"
       rel="noreferrer"
-      class="mb-3 block text-xs text-muted xvd-focus hover:text-primary"
+      class="mb-3 block text-xs text-muted xvd-focus hover:text-ink"
     >
       {{ post.author ? `@${post.author}` : i18n.t('post') }} · {{ post.id }}
     </a>
@@ -171,7 +171,7 @@ function handleSelectAll(event: Event) {
     <p
       v-if="requestError || preferenceError"
       role="alert"
-      class="mt-3 text-xs text-red-700"
+      class="mt-3 text-xs text-danger"
     >
       {{ requestError || preferenceError }}
     </p>

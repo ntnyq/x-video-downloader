@@ -2,7 +2,7 @@
 import VideoPostCard from './VideoPostCard.vue'
 import type { PageVideos } from '~/types/video'
 
-defineProps<{
+const props = defineProps<{
   /**
    * Captured videos and response-capture readiness for the current page.
    */
@@ -12,6 +12,7 @@ defineProps<{
    */
   selectedPostId?: string
 }>()
+
 const emit = defineEmits<{
   /**
    * Requests another capture replay and scan of the current page.
@@ -22,6 +23,11 @@ const emit = defineEmits<{
    */
   showAll: []
 }>()
+const visiblePosts = computed(() =>
+  props.snapshot.posts.filter(
+    post => !props.selectedPostId || post.id === props.selectedPostId,
+  ),
+)
 </script>
 
 <template>
@@ -46,37 +52,34 @@ const emit = defineEmits<{
         @click="emit('refresh')"
         v-else
         type="button"
-        class="xvd-link"
+        class="inline-flex xvd-link items-center gap-1.5"
       >
+        <UiIcon
+          name="refresh"
+          class="h-3.5 w-3.5"
+        />
         {{ i18n.t('refresh') }}
       </button>
     </div>
-    <div
-      v-if="
-        snapshot.posts.some(
-          post => !selectedPostId || post.id === selectedPostId,
-        )
-      "
-    >
-      <template
-        v-for="post in snapshot.posts"
+    <div v-if="visiblePosts.length">
+      <VideoPostCard
+        v-for="post in visiblePosts"
         :key="post.id"
-      >
-        <VideoPostCard
-          v-if="!selectedPostId || post.id === selectedPostId"
-          :post
-        />
-      </template>
+        :post
+      />
     </div>
     <div
       v-else
-      class="py-6"
+      class="py-8"
     >
       <div
-        class="mb-4 h-12 w-12 flex-center rounded-full bg-sky-50 text-2xl text-primary"
+        class="mb-4 h-12 w-12 flex-center rounded-2xl bg-input text-ink"
         aria-hidden="true"
       >
-        ↓
+        <UiIcon
+          name="download"
+          class="h-6 w-6"
+        />
       </div>
       <h2 class="mb-2 text-base font-semibold">{{ i18n.t('noVideos') }}</h2>
       <p class="text-sm text-muted leading-relaxed">

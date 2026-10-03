@@ -178,6 +178,32 @@ test('uses metadata, filename template and saved saveAs preference', async () =>
   assert.equal(calls[0]?.saveAs, false)
 })
 
+test('uses direct downloads by default and honors save-location choices for singles and batches', async () => {
+  for (const saveAs of [undefined, false, true]) {
+    const { ports, calls } = setup()
+    const manager = createDownloadManager({
+      ...ports,
+      readPreferences: async () => ({ saveAs }),
+    })
+    assert.equal((await manager.start(request)).ok, true)
+    const results = await manager.batch(
+      [2, 3].map(mediaIndex => ({
+        ...request,
+        mediaIndex,
+        url: request.url.replace('test.mp4', () => `${mediaIndex}.mp4`),
+      })),
+    )
+    assert.deepEqual(
+      results.map(item => item.result.ok),
+      [true, true],
+    )
+    assert.equal(calls.length, 3)
+    for (const call of calls) {
+      assert.equal(call.saveAs, saveAs === true)
+    }
+  }
+})
+
 test('deduplicates overlapping clicks and already-running transfers', async () => {
   const { manager, calls } = setup()
   const results = await Promise.all([

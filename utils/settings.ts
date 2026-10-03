@@ -3,7 +3,7 @@ import { DEFAULT_FILENAME_TEMPLATE, normalizePreferences } from './preferences'
 import type { DownloadRecord, QualityPreference } from '~/types/download'
 
 export const saveAsSetting = storage.defineItem<boolean>('local:saveAs', {
-  fallback: true,
+  fallback: false,
 })
 export const qualitySetting = storage.defineItem<QualityPreference>(
   'local:quality',

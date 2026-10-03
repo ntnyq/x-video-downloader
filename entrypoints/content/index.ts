@@ -1,5 +1,6 @@
 import '@unocss/reset/tailwind.css'
 import 'uno.css'
+import '~/assets/theme.css'
 import { createApp, h, shallowRef } from 'vue'
 import { browser, defineContentScript } from '#imports'
 import InlineDownloadButton from '~/components/video/InlineDownloadButton.vue'

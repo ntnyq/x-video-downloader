@@ -151,7 +151,9 @@ export function useFloatingLauncher(
     return event.detail === 0 || !suppressClick
   }
 
-  useEventListener(window, 'blur', finishGesture)
+  useEventListener(window, 'blur', () => {
+    finishGesture()
+  })
   useEventListener(window, 'resize', () => {
     finishGesture()
     viewport.value = { width: window.innerWidth, height: window.innerHeight }
@@ -161,12 +163,15 @@ export function useFloatingLauncher(
       edge.value,
     )
   })
-  onScopeDispose(finishGesture)
+  onScopeDispose(() => {
+    finishGesture()
+  })
 
   return {
     isDragging,
     buttonStyle,
     panelStyle,
+
     onPointerDown,
     onPointerMove,
     onPointerUp,

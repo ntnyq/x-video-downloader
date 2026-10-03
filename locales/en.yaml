@@ -73,7 +73,7 @@ resetTemplate: Restore default template
 retry: Retry
 retryUnavailable: 'Only failed, cancelled or removed downloads can be retried.'
 retryVideo: Retry video $1
-saveLocationHelp: 'When off, saves to your default download folder. Batch downloads ask for each video separately.'
+saveLocationHelp: 'Off by default. Saves directly to your browser’s download folder, which you can change in browser settings. When on, asks for each video, including batch downloads.'
 saveTemplate: Save template
 saveVideo: ↓ Save video $1
 saving: Saving…
@@ -95,6 +95,28 @@ statePaused: Paused
 tabReadFailed: Could not read the current tab. Open the extension again.
 templateSaveFailed: Template could not be saved. Try again.
 templateSaved: Filename template saved.
+themeAmber: Amber
+themeApply: Apply color
+themeBlue: X blue
+themeCustom: Custom RGB color
+themeDescription: Grok’s neutral surfaces with your choice of accent. Panels on X follow its light or dark background; extension pages follow your system.
+themeGreen: Green
+themeGrok: Grok · Default
+themeIndigo: Indigo
+themeInvalid: Enter three RGB values between 0 and 255.
+themeLime: Lime
+themeOcean: Ocean
+themeOrange: Orange
+themePresets: Built-in color themes
+themePreview: Preview
+themePurple: Purple
+themeReadFailed: Could not read the theme. You can choose and save it again.
+themeRed: Red
+themeRgbHelp: 'Use rgb(29, 155, 240) or 29, 155, 240. Each channel must be an integer from 0 to 255.'
+themeRose: Rose
+themeSaved: Theme saved.
+themeTeal: Teal
+themeTitle: Appearance
 togglePanel: Open or close the video download panel
 troubleshootingHelp: 'Play the video, then choose “Scan again”. Reload X after installing or updating. Restricted posts require an X account with permission to view them.'
 troubleshootingTitle: No video detected?

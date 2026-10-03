@@ -18,3 +18,7 @@ stats-*.json
 
 # user defined his own
 web-ext.config.ts
+
+# Playwright
+.playwright-cli/
+output/

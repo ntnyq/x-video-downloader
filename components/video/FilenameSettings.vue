@@ -106,7 +106,7 @@ watch(draft, () => {
     <p
       v-if="validationError"
       role="alert"
-      class="text-xs text-red-700"
+      class="text-xs text-danger"
     >
       {{ i18n.t(validationError) }}
     </p>
@@ -136,7 +136,7 @@ watch(draft, () => {
     </div>
     <p
       v-if="statusMessage || saveError"
-      :class="saveError ? 'text-red-700' : 'text-muted'"
+      :class="saveError ? 'text-danger' : 'text-muted'"
       role="status"
       class="text-xs"
     >

@@ -42,5 +42,10 @@ export function useVideoDownload() {
     }
   }
 
-  return { isPending, message, hasError, download }
+  return {
+    isPending,
+    message,
+    hasError,
+    download,
+  }
 }

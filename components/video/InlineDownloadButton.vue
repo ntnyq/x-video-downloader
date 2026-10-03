@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { useDownloadPreferences } from '~/composables/useDownloadPreferences'
+import { usePageTheme } from '~/composables/usePageTheme'
+import { useTheme } from '~/composables/useTheme'
 import { useVideoDownload } from '~/composables/useVideoDownload'
 import {
   createDownloadRequest,
@@ -21,6 +23,8 @@ const emit = defineEmits<{
 }>()
 
 const { preferences, isReady, preferenceError } = useDownloadPreferences()
+const pageTheme = usePageTheme()
+const { themeStyle } = useTheme()
 const { isPending, message, hasError, download } = useVideoDownload()
 
 const downloadable = computed(
@@ -68,7 +72,11 @@ async function handleQuick(event: MouseEvent) {
 </script>
 
 <template>
-  <div class="px-1 py-2 font-sans">
+  <div
+    :style="themeStyle"
+    :data-xvd-theme="pageTheme"
+    class="px-1 py-2 text-ink font-sans"
+  >
     <div class="flex flex-wrap items-center gap-2">
       <button
         @click.stop.prevent="handleQuick"
@@ -89,7 +97,7 @@ async function handleQuick(event: MouseEvent) {
     <p
       v-if="hasError || preferenceError"
       role="status"
-      class="mt-2 text-xs text-red-700"
+      class="mt-2 text-xs text-danger"
     >
       {{ preferenceError || message }}
     </p>

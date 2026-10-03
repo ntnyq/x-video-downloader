@@ -10,8 +10,10 @@ export function usePostDownloads(postId: MaybeRefOrGetter<string>) {
   const isPending = shallowRef(false)
   const isActionPending = shallowRef(false)
   const message = shallowRef('')
+
   const requestError = shallowRef('')
   const progressError = shallowRef('')
+
   let isRefreshing = false
   let isDisposed = false
 
@@ -182,7 +184,9 @@ export function usePostDownloads(postId: MaybeRefOrGetter<string>) {
     },
     { immediate: true },
   )
-  useIntervalFn(refresh, 1000)
+  useIntervalFn(() => {
+    refresh()
+  }, 1000)
 
   onScopeDispose(() => {
     isDisposed = true

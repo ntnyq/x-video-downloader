@@ -73,7 +73,7 @@ resetTemplate: 標準のテンプレートに戻す
 retry: 再試行
 retryUnavailable: 失敗、キャンセル、または削除されたダウンロードのみ再試行できます。
 retryVideo: 動画 $1 を再試行
-saveLocationHelp: オフの場合は標準のダウンロードフォルダーに保存します。一括ダウンロードでは動画ごとに保存先を確認します。
+saveLocationHelp: 初期設定はオフです。ブラウザーのダウンロードフォルダーに直接保存します。フォルダーはブラウザーの設定で変更できます。オンにすると、一括ダウンロードでも動画ごとに保存先を確認します。
 saveTemplate: テンプレートを保存
 saveVideo: ↓ 動画 $1 を保存
 saving: 保存中…
@@ -95,6 +95,28 @@ statePaused: 一時停止中
 tabReadFailed: 現在のタブを読み取れません。拡張機能を開き直してください。
 templateSaveFailed: テンプレートを保存できませんでした。再試行してください。
 templateSaved: ファイル名のテンプレートを保存しました。
+themeAmber: アンバー
+themeApply: 色を適用
+themeBlue: X ブルー
+themeCustom: カスタム RGB カラー
+themeDescription: 標準は Grok のモノトーン。アクセントカラーを選べます。X 内のパネルはページの明暗に、拡張機能のページはシステムに合わせます。
+themeGreen: グリーン
+themeGrok: Grok · 標準
+themeIndigo: インディゴ
+themeInvalid: 0〜255 の RGB 整数を3つ入力してください。
+themeLime: ライム
+themeOcean: オーシャン
+themeOrange: オレンジ
+themePresets: テーマカラー
+themePreview: プレビュー
+themePurple: パープル
+themeReadFailed: テーマを読み込めませんでした。選び直して保存できます。
+themeRed: レッド
+themeRgbHelp: 'rgb(29, 155, 240) または 29, 155, 240 を入力。各値は 0〜255 の整数です。'
+themeRose: ローズ
+themeSaved: テーマを保存しました。
+themeTeal: ティール
+themeTitle: 外観
 togglePanel: 動画ダウンロードパネルを開く／閉じる
 troubleshootingHelp: 動画を再生してから「再検出」を押してください。インストールや更新後は X を再読み込みしてください。閲覧制限のあるポストには、閲覧権限のあるアカウントでのログインが必要です。
 troubleshootingTitle: 動画が検出されない場合

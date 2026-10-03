@@ -53,6 +53,15 @@ function createBackground(shouldFail = false) {
        * @returns The fixed test extension popup URL.
        */
       getURL: () => popupUrl,
+      /**
+       * Records settings navigation or simulates a browser API failure.
+       */
+      async openOptionsPage() {
+        if (shouldFail) {
+          throw new Error('OPTIONS_FAILED')
+        }
+        calls.push('open-settings')
+      },
       onMessage: {
         /**
          * Captures the background message listener for test-driven message delivery.
@@ -240,4 +249,39 @@ test('background never starts a download for untrusted senders or URLs', async (
     { id: 'test', url: popupUrl },
   )
   assert.equal(background.calls.length, 0)
+})
+
+test('opens settings for this extension on X while rejecting untrusted senders', async () => {
+  const background = createBackground()
+  const message = { type: 'open-settings' }
+  const result = await background.send(message, {
+    id: 'test',
+    url: 'https://x.com/home',
+    tab: {},
+  })
+  assert.equal(JSON.stringify(result), JSON.stringify({ ok: true }))
+  assert.deepEqual(background.calls, ['open-settings'])
+  for (const sender of [
+    { id: 'other', url: 'https://x.com/home', tab: {} },
+    { id: 'test', url: 'https://example.com/', tab: {} },
+  ]) {
+    const rejected = await background.send(message, sender)
+    assert.equal(
+      JSON.stringify(rejected),
+      JSON.stringify({ ok: false, error: 'invalidSender' }),
+    )
+  }
+  assert.equal(background.calls.length, 1)
+})
+
+test('reports a settings navigation failure to the requesting panel', async () => {
+  const background = createBackground(true)
+  const result = await background.send(
+    { type: 'open-settings' },
+    { id: 'test', url: 'https://x.com/home', tab: {} },
+  )
+  assert.equal(
+    JSON.stringify(result),
+    JSON.stringify({ ok: false, error: 'OPTIONS_FAILED' }),
+  )
 })

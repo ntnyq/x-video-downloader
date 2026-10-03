@@ -73,7 +73,7 @@ resetTemplate: 還原預設範本
 retry: 重試
 retryUnavailable: 只能重試失敗、取消或已移除的下載工作。
 retryVideo: 重試影片 $1
-saveLocationHelp: 關閉後儲存到預設下載資料夾。批次下載時逐一確認儲存位置。
+saveLocationHelp: 預設關閉，直接儲存到瀏覽器的下載資料夾，可在瀏覽器設定中變更資料夾。開啟後每部影片都會詢問儲存位置，包括批次下載。
 saveTemplate: 儲存範本
 saveVideo: ↓ 儲存影片 $1
 saving: 儲存中…
@@ -95,6 +95,28 @@ statePaused: 已暫停
 tabReadFailed: 無法讀取目前分頁，請重新開啟擴充功能。
 templateSaveFailed: 範本未儲存，請重試。
 templateSaved: 檔名範本已儲存。
+themeAmber: 琥珀
+themeApply: 套用顏色
+themeBlue: X 藍
+themeCustom: 自訂 RGB 顏色
+themeDescription: 預設使用 Grok 黑白灰風格，可自選強調色。X 內面板跟隨頁面明暗，擴充功能頁面跟隨系統。
+themeGreen: 翠綠
+themeGrok: Grok · 預設
+themeIndigo: 靛藍
+themeInvalid: 請輸入三個 0–255 之間的 RGB 整數。
+themeLime: 青檸
+themeOcean: 海藍
+themeOrange: 橙色
+themePresets: 內建主題配色
+themePreview: 效果預覽
+themePurple: 紫色
+themeReadFailed: 無法讀取主題，可重新選擇並儲存。
+themeRed: 紅色
+themeRgbHelp: '支援 rgb(29, 155, 240) 或 29, 155, 240，每個通道為 0–255 的整數。'
+themeRose: 玫紅
+themeSaved: 主題已儲存。
+themeTeal: 青綠
+themeTitle: 外觀
 togglePanel: 開啟或關閉影片下載面板
 troubleshootingHelp: 先播放影片，再點選「重新偵測」。安裝或更新後需要重新整理 X 頁面。受限貼文需要登入 X 並有權查看。
 troubleshootingTitle: 沒有偵測到影片？

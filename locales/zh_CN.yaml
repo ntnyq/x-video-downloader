@@ -73,7 +73,7 @@ resetTemplate: 恢复默认模板
 retry: 重试
 retryUnavailable: 只能重试失败、取消或已移除的任务。
 retryVideo: 重试视频 $1
-saveLocationHelp: 关闭后保存到默认下载目录。批量下载时逐个确认保存位置。
+saveLocationHelp: 默认关闭，直接保存到浏览器的下载目录，可在浏览器设置中更改目录。开启后每个视频都会询问保存位置，包括批量下载。
 saveTemplate: 保存模板
 saveVideo: ↓ 保存视频 $1
 saving: 保存中…
@@ -95,6 +95,28 @@ statePaused: 已暂停
 tabReadFailed: 无法读取当前标签页，请重新打开插件。
 templateSaveFailed: 模板未保存，请重试。
 templateSaved: 文件名模板已保存。
+themeAmber: 琥珀
+themeApply: 应用颜色
+themeBlue: X 蓝
+themeCustom: 自定义 RGB 颜色
+themeDescription: 默认使用 Grok 黑白灰风格，可自选强调色。X 内面板跟随页面明暗，扩展页面跟随系统。
+themeGreen: 翠绿
+themeGrok: Grok · 默认
+themeIndigo: 靛蓝
+themeInvalid: 请输入三个 0–255 之间的 RGB 整数。
+themeLime: 青柠
+themeOcean: 海蓝
+themeOrange: 橙色
+themePresets: 内置主题配色
+themePreview: 效果预览
+themePurple: 紫色
+themeReadFailed: 无法读取主题，可重新选择并保存。
+themeRed: 红色
+themeRgbHelp: '支持 rgb(29, 155, 240) 或 29, 155, 240，每个通道为 0–255 的整数。'
+themeRose: 玫红
+themeSaved: 主题已保存。
+themeTeal: 青绿
+themeTitle: 外观
 togglePanel: 打开或关闭视频下载面板
 troubleshootingHelp: 先播放视频，再点击「重新检测」。安装或更新后需要刷新 X 页面。受限帖子需要你在 X 中正常登录并有权查看。
 troubleshootingTitle: 没有检测到视频？

@@ -1,0 +1,68 @@
+/* Public --xvd-* variables are deliberately not declared: inherited overrides win. */
+:root,
+:host,
+[data-xvd-theme="light"] {
+  color-scheme: light;
+  --xvd-default-background: #ffffff;
+  --xvd-default-surface: #f7f9f9;
+  --xvd-default-input: #eff3f4;
+  --xvd-default-ink: #0f1419;
+  --xvd-default-muted: #536471;
+  --xvd-default-line: #eff3f4;
+  --xvd-default-control-line: #cfd9de;
+  --xvd-default-hover: #e7e7e8;
+  --xvd-default-danger: #b91c1c;
+  --xvd-default-shadow: 0 8px 32px rgb(0 0 0 / 12%), 0 2px 8px rgb(0 0 0 / 6%);
+  --xvd-theme-accent: #0f1419;
+  --xvd-theme-on-accent: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root,
+  :host {
+    color-scheme: dark;
+    --xvd-default-background: #000000;
+    --xvd-default-surface: #16181c;
+    --xvd-default-input: #202327;
+    --xvd-default-ink: #e7e9ea;
+    --xvd-default-muted: #8b98a5;
+    --xvd-default-line: #2f3336;
+    --xvd-default-control-line: #536471;
+    --xvd-default-hover: #181818;
+    --xvd-default-danger: #f87171;
+    --xvd-default-shadow:
+      0 8px 32px rgb(0 0 0 / 40%), 0 0 0 1px rgb(255 255 255 / 6%);
+    --xvd-theme-accent: #eff3f4;
+    --xvd-theme-on-accent: #0f1419;
+  }
+}
+
+[data-xvd-theme="dark"],
+[data-xvd-theme="dim"] {
+  color-scheme: dark;
+  --xvd-default-background: #000000;
+  --xvd-default-surface: #16181c;
+  --xvd-default-input: #202327;
+  --xvd-default-ink: #e7e9ea;
+  --xvd-default-muted: #8b98a5;
+  --xvd-default-line: #2f3336;
+  --xvd-default-control-line: #536471;
+  --xvd-default-hover: #181818;
+  --xvd-default-danger: #f87171;
+  --xvd-default-shadow:
+    0 8px 32px rgb(0 0 0 / 40%), 0 0 0 1px rgb(255 255 255 / 6%);
+  --xvd-theme-accent: #eff3f4;
+  --xvd-theme-on-accent: #0f1419;
+}
+
+[data-xvd-theme="dim"] {
+  --xvd-default-background: #15202b;
+  --xvd-default-surface: #1e2732;
+  --xvd-default-input: #273340;
+  --xvd-default-line: #38444d;
+  --xvd-default-hover: #22303c;
+}
+
+.xvd-panel-shadow {
+  box-shadow: var(--xvd-shadow, var(--xvd-default-shadow));
+}

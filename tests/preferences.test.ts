@@ -31,6 +31,25 @@ const variants = normalizeVariants([
   variant('640x360', 300000),
 ])
 
+test('defaults to direct downloads for missing or invalid save-location preferences', () => {
+  for (const input of [
+    undefined,
+    null,
+    {},
+    { saveAs: undefined },
+    { saveAs: null },
+    { saveAs: 'true' },
+    { saveAs: 1 },
+  ]) {
+    assert.equal(normalizePreferences(input).saveAs, false)
+  }
+})
+
+test('preserves explicit save-location choices for existing users', () => {
+  assert.equal(normalizePreferences({ saveAs: true }).saveAs, true)
+  assert.equal(normalizePreferences({ saveAs: false }).saveAs, false)
+})
+
 test('selects highest, capped and smallest versions deterministically', () => {
   assert.equal(selectPreferredVariant(variants, 'highest')?.height, 2160)
   assert.equal(selectPreferredVariant(variants, '1080p')?.height, 1080)
