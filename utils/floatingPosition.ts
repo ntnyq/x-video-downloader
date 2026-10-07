@@ -1,3 +1,5 @@
+import { isRecord } from './video'
+
 export const FLOATING_BUTTON_SIZE = 44
 export const FLOATING_EDGE_GAP = 8
 
@@ -8,9 +10,41 @@ export interface FloatingPosition {
   y: number
 }
 
+export interface FloatingPlacement extends FloatingPosition {
+  /**
+   * Viewport edge selected by the last completed drag.
+   */
+  edge: FloatingEdge
+}
+
 export interface FloatingViewport {
   width: number
   height: number
+}
+
+/**
+ * Validates persisted launcher coordinates before using them in CSS.
+ *
+ * @param value - Untrusted extension storage value.
+ * @returns A saved placement, or undefined when it is missing or invalid.
+ */
+export function normalizeFloatingPlacement(
+  value: unknown,
+): FloatingPlacement | undefined {
+  if (!isRecord(value)) {
+    return
+  }
+  const { edge, x, y } = value
+  if (
+    (edge !== 'left' && edge !== 'right' && edge !== 'top' && edge !== 'bottom')
+    || typeof x !== 'number'
+    || !Number.isFinite(x)
+    || typeof y !== 'number'
+    || !Number.isFinite(y)
+  ) {
+    return
+  }
+  return { edge, x, y }
 }
 
 /**

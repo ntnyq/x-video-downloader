@@ -1,11 +1,13 @@
 import { useEventListener } from '@vueuse/core'
 import { computed, onScopeDispose, shallowRef } from 'vue'
+import { floatingLauncherSetting } from '../utils/floatingLauncherSetting'
 import {
   clampFloatingPosition,
   dockFloatingPosition,
   FLOATING_BUTTON_SIZE,
   getFloatingPanelStyle,
   getNearestFloatingEdge,
+  normalizeFloatingPlacement,
 } from '../utils/floatingPosition'
 import type { ShallowRef } from 'vue'
 import type { FloatingEdge, FloatingPosition } from '../utils/floatingPosition'
@@ -40,6 +42,27 @@ export function useFloatingLauncher(
     | { pointerId: number; start: FloatingPosition; origin: FloatingPosition }
     | undefined
   let suppressClick = false
+  let hasInteracted = false
+  let isDisposed = false
+  let pendingSave = Promise.resolve()
+
+  floatingLauncherSetting
+    .getValue()
+    .then(value => {
+      const saved = normalizeFloatingPlacement(value)
+      if (!saved || hasInteracted || isDisposed) {
+        return
+      }
+      edge.value = saved.edge
+      position.value = dockFloatingPosition(saved, viewport.value, saved.edge)
+    })
+    .catch(error => {
+      // Placement is best-effort: storage failures must not disable dragging.
+      console.warn(
+        '[X Video Downloader] Could not restore launcher position',
+        error,
+      )
+    })
 
   const buttonStyle = computed(() => ({
     left: `${position.value.x}px`,
@@ -61,6 +84,7 @@ export function useFloatingLauncher(
       return
     }
     const rect = button.value.getBoundingClientRect()
+    hasInteracted = true
     gesture = {
       pointerId: event.pointerId,
       start: { x: event.clientX, y: event.clientY },
@@ -112,6 +136,15 @@ export function useFloatingLauncher(
         viewport.value,
         edge.value,
       )
+      const saved = { ...position.value, edge: edge.value }
+      pendingSave = pendingSave
+        .then(() => floatingLauncherSetting.setValue(saved))
+        .catch(error => {
+          console.warn(
+            '[X Video Downloader] Could not save launcher position',
+            error,
+          )
+        })
     }
     isDragging.value = false
   }
@@ -164,6 +197,7 @@ export function useFloatingLauncher(
     )
   })
   onScopeDispose(() => {
+    isDisposed = true
     finishGesture()
   })
 

@@ -19,7 +19,7 @@ Detected posts are held in page memory, with a cache of up to 250 posts. The ext
 
 ### Information stored locally
 
-The extension uses local extension storage for your preferred quality, concurrency limit, save-location prompt preference, filename template, and appearance setting. It also stores records of downloads it initiated: queue identifiers, task creation times, queue states, byte counts, browser download IDs, requested filenames, video URLs, post IDs, media indexes, and author/date metadata when available. These records reflect download actions you requested and allow history search, duplicate reminders, queue restoration, pause/resume, cancellation, and retry after the background service worker restarts.
+The extension uses local extension storage for your preferred quality, concurrency limit, save-location prompt preference, filename template, appearance setting, and floating button position. It also stores records of downloads it initiated: queue identifiers, task creation times, queue states, byte counts, browser download IDs, requested filenames, video URLs, post IDs, media indexes, and author/date metadata when available. These records reflect download actions you requested and allow history search, duplicate reminders, queue restoration, pause/resume, cancellation, and retry after the background service worker restarts.
 
 The extension queries the browser for the state, filename, and byte counts of its own recorded download IDs. It does not enumerate or display unrelated browser download history. Settings and records are not synchronized through the extension's storage.sync API.
 
@@ -63,7 +63,7 @@ X 视频下载器是由 ntnyq 维护的独立浏览器扩展，用于保存你�
 
 ### 本地保存的信息
 
-扩展在本地扩展存储中保存画质偏好、并发数量、是否每次选择保存位置、文件名模板和外观设置。还会保存本扩展发起的下载记录，包括队列标识、任务创建时间、队列状态、字节数、浏览器下载 ID、请求的文件名、视频 URL、帖子 ID、视频序号以及可用的作者和日期信息。这些记录反映你发起的下载操作，用于搜索记录、重复下载提醒、后台服务重启后恢复队列及进度、暂停、继续、取消和重试。
+扩展在本地扩展存储中保存画质偏好、并发数量、是否每次选择保存位置、文件名模板、外观设置和悬浮球位置。还会保存本扩展发起的下载记录，包括队列标识、任务创建时间、队列状态、字节数、浏览器下载 ID、请求的文件名、视频 URL、帖子 ID、视频序号以及可用的作者和日期信息。这些记录反映你发起的下载操作，用于搜索记录、重复下载提醒、后台服务重启后恢复队列及进度、暂停、继续、取消和重试。
 
 扩展只按自身记录的下载 ID 向浏览器查询状态、文件名和字节数，不遍历或显示其他来源的下载历史。设置和任务记录不会通过扩展的 storage.sync API 同步。
 
