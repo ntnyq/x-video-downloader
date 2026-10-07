@@ -4,7 +4,11 @@ import {
   normalizeBatchRequest,
   normalizeDownloadRequest,
 } from '~/utils/download'
-import { downloadRecords, getDownloadPreferences } from '~/utils/settings'
+import {
+  concurrencySetting,
+  downloadRecords,
+  getDownloadPreferences,
+} from '~/utils/settings'
 import { isPostId, isRecord, isXUrl } from '~/utils/video'
 import { createDownloadManager } from './downloadManager'
 
@@ -50,7 +54,25 @@ export default defineBackground(() => {
      * @throws When the native cancellation fails.
      */
     cancel: id => browser.downloads.cancel(id),
+    pause: id => browser.downloads.pause(id),
+    resume: id => browser.downloads.resume(id),
   })
+
+  /**
+   * Advances persisted tasks even when every extension UI is closed.
+   *
+   * @param id - Optional changed native ID; omitted for startup or preference changes.
+   */
+  function refreshQueue(id?: number) {
+    manager
+      .refresh(id)
+      .catch(error => console.warn('Could not refresh download queue', error))
+  }
+
+  browser.downloads.onChanged.addListener(delta => refreshQueue(delta.id))
+  browser.downloads.onErased.addListener(id => refreshQueue(id))
+  concurrencySetting.watch(() => refreshQueue())
+  refreshQueue()
 
   browser.runtime.onMessage.addListener(
     (message: unknown, sender, sendResponse) => {
@@ -61,6 +83,7 @@ export default defineBackground(() => {
           'download-videos',
           'get-downloads',
           'download-action',
+          'clear-downloads',
           'open-settings',
         ].includes(String(message['type']))
       ) {
@@ -89,6 +112,12 @@ export default defineBackground(() => {
         if (!isRecord(message)) {
           return
         }
+        const downloadAction = (
+          ['cancel', 'pause', 'resume', 'retry'] as const
+        ).find(action => action === message['action'])
+        if ('force' in message && typeof message['force'] !== 'boolean') {
+          return { ok: false, error: 'invalidRequest' }
+        }
         if (message['type'] === 'open-settings') {
           await browser.runtime.openOptionsPage()
           return { ok: true }
@@ -96,25 +125,37 @@ export default defineBackground(() => {
         if (message['type'] === 'download-video') {
           const request = normalizeDownloadRequest(message)
           if (request) {
-            return manager.start(request)
+            return manager.start(request, message['force'] === true)
           }
         } else if (message['type'] === 'download-videos') {
           const requests = normalizeBatchRequest(message)
           if (requests) {
-            return { ok: true, results: await manager.batch(requests) }
+            return {
+              ok: true,
+              results: await manager.batch(requests, message['force'] === true),
+            }
           }
         } else if (
           message['type'] === 'get-downloads'
-          && isPostId(message['postId'])
+          && (message['postId'] === undefined || isPostId(message['postId']))
         ) {
           return { ok: true, downloads: await manager.list(message['postId']) }
         } else if (
+          message['type'] === 'clear-downloads'
+          && (message['ids'] === undefined
+            || (Array.isArray(message['ids'])
+              && message['ids'].every(
+                id => typeof id === 'number' && Number.isSafeInteger(id),
+              )))
+        ) {
+          return { ok: true, removed: await manager.clear(message['ids']) }
+        } else if (
           message['type'] === 'download-action'
           && typeof message['downloadId'] === 'number'
-          && Number.isInteger(message['downloadId'])
-          && (message['action'] === 'cancel' || message['action'] === 'retry')
+          && Number.isSafeInteger(message['downloadId'])
+          && downloadAction
         ) {
-          return manager.action(message['downloadId'], message['action'])
+          return manager.action(message['downloadId'], downloadAction)
         }
         return { ok: false, error: 'invalidRequest' }
       }

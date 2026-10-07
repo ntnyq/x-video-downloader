@@ -100,6 +100,16 @@ export interface DownloadRequest {
 export type DownloadResult =
   | {
       /**
+       * Accepted native identifier, or a negative identifier for a queued task.
+       */
+      downloadId: number
+      /**
+       * Indicates that the queue or browser accepted or already owns the task.
+       */
+      ok: true
+    }
+  | {
+      /**
        * Application error code or native browser message describing the failure.
        */
       error: string
@@ -107,14 +117,4 @@ export type DownloadResult =
        * Indicates that the download could not be started.
        */
       ok: false
-    }
-  | {
-      /**
-       * Browser download identifier for the newly started or reused transfer.
-       */
-      downloadId: number
-      /**
-       * Indicates that the browser accepted or already owns the download.
-       */
-      ok: true
     }

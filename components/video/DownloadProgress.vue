@@ -1,8 +1,9 @@
 <script lang="ts" setup>
+import { isTerminalDownload } from '~/utils/downloadHistory'
 import { formatBytes } from '~/utils/preferences'
 import type { DownloadStatus } from '~/types/download'
 
-defineProps<{
+interface Props {
   /**
    * Owned downloads whose status and available actions are displayed.
    */
@@ -11,15 +12,33 @@ defineProps<{
    * Whether download actions are temporarily unavailable.
    */
   disabled: boolean
-}>()
+  /**
+   * Displays source post and author for mixed-post lists.
+   */
+  showPost?: boolean
+  /**
+   * Offers removal of terminal records from extension history.
+   */
+  canRemove?: boolean
+}
+defineProps<Props>()
 const emit = defineEmits<{
   /**
    * Requests cancellation or retry with the download ID and originating click.
    */
-  action: [id: number, action: 'cancel' | 'retry', event: MouseEvent]
+  action: [
+    id: number,
+    action: 'cancel' | 'retry' | 'pause' | 'resume',
+    event: MouseEvent,
+  ]
+  /**
+   * Removes one terminal history record without deleting its file.
+   */
+  remove: [id: number, event: MouseEvent]
 }>()
 
 const STATE_LABELS: Record<DownloadStatus['state'], string> = {
+  queued: i18n.t('stateQueued'),
   in_progress: i18n.t('stateDownloading'),
   paused: i18n.t('statePaused'),
   complete: i18n.t('stateComplete'),
@@ -54,31 +73,72 @@ function percentage(item: DownloadStatus) {
       :key="item.id"
       class="space-y-2"
     >
-      <div class="flex items-center justify-between gap-2 text-xs">
+      <a
+        v-if="showPost"
+        :href="`https://x.com/i/status/${item.postId}`"
+        target="_blank"
+        rel="noreferrer"
+        class="block break-all text-xs text-muted xvd-focus hover:text-ink"
+        >{{ item.author ? `@${item.author}` : i18n.t('post') }} ·
+        {{ item.postId }}</a
+      >
+      <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
         <span
           >{{ i18n.t('videoNumber', [item.mediaIndex]) }} ·
           {{ STATE_LABELS[item.state] }}</span
         >
-        <button
-          @click="emit('action', item.id, 'cancel', $event)"
-          v-if="item.state === 'in_progress' || item.state === 'paused'"
-          :disabled
-          :aria-label="i18n.t('cancelVideo', [item.mediaIndex])"
-          type="button"
-          class="xvd-link"
-        >
-          {{ i18n.t('cancel') }}
-        </button>
-        <button
-          @click="emit('action', item.id, 'retry', $event)"
-          v-else-if="item.state !== 'complete'"
-          :disabled
-          :aria-label="i18n.t('retryVideo', [item.mediaIndex])"
-          type="button"
-          class="xvd-link"
-        >
-          {{ i18n.t('retry') }}
-        </button>
+        <div class="flex flex-wrap gap-3">
+          <button
+            @click="emit('action', item.id, 'pause', $event)"
+            v-if="item.state === 'in_progress' || item.state === 'queued'"
+            :disabled
+            :aria-label="i18n.t('pauseVideo', [item.mediaIndex])"
+            type="button"
+            class="xvd-link"
+          >
+            {{ i18n.t('pause') }}
+          </button>
+          <button
+            @click="emit('action', item.id, 'resume', $event)"
+            v-if="item.state === 'paused'"
+            :disabled
+            :aria-label="i18n.t('resumeVideo', [item.mediaIndex])"
+            type="button"
+            class="xvd-link"
+          >
+            {{ i18n.t('resume') }}
+          </button>
+          <button
+            @click="emit('action', item.id, 'cancel', $event)"
+            v-if="!isTerminalDownload(item)"
+            :disabled
+            :aria-label="i18n.t('cancelVideo', [item.mediaIndex])"
+            type="button"
+            class="xvd-link"
+          >
+            {{ i18n.t('cancel') }}
+          </button>
+          <button
+            @click="emit('action', item.id, 'retry', $event)"
+            v-else-if="item.state !== 'complete'"
+            :disabled
+            :aria-label="i18n.t('retryVideo', [item.mediaIndex])"
+            type="button"
+            class="xvd-link"
+          >
+            {{ i18n.t('retry') }}
+          </button>
+          <button
+            @click="emit('remove', item.id, $event)"
+            v-if="canRemove && isTerminalDownload(item)"
+            :disabled
+            :aria-label="i18n.t('removeVideoRecord', [item.mediaIndex])"
+            type="button"
+            class="xvd-link"
+          >
+            {{ i18n.t('removeRecord') }}
+          </button>
+        </div>
       </div>
       <p class="break-all text-xs text-muted">{{ item.filename }}</p>
       <template v-if="item.state === 'in_progress' || item.state === 'paused'">

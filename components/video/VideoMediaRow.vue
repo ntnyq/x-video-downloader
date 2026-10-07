@@ -20,7 +20,7 @@ interface Props {
    */
   checked: boolean
   /**
-   * Whether the post has multiple downloadable videos to select from.
+   * Whether to show this video's checkbox in the shared batch selection.
    */
   selectable: boolean
   /**

@@ -1,9 +1,11 @@
-import { mapAsync } from '@ntnyq/utils'
 import { normalizeDownloadRequest } from '../../utils/download'
 import { buildFilename, normalizePreferences } from '../../utils/preferences'
 import { isRecord } from '../../utils/video'
 import type { DownloadRecord, DownloadStatus } from '../../types/download'
 import type { DownloadRequest, DownloadResult } from '../../types/video'
+
+const MAX_TERMINAL_RECORDS = 200
+const MAX_OUTSTANDING_DOWNLOADS = 1000
 
 interface NativeDownload {
   /**
@@ -104,6 +106,14 @@ interface DownloadManagerPorts {
    * @throws When the browser rejects the cancellation.
    */
   cancel: (id: number) => Promise<void>
+  /**
+   * Pauses a native transfer after ownership has been checked.
+   */
+  pause: (id: number) => Promise<void>
+  /**
+   * Resumes a paused native transfer after a concurrency slot is available.
+   */
+  resume: (id: number) => Promise<void>
 }
 
 /**
@@ -126,254 +136,502 @@ function getDownloadState(item?: NativeDownload): DownloadStatus['state'] {
 }
 
 /**
- * Creates an extension-owned download controller with serialized persistence.
- * Requests are deduplicated while starting and while the matching transfer remains active.
+ * Creates a durable queue with serialized mutations and extension-owned history.
+ * Native download calls are serialized so save dialogs never overlap.
  *
- * @param ports - Storage and browser operations supplied by the background environment.
- * @returns Operations for starting, listing, cancelling, retrying, and batching downloads.
+ * @param ports - Persistence, preference, and native browser operations.
+ * @returns Queue admission, management, reconciliation, and history operations.
  */
 export function createDownloadManager(ports: DownloadManagerPorts) {
   let records: DownloadRecord[] | undefined
-  let loading: Promise<void> | undefined
-  let persistence = Promise.resolve()
-  const pending = new Map<string, Promise<DownloadResult>>()
+  let nextQueueId = -Date.now()
+  let operations = Promise.resolve()
 
   /**
-   * Lazily reads and validates owned records, sharing concurrent initialization.
-   * A failed read clears the loading promise so the next call can retry.
+   * Serializes state changes, including events raised during native API calls.
    *
-   * @returns The current in-memory records after successful initialization.
-   * @throws When reading persisted records fails.
+   * @param operation - Queue mutation or consistent read to perform.
+   * @returns The result without letting a failure block subsequent operations.
    */
-  async function load() {
-    loading ??= (async () => {
-      const stored = await ports.readRecords()
-      records = Array.isArray(stored)
-        ? stored.flatMap(value => {
-            if (
-              !isRecord(value)
-              || !Number.isInteger(value['id'])
-              || typeof value['id'] !== 'number'
-              || typeof value['filename'] !== 'string'
-            ) {
-              return []
-            }
-            const request = normalizeDownloadRequest(value['request'])
-            return request
-              ? [{ id: value['id'], filename: value['filename'], request }]
-              : []
-          })
-        : []
-    })().catch(error => {
-      loading = undefined
-      throw error
-    })
-    await loading
-    return records ?? []
+  function serialize<T>(operation: () => Promise<T>): Promise<T> {
+    const result = operations.then(operation)
+    operations = result.then(() => {}).catch(() => {})
+    return result
   }
 
   /**
-   * Queues a snapshot write without allowing an earlier failure to block later writes.
+   * Loads validated owned records and recovers interrupted native-start handoffs.
+   * An ambiguous handoff requires explicit retry to prevent duplicate downloads.
    *
-   * @returns A promise resolving when this snapshot has been persisted.
-   * @throws When this snapshot cannot be written to storage.
+   * @returns Mutable records owned exclusively by the serialized controller.
+   */
+  async function load(): Promise<DownloadRecord[]> {
+    if (records) {
+      return records
+    }
+    const stored = await ports.readRecords()
+    const seen = new Set<number>()
+    records = Array.isArray(stored)
+      ? stored.flatMap(value => {
+          if (
+            !isRecord(value)
+            || typeof value['id'] !== 'number'
+            || !Number.isSafeInteger(value['id'])
+            || seen.has(value['id'])
+            || typeof value['filename'] !== 'string'
+          ) {
+            return []
+          }
+          const request = normalizeDownloadRequest(value['request'])
+          if (!request) {
+            return []
+          }
+          const id = value['id']
+          seen.add(id)
+          nextQueueId = Math.min(nextQueueId, id - 1)
+          const validStates: DownloadStatus['state'][] = [
+            'queued',
+            'paused',
+            'in_progress',
+            'complete',
+            'cancelled',
+            'interrupted',
+            'missing',
+          ]
+          const state =
+            validStates.find(state => state === value['state'])
+            ?? (id >= 0 ? 'in_progress' : 'interrupted')
+          const starting = value['starting'] === true
+          return [
+            {
+              id,
+              queueId:
+                typeof value['queueId'] === 'number'
+                && Number.isSafeInteger(value['queueId'])
+                && value['queueId'] < 0
+                  ? value['queueId']
+                  : id < 0
+                    ? id
+                    : undefined,
+              request,
+              filename: value['filename'],
+              state:
+                id < 0 && (starting || state === 'in_progress')
+                  ? 'interrupted'
+                  : state,
+              startedAt:
+                typeof value['startedAt'] === 'number'
+                && Number.isFinite(value['startedAt'])
+                  ? value['startedAt']
+                  : 0,
+              saveAs: value['saveAs'] === true,
+              bytesReceived:
+                typeof value['bytesReceived'] === 'number'
+                && Number.isFinite(value['bytesReceived'])
+                  ? value['bytesReceived']
+                  : 0,
+              totalBytes:
+                typeof value['totalBytes'] === 'number'
+                && Number.isFinite(value['totalBytes'])
+                  ? value['totalBytes']
+                  : -1,
+              error:
+                starting && id < 0
+                  ? 'START_INTERRUPTED'
+                  : typeof value['error'] === 'string'
+                    ? value['error']
+                    : undefined,
+              displayFilename:
+                typeof value['displayFilename'] === 'string'
+                  ? value['displayFilename'].split(/[\\/]/).at(-1)
+                  : undefined,
+            } satisfies DownloadRecord,
+          ]
+        })
+      : []
+    return records
+  }
+
+  /**
+   * Persists an isolated snapshot, including every queued and paused task.
+   *
+   * @returns Completion of the storage write.
    */
   function persist() {
-    const snapshot = [...(records ?? [])]
-    const write = persistence.then(() => ports.writeRecords(snapshot))
-    persistence = write.catch(() => {})
-    return write
+    return ports.writeRecords(structuredClone(records ?? []))
   }
 
   /**
-   * Prunes old terminal or missing records once more than 200 downloads are tracked.
-   * Active transfers and the newest 100 records remain available for management.
+   * Reconciles tracked native downloads without inspecting unrelated browser items.
+   * Terminal snapshots remain history even after browser history is erased.
    *
-   * @returns A promise resolving after any required cleanup and persistence.
-   * @throws When records cannot be read, native state cannot be queried, or cleanup cannot be saved.
+   * @param id - Optional event ID; terminal records only need native reads when changed.
+   * @returns Completion of native-state reconciliation.
    */
-  async function prune() {
+  async function reconcile(id?: number) {
     const owned = await load()
-    if (owned.length <= 200) {
-      return
-    }
-    const oldest = owned.slice(0, -100)
-    const removed = new Set<number>()
-    await Promise.all(
-      oldest.map(async record => {
-        const [item] = await ports.search(record.id)
-        if (item?.state !== 'in_progress') {
-          removed.add(record.id)
+    for (const record of owned) {
+      if (
+        record.id < 0
+        || (id === undefined ? !isActive(record) : record.id !== id)
+      ) {
+        continue
+      }
+      const [item] = await ports.search(record.id)
+      if (!item) {
+        if (isActive(record)) {
+          record.state = 'missing'
         }
-      }),
-    )
-    records = (records ?? []).filter(record => !removed.has(record.id))
-    await persist()
+        continue
+      }
+      const state = getDownloadState(item)
+      record.state =
+        record.state === 'queued' && state === 'paused' ? 'queued' : state
+      record.bytesReceived = item.bytesReceived
+      record.totalBytes = item.totalBytes
+      record.error = item.error
+      record.displayFilename = item.filename?.split(/[\\/]/).at(-1) || undefined
+    }
   }
 
   /**
-   * Starts or reuses a matching transfer using the current filename and save-dialog settings.
-   * Persistence failures after a successful start do not turn the download into a failed result.
+   * Identifies transfers that must remain available for queue management.
    *
-   * @param request - Validated single-video request accepted by the message boundary.
-   * @returns A success result with the browser download ID, or a structured start failure.
+   * @param record - Tracked download or queue entry.
+   * @returns Whether it is queued, transferring, or paused.
    */
-  async function start(request: DownloadRequest): Promise<DownloadResult> {
-    const key = `${request.postId}:${request.mediaIndex}:${request.url}`
-    const existing = pending.get(key)
-    if (existing) {
-      return existing
+  function isActive(record: DownloadRecord) {
+    return ['queued', 'in_progress', 'paused'].includes(record.state ?? '')
+  }
+
+  /**
+   * Bounds retained terminal history while preserving every manageable task.
+   *
+   * @returns Whether the record set changed.
+   */
+  function pruneHistory() {
+    const owned = records ?? []
+    const terminal = owned.filter(record => !isActive(record))
+    if (terminal.length <= MAX_TERMINAL_RECORDS) {
+      return false
     }
-    const task = (async (): Promise<DownloadResult> => {
+    const discarded = new Set(terminal.slice(0, -MAX_TERMINAL_RECORDS))
+    records = owned.filter(record => !discarded.has(record))
+    return true
+  }
+
+  /**
+   * Fills available transfer slots from the persisted FIFO queue.
+   * A persisted handoff marker prevents automatic duplication after worker termination.
+   *
+   * @returns Completion of currently eligible native starts.
+   */
+  async function drain() {
+    const owned = await load()
+    const preferences = normalizePreferences(await ports.readPreferences())
+    let active = owned.filter(record => record.state === 'in_progress').length
+    for (const record of owned) {
+      if (active >= preferences.concurrency) {
+        break
+      }
+      if (record.state !== 'queued') {
+        continue
+      }
+      record.starting = true
       try {
-        const owned = await load()
-        const previous = [...owned]
-          .reverse()
-          .find(
-            record =>
-              record.request.postId === request.postId
-              && record.request.mediaIndex === request.mediaIndex
-              && record.request.url === request.url,
-          )
-        if (previous) {
-          const [item] = await ports.search(previous.id)
-          if (item?.state === 'in_progress') {
-            return { ok: true, downloadId: previous.id }
+        await persist()
+      } catch (error) {
+        record.starting = false
+        console.warn('Could not persist download handoff', error)
+        break
+      }
+      try {
+        if (record.id >= 0) {
+          await ports.resume(record.id)
+        } else {
+          record.id = await ports.download({
+            url: record.request.url,
+            filename: record.filename,
+            conflictAction: 'uniquify',
+            saveAs: record.saveAs ?? false,
+          })
+        }
+        record.state = 'in_progress'
+        record.error = undefined
+        active++
+      } catch (error) {
+        record.state =
+          record.id >= 0
+            ? 'paused'
+            : error instanceof Error && error.message === 'USER_CANCELED'
+              ? 'cancelled'
+              : 'interrupted'
+        record.error = error instanceof Error ? error.message : 'downloadFailed'
+      }
+      record.starting = false
+      try {
+        await persist()
+      } catch (error) {
+        // The native side effect already happened: retain ownership in memory
+        // and stop starting further tasks until persistence can succeed again.
+        console.warn('Could not persist download state', error)
+        break
+      }
+    }
+    if (pruneHistory()) {
+      try {
+        await persist()
+      } catch (error) {
+        console.warn('Could not persist download history cleanup', error)
+      }
+    }
+  }
+
+  /**
+   * Admits requests after active deduplication and completed-download checks.
+   *
+   * @param requests - Validated requests in FIFO order.
+   * @param force - Whether the user explicitly confirmed another completed download.
+   * @returns Ordered results paired with both post and media identifiers.
+   */
+  async function enqueue(requests: DownloadRequest[], force: boolean) {
+    await reconcile()
+    pruneHistory()
+    const owned = await load()
+    const preferences = normalizePreferences(await ports.readPreferences())
+    const added = new Set<DownloadRecord>()
+    let outstanding = owned.filter(isActive).length
+    const entries = requests.map(request => {
+      const matching = owned.filter(
+        record =>
+          record.request.postId === request.postId
+          && record.request.mediaIndex === request.mediaIndex,
+      )
+      const active = matching.find(isActive)
+      if (active) {
+        return { request, record: active }
+      }
+      if (!force && matching.some(record => record.state === 'complete')) {
+        return { request, error: 'duplicateDownload' }
+      }
+      if (outstanding >= MAX_OUTSTANDING_DOWNLOADS) {
+        return { request, error: 'queueFull' }
+      }
+      const id = nextQueueId--
+      const record: DownloadRecord = {
+        id,
+        queueId: id,
+        request,
+        filename: buildFilename(request, preferences.filenameTemplate),
+        saveAs: preferences.saveAs,
+        startedAt: Date.now(),
+        state: 'queued',
+        bytesReceived: 0,
+        totalBytes: -1,
+      }
+      owned.push(record)
+      added.add(record)
+      outstanding++
+      return { request, record }
+    })
+    try {
+      await persist()
+    } catch (error) {
+      records = owned.filter(record => !added.has(record))
+      throw error
+    }
+    await drain()
+    return entries.map(({ request, record, error }) => ({
+      postId: request.postId,
+      mediaIndex: request.mediaIndex,
+      result: (error
+        ? { ok: false, error }
+        : record && isActive(record)
+          ? { ok: true, downloadId: record.id }
+          : {
+              ok: false,
+              error: record?.error ?? 'downloadFailed',
+            }) satisfies DownloadResult,
+    }))
+  }
+
+  /**
+   * Starts or queues one video with explicit completed-download confirmation.
+   *
+   * @param request - Validated MP4 request.
+   * @param force - Whether another completed download was explicitly confirmed.
+   * @returns The accepted queue/native ID or a structured admission failure.
+   */
+  function start(
+    request: DownloadRequest,
+    force = false,
+  ): Promise<DownloadResult> {
+    return serialize(async () => {
+      try {
+        return (
+          (await enqueue([request], force))[0]?.result ?? {
+            ok: false,
+            error: 'downloadFailed',
           }
-        }
-        const preferences = normalizePreferences(await ports.readPreferences())
-        const filename = buildFilename(request, preferences.filenameTemplate)
-        const id = await ports.download({
-          url: request.url,
-          filename,
-          conflictAction: 'uniquify',
-          saveAs: preferences.saveAs,
-        })
-        records = [...(records ?? []), { id, request, filename }]
-        // Keep all active transfers; older terminal entries are pruned on query.
-        try {
-          await persist()
-          await prune()
-        } catch {
-          // The download has started. Preserve its in-memory tracking and never
-          // report it as a failed start, which could create duplicate downloads.
-        }
-        return { ok: true, downloadId: id }
+        )
       } catch (error) {
         return {
           ok: false,
           error: error instanceof Error ? error.message : 'downloadFailed',
         }
       }
-    })()
-    pending.set(key, task)
-    try {
-      return await task
-    } finally {
-      pending.delete(key)
-    }
+    })
   }
 
   /**
-   * Reads a post's native progress and retains at most ten terminal records for that post.
-   * Active and paused downloads remain manageable; filenames are reduced to basenames.
+   * Admits a cross-post batch atomically before starting eligible transfers.
    *
-   * @param postId - Identifier of the post whose owned downloads should be listed.
-   * @returns Download statuses in newest-first order.
-   * @throws When storage, browser lookup, or record cleanup fails.
+   * @param requests - Validated unique post and media pairs.
+   * @param force - Whether completed items were explicitly selected for another download.
+   * @returns Results in input order, including queued IDs and individual failures.
    */
-  async function list(postId: string): Promise<DownloadStatus[]> {
-    const owned = (await load()).filter(
-      record => record.request.postId === postId,
-    )
-    const statuses = await Promise.all(
-      owned.map(async record => {
-        const [item] = await ports.search(record.id)
-        const state = getDownloadState(item)
-        return {
-          id: record.id,
-          postId,
-          mediaIndex: record.request.mediaIndex,
-          filename: item?.filename?.split(/[\\/]/).at(-1) || record.filename,
-          state,
-          bytesReceived: item?.bytesReceived ?? 0,
-          totalBytes: item?.totalBytes ?? -1,
-          ...(item?.error ? { error: item.error } : {}),
-        }
-      }),
-    )
-    // Only discard old terminal tasks. Active downloads remain manageable.
-    const terminal = statuses.filter(
-      status => status.state !== 'in_progress' && status.state !== 'paused',
-    )
-    const discard = new Set(
-      terminal
-        .slice(0, Math.max(0, terminal.length - 10))
-        .map(status => status.id),
-    )
-    if (discard.size) {
-      records = (records ?? []).filter(record => !discard.has(record.id))
+  function batch(requests: DownloadRequest[], force = false) {
+    return serialize(() => enqueue(requests, force))
+  }
+
+  /**
+   * Lists searchable history and queue progress, optionally for a single post.
+   *
+   * @param postId - Optional post filter; omission lists every owned task.
+   * @returns Newest-first statuses with retained author, post, and creation metadata.
+   */
+  function list(postId?: string): Promise<DownloadStatus[]> {
+    return serialize(async () => {
+      await reconcile()
       await persist()
-    }
-    return statuses.filter(status => !discard.has(status.id)).reverse()
+      await drain()
+      return (await load())
+        .filter(record => !postId || record.request.postId === postId)
+        .map(record => ({
+          id: record.id,
+          postId: record.request.postId,
+          mediaIndex: record.request.mediaIndex,
+          author: record.request.author,
+          createdAt: record.request.createdAt,
+          startedAt: record.startedAt ?? 0,
+          filename: record.displayFilename || record.filename,
+          state: record.state ?? 'missing',
+          bytesReceived: record.bytesReceived ?? 0,
+          totalBytes: record.totalBytes ?? -1,
+          ...(record.error ? { error: record.error } : {}),
+        }))
+        .reverse()
+    })
   }
 
   /**
-   * Cancels an owned active transfer or retries an owned failed or missing transfer.
+   * Changes only owned tasks and applies native controls after state validation.
    *
-   * @param id - Browser download identifier belonging to this extension.
-   * @param action - Cancellation or retry operation requested by the UI.
-   * @returns A success result or a structured ownership, state, or retry failure.
-   * @throws When loading records, querying native state, or cancelling fails.
+   * @param id - Stable queue ID or accepted native download ID.
+   * @param action - Pause, resume, cancellation, or explicit retry operation.
+   * @returns The action outcome, with a new ID when retry creates another task.
    */
-  async function action(
+  function action(
     id: number,
-    action: 'cancel' | 'retry',
-  ): Promise<
-    | DownloadResult
-    | {
-        /**
-         * Indicates that cancellation of an owned active download was accepted.
-         */
-        ok: true
+    action: 'cancel' | 'pause' | 'resume' | 'retry',
+  ): Promise<DownloadResult | { ok: true }> {
+    return serialize(async () => {
+      await reconcile()
+      const record = (await load()).find(
+        record => record.id === id || record.queueId === id,
+      )
+      if (!record) {
+        return { ok: false, error: 'foreignDownload' }
       }
-  > {
-    const record = (await load()).find(item => item.id === id)
-    if (!record) {
-      return { ok: false, error: 'foreignDownload' }
-    }
-    const [item] = await ports.search(id)
-    if (action === 'cancel') {
-      if (item?.state !== 'in_progress') {
+      if (action === 'retry') {
+        if (isActive(record) || record.state === 'complete') {
+          return { ok: false, error: 'retryUnavailable' }
+        }
+        return (
+          (await enqueue([record.request], false))[0]?.result ?? {
+            ok: false,
+            error: 'downloadFailed',
+          }
+        )
+      }
+      if (!isActive(record)) {
         return { ok: false, error: 'finishedDownload' }
       }
-      await ports.cancel(id)
+      if (action === 'pause') {
+        if (record.state === 'paused') {
+          return { ok: true }
+        }
+        if (record.id >= 0 && record.state === 'in_progress') {
+          await ports.pause(record.id)
+        }
+        record.state = 'paused'
+      } else if (action === 'resume') {
+        if (record.state !== 'paused') {
+          return { ok: false, error: 'resumeUnavailable' }
+        }
+        record.state = 'queued'
+      } else {
+        if (record.id >= 0) {
+          await ports.cancel(record.id)
+        }
+        record.state = 'cancelled'
+        record.error = 'USER_CANCELED'
+      }
+      await persist()
+      await drain()
+      if (action === 'resume' && record.state === 'paused' && record.error) {
+        return { ok: false, error: record.error }
+      }
       return { ok: true }
-    }
-    if (item?.state === 'in_progress' || item?.state === 'complete') {
-      return { ok: false, error: 'retryUnavailable' }
-    }
-    return start(record.request)
+    })
   }
 
   /**
-   * Starts requests sequentially so save dialogs do not overlap.
-   * Each start failure is retained in the results without stopping the remaining requests.
+   * Removes only terminal extension history without erasing browser files or history.
    *
-   * @param requests - Validated single-post batch in the desired save-dialog order.
-   * @returns Results in request order, each paired with its one-based media position.
+   * @param ids - Optional selected record IDs; omission clears all terminal records.
+   * @returns Number of removed records.
    */
-  async function batch(requests: DownloadRequest[]) {
-    // Serialize save dialogs, but downloads themselves may transfer concurrently.
-    return mapAsync(
-      requests,
-      async request => ({
-        mediaIndex: request.mediaIndex,
-        result: await start(request),
-      }),
-      { concurrency: 1 },
-    )
+  function clear(ids?: number[]) {
+    return serialize(async () => {
+      await reconcile()
+      const owned = await load()
+      const selected = ids ? new Set(ids) : undefined
+      const retained = owned.filter(
+        record =>
+          isActive(record)
+          || (selected
+            && !selected.has(record.id)
+            && (record.queueId === undefined || !selected.has(record.queueId))),
+      )
+      records = retained
+      try {
+        await persist()
+      } catch (error) {
+        records = owned
+        throw error
+      }
+      return owned.length - retained.length
+    })
   }
 
-  return { start, list, action, batch }
+  /**
+   * Recovers persisted tasks or advances the queue after owned native state changes.
+   *
+   * @param id - Optional native event ID; unrelated downloads are ignored.
+   * @returns Completion of reconciliation, persistence, and queue dispatch.
+   */
+  function refresh(id?: number) {
+    return serialize(async () => {
+      const owned = await load()
+      if (id !== undefined && !owned.some(record => record.id === id)) {
+        return
+      }
+      await reconcile(id)
+      await persist()
+      await drain()
+    })
+  }
+
+  return { start, list, action, batch, clear, refresh }
 }

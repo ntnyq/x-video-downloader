@@ -1,8 +1,14 @@
 actionFailed: Action failed. Please try again.
+allAuthors: All authors
+batchLimitExceeded: Select at most $1 videos per batch. Your $2 selections are preserved.
 cancel: Cancel
 cancelVideo: Cancel video $1
 chooseSaveLocation: Choose a save location for each download
+clearFinished: Clear finished records
+clearSelection: Clear selection
 closePanel: Close download panel
+concurrencyHelp: 'Start 1–6 transfers at a time (default: 3). Remaining videos wait in the queue. Paused downloads keep their place until resumed. Lowering the limit does not stop running transfers.'
+concurrentDownloads: Concurrent downloads
 confirmEachSave: Confirm a save location for each video in order.
 creatingDownload: Starting download…
 creatingDownloads: Starting downloads ($1). Confirm each save location if prompted…
@@ -10,18 +16,26 @@ creatingSave: Starting download. Confirm the save location if prompted…
 currentPageVideos: Videos on this page
 defaultQuality: Default quality
 detectVideos: Find videos
+dismiss: Dismiss
+downloadAgain: Download again
 downloadCancelled: Download cancelled.
 downloadFailed: Download did not start. Please try again.
 downloadHighest: ↓ Download best quality
 downloadNotice: Progress stays in sync with your browser. Only save content you have permission to download.
+downloadPageSelected: Download selected videos ($1)
+downloadPaused: Download paused.
 downloadProgress: Download progress
-downloadQueued: Added to your browser’s download list. You can check progress there.
+downloadQueued: Added to the download queue. Open the panel to track progress.
 downloadReload: Download did not start. Reload the page and try again.
+downloadResumed: Download queued to continue.
 downloadRetried: Download restarted.
 downloadSelected: Download selected videos ($1)
 downloadSettings: Download settings
 downloadVideos: Download videos
-downloadsCreated: 'Downloads started: $1.'
+downloadViews: Download views
+downloadsCreated: 'Downloads accepted: $1. Track waiting and active tasks below.'
+duplicateDownload: This video has already been downloaded. Open the panel to download it again.
+duplicateNotice: $1 selected videos have completed downloads. Download those videos again?
 extensionDescription: Save videos from X with your preferred MP4 quality.
 extensionName: X Video Downloader
 filenameEmpty: Enter a filename template.
@@ -31,6 +45,7 @@ filenameTemplate: Filename template
 filenameTokens: Use only the variables listed below and close every brace.
 filenameTooLong: The template must be 160 characters or fewer.
 filenameUnsafe: "Paths, control characters and these symbols are not allowed: \\ / : * ? \" < > |"
+filterAuthor: Filter by author
 finishedDownload: This download has already ended.
 foreignDownload: This download was not created by the extension.
 formatsHelp: Supports MP4 videos and GIFs stored as video. HLS-only streams are not supported yet. A blob URL is not a directly downloadable MP4.
@@ -40,6 +55,13 @@ guideStepThree: 'Track progress in the panel, cancel a download, or retry a fail
 guideStepTwo: 'Use the download button to save a single video, or open the panel to choose quality and select multiple videos.'
 guideSteps: Save a video in three steps
 highestSuffix: (best quality)
+historyClearHelp: Clears matching finished records from this extension only. Downloaded files and active or paused tasks are kept. Cleared records no longer trigger duplicate reminders.
+historyCleared: Finished records cleared.
+historyCount: $1 download records
+historyEmpty: No extension downloads yet.
+historyNoMatches: No downloads match these filters.
+historySearchPlaceholder: 'Filename, post ID or author'
+historyTab: 'History & queue'
 hlsUnsupported: This video is only available as HLS segments. Merging them is not supported yet.
 interruptedHelp: 'Download interrupted ($1). Retry, or reload the original post if the link has expired.'
 invalidRequest: Invalid download request. Select the video again.
@@ -54,9 +76,15 @@ openPostFirst: Open an X post containing a video first.
 openX: Open X
 originalMp4: Original MP4
 pageDisconnected: 'The extension is not connected to this page. Reload X, then open the extension again.'
+pageSelection: Selected $1 of $2 videos across $3 posts
+pageVideosTab: Page videos
 panelOptions: Video download options
+pause: Pause
+pauseUnavailable: This download cannot be paused in its current state.
+pauseVideo: Pause video $1
 popupTagline: Choose the quality. Keep it locally.
 post: Post
+postVideoError: 'Post $1 · video $2: $3'
 preferencesReadFailed: Could not read download settings. Open the page again.
 preferencesSaved: Download preferences saved.
 privacyHelp: 'The extension reads loaded video information locally. No API key is needed, and posts, cookies and login details are never sent to third-party download services.'
@@ -67,9 +95,15 @@ qualityAndProgress: Quality / progress
 qualityHelp: Used for quick and batch downloads. Chooses the best resolution within the target; portrait videos use the shorter edge. “Save space” prefers a lower bitrate.
 qualityHighest: Best quality
 qualitySmallest: Save space
+queueFull: 'The download queue is full. Wait for tasks to finish, then try again.'
 quickDownload: ↓ Quick download
 refresh: Scan again
+removeRecord: Remove record
+removeVideoRecord: Remove record for video $1
 resetTemplate: Restore default template
+resume: Resume
+resumeUnavailable: This download cannot be resumed in its current state.
+resumeVideo: Resume video $1
 retry: Retry
 retryUnavailable: 'Only failed, cancelled or removed downloads can be retried.'
 retryVideo: Retry video $1
@@ -78,7 +112,10 @@ saveTemplate: Save template
 saveVideo: ↓ Save video $1
 saving: Saving…
 scanning: Scanning the current page…
+searchDownloads: Search downloads
 selectAll: Select all available videos ($1 / $2)
+selectPageVideos: Select all videos on this page
+selectPostVideos: Select videos in post $1
 selectVideo: Select video $1
 selectVideos: Select videos
 selectedPostVideos: Videos in the selected post
@@ -92,6 +129,7 @@ stateDownloading: Downloading
 stateInterrupted: Failed
 stateMissing: Record removed
 statePaused: Paused
+stateQueued: Waiting
 tabReadFailed: Could not read the current tab. Open the extension again.
 templateSaveFailed: Template could not be saved. Try again.
 templateSaved: Filename template saved.

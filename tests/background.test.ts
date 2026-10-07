@@ -44,6 +44,20 @@ type Listener = (
 function createBackground(shouldFail = false) {
   const calls: unknown[] = []
   let listener: Listener | undefined
+  let changedListener: ((delta: { id: number }) => void) | undefined
+  let erasedListener: ((id: number) => void) | undefined
+  let nextId = 42
+  const items = new Map<
+    number,
+    {
+      id: number
+      state: 'in_progress' | 'complete' | 'interrupted'
+      bytesReceived: number
+      totalBytes: number
+      paused?: boolean
+      error?: string
+    }
+  >()
   const browser = {
     runtime: {
       id: 'test',
@@ -88,18 +102,48 @@ function createBackground(shouldFail = false) {
       },
     },
     downloads: {
+      onChanged: {
+        addListener(callback: (delta: { id: number }) => void) {
+          changedListener = callback
+        },
+      },
+      onErased: {
+        addListener(callback: (id: number) => void) {
+          erasedListener = callback
+        },
+      },
+      async pause(id: number) {
+        const item = items.get(id)
+        if (item) {
+          item.paused = true
+        }
+      },
+      async resume(id: number) {
+        const item = items.get(id)
+        if (item) {
+          item.paused = false
+        }
+      },
       /**
        * Simulates the absence of previously recorded browser downloads.
        *
        * @returns A promise resolving to an empty native-download list.
        */
-      search: async () => [],
+      async search({ id }: { id: number }) {
+        return items.has(id) ? [items.get(id)] : []
+      },
       /**
        * Accepts cancellation without a native browser in this harness.
        *
        * @returns A resolved cancellation promise.
        */
-      cancel: async () => {},
+      async cancel(id: number) {
+        const item = items.get(id)
+        if (item) {
+          item.state = 'interrupted'
+          item.error = 'USER_CANCELED'
+        }
+      },
       /**
        * Records native download options and simulates browser acceptance or cancellation.
        *
@@ -112,7 +156,14 @@ function createBackground(shouldFail = false) {
         if (shouldFail) {
           throw new Error('USER_CANCELED')
         }
-        return 42
+        const id = nextId++
+        items.set(id, {
+          id,
+          state: 'in_progress',
+          bytesReceived: 0,
+          totalBytes: 100,
+        })
+        return id
       },
     },
   }
@@ -135,6 +186,7 @@ function createBackground(shouldFail = false) {
   runInNewContext(compiled, {
     exports,
     Error,
+    structuredClone,
     /**
      * Resolves the background entrypoint's dependencies to controlled test adapters.
      *
@@ -170,10 +222,12 @@ function createBackground(shouldFail = false) {
            */
           async getDownloadPreferences() {
             return {
+              concurrency: 1,
               saveAs: false,
               filenameTemplate: 'X-{postId}-{index}',
             }
           },
+          concurrencySetting: { watch() {} },
           downloadRecords: {
             /**
              * Starts the fixture with no persisted download records.
@@ -207,7 +261,13 @@ function createBackground(shouldFail = false) {
   function send(message: unknown, sender: Sender) {
     return new Promise<unknown>(resolve => listener?.(message, sender, resolve))
   }
-  return { calls, send }
+  return {
+    calls,
+    send,
+    items,
+    changed: (id: number) => changedListener?.({ id }),
+    erased: (id: number) => erasedListener?.(id),
+  }
 }
 
 test('background starts downloads with chosen quality, stable filename and saved preference', async () => {
@@ -284,4 +344,84 @@ test('reports a settings navigation failure to the requesting panel', async () =
     JSON.stringify(result),
     JSON.stringify({ ok: false, error: 'OPTIONS_FAILED' }),
   )
+})
+
+test('background advances cross-post queues from native completion and erased events', async () => {
+  const background = createBackground()
+  const sender = { id: 'test', url: popupUrl }
+  await background.send(
+    {
+      type: 'download-videos',
+      requests: [
+        request,
+        { ...request, postId: '456' },
+        { ...request, postId: '789' },
+      ],
+    },
+    sender,
+  )
+  assert.equal(background.calls.length, 1)
+  background.items.get(42)!.state = 'complete'
+  background.changed(42)
+  await background.send({ type: 'get-downloads' }, sender)
+  assert.equal(background.calls.length, 2)
+  background.items.delete(43)
+  background.erased(43)
+  await background.send({ type: 'get-downloads' }, sender)
+  assert.equal(background.calls.length, 3)
+})
+
+test('validates management payloads and repeat confirmation before native effects', async () => {
+  const background = createBackground()
+  const sender = { id: 'test', url: popupUrl }
+  for (const message of [
+    { ...request, force: 'yes' },
+    { type: 'get-downloads', postId: 'invalid' },
+    { type: 'download-action', downloadId: 42.5, action: 'pause' },
+    { type: 'download-action', downloadId: 42, action: 'erase' },
+    { type: 'clear-downloads', ids: ['42'] },
+    { type: 'clear-downloads', ids: [42.5] },
+    { type: 'download-videos', requests: [request, request] },
+  ]) {
+    assert.equal(
+      JSON.stringify(await background.send(message, sender)),
+      JSON.stringify({ ok: false, error: 'invalidRequest' }),
+    )
+  }
+  for (const message of [
+    { type: 'get-downloads' },
+    { type: 'clear-downloads' },
+    { type: 'download-action', downloadId: 42, action: 'pause' },
+    { type: 'download-action', downloadId: 42, action: 'resume' },
+  ]) {
+    assert.equal(
+      JSON.stringify(
+        await background.send(message, { id: 'other', url: popupUrl }),
+      ),
+      JSON.stringify({ ok: false, error: 'invalidSender' }),
+    )
+  }
+  assert.equal(background.calls.length, 0)
+})
+
+test('confirms completed repeats explicitly and clears terminal records without deleting native history', async () => {
+  const background = createBackground()
+  const sender = { id: 'test', url: popupUrl }
+  await background.send(request, sender)
+  background.items.get(42)!.state = 'complete'
+  assert.equal(
+    JSON.stringify(await background.send(request, sender)),
+    JSON.stringify({ ok: false, error: 'duplicateDownload' }),
+  )
+  assert.equal(
+    JSON.stringify(await background.send({ ...request, force: true }, sender)),
+    JSON.stringify({ ok: true, downloadId: 43 }),
+  )
+  assert.equal(
+    JSON.stringify(
+      await background.send({ type: 'clear-downloads', ids: [42, 43] }, sender),
+    ),
+    JSON.stringify({ ok: true, removed: 1 }),
+  )
+  assert.equal(background.items.size, 2)
 })

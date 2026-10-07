@@ -1,7 +1,11 @@
 <script lang="ts" setup>
 import { useDownloadPreferences } from '~/composables/useDownloadPreferences'
 import { normalizeQuality, QUALITY_OPTIONS } from '~/utils/preferences'
-import { qualitySetting, saveAsSetting } from '~/utils/settings'
+import {
+  concurrencySetting,
+  qualitySetting,
+  saveAsSetting,
+} from '~/utils/settings'
 import FilenameSettings from './FilenameSettings.vue'
 
 const { preferences, isReady, preferenceError } = useDownloadPreferences()
@@ -29,6 +33,8 @@ async function updatePreference(event: Event) {
   try {
     if (target instanceof HTMLInputElement) {
       await saveAsSetting.setValue(target.checked)
+    } else if (target.id === 'download-concurrency') {
+      await concurrencySetting.setValue(Number(target.value))
     } else {
       await qualitySetting.setValue(normalizeQuality(target.value))
     }
@@ -37,6 +43,8 @@ async function updatePreference(event: Event) {
   } catch {
     if (target instanceof HTMLInputElement) {
       target.checked = preferences.value.saveAs
+    } else if (target.id === 'download-concurrency') {
+      target.value = String(preferences.value.concurrency)
     } else {
       target.value = preferences.value.quality
     }
@@ -73,6 +81,31 @@ async function updatePreference(event: Event) {
       </select>
       <p class="text-xs text-muted leading-relaxed">
         {{ i18n.t('qualityHelp') }}
+      </p>
+    </div>
+    <div class="space-y-2">
+      <label
+        for="download-concurrency"
+        class="block text-sm font-medium"
+        >{{ i18n.t('concurrentDownloads') }}</label
+      >
+      <select
+        @change="updatePreference"
+        :value="preferences.concurrency"
+        :disabled="!isReady || isSaving"
+        id="download-concurrency"
+        class="w-full xvd-input"
+      >
+        <option
+          v-for="count in 6"
+          :key="count"
+          :value="count"
+        >
+          {{ count }}
+        </option>
+      </select>
+      <p class="text-xs text-muted leading-relaxed">
+        {{ i18n.t('concurrencyHelp') }}
       </p>
     </div>
     <label class="flex cursor-pointer items-start gap-3">

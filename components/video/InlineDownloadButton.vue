@@ -7,6 +7,7 @@ import {
   createDownloadRequest,
   selectPreferredVariant,
 } from '~/utils/preferences'
+import DuplicateDownloadNotice from './DuplicateDownloadNotice.vue'
 import type { VideoPost } from '~/types/video'
 
 const props = defineProps<{
@@ -25,7 +26,8 @@ const emit = defineEmits<{
 const { preferences, isReady, preferenceError } = useDownloadPreferences()
 const pageTheme = usePageTheme()
 const { themeStyle } = useTheme()
-const { isPending, message, hasError, download } = useVideoDownload()
+const { isPending, message, hasError, download, duplicateRequest } =
+  useVideoDownload(() => props.post?.id)
 
 const downloadable = computed(
   () =>
@@ -69,6 +71,25 @@ async function handleQuick(event: MouseEvent) {
     emit('open')
   }
 }
+/**
+ * Repeats the completed video only after a trusted confirmation click.
+ */
+async function confirmDuplicate(event: MouseEvent) {
+  if (
+    event.isTrusted
+    && duplicateRequest.value
+    && (await download(duplicateRequest.value, true))
+  ) {
+    emit('open')
+  }
+}
+
+watch(
+  () => props.post?.id,
+  () => {
+    duplicateRequest.value = undefined
+  },
+)
 </script>
 
 <template>
@@ -94,6 +115,12 @@ async function handleQuick(event: MouseEvent) {
         {{ i18n.t('qualityAndProgress') }}
       </button>
     </div>
+    <DuplicateDownloadNotice
+      @confirm="confirmDuplicate"
+      @dismiss="duplicateRequest = undefined"
+      :count="duplicateRequest ? 1 : 0"
+      :disabled="isPending"
+    />
     <p
       v-if="hasError || preferenceError"
       role="status"

@@ -12,13 +12,17 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppIcon: typeof import('./../components/AppIcon.vue')['default']
+    DownloadHistory: typeof import('./../components/video/DownloadHistory.vue')['default']
     DownloadPanel: typeof import('./../components/video/DownloadPanel.vue')['default']
     DownloadProgress: typeof import('./../components/video/DownloadProgress.vue')['default']
     DownloadSettings: typeof import('./../components/video/DownloadSettings.vue')['default']
+    DownloadWorkspace: typeof import('./../components/video/DownloadWorkspace.vue')['default']
+    DuplicateDownloadNotice: typeof import('./../components/video/DuplicateDownloadNotice.vue')['default']
     ExtensionGuide: typeof import('./../components/video/ExtensionGuide.vue')['default']
     FilenameSettings: typeof import('./../components/video/FilenameSettings.vue')['default']
     FloatingDownloadLauncher: typeof import('./../components/video/FloatingDownloadLauncher.vue')['default']
     InlineDownloadButton: typeof import('./../components/video/InlineDownloadButton.vue')['default']
+    PageVideoList: typeof import('./../components/video/PageVideoList.vue')['default']
     PopupDownloader: typeof import('./../components/video/PopupDownloader.vue')['default']
     ThemeSettings: typeof import('./../components/video/ThemeSettings.vue')['default']
     UiIcon: typeof import('./../components/UiIcon.vue')['default']

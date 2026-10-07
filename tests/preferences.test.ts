@@ -151,7 +151,7 @@ test('validates templates and preserves safe fallbacks for missing metadata', ()
   assert.equal(normalizePreferences({ quality: 'invalid' }).quality, 'highest')
 })
 
-test('batch requests must target one post with distinct valid media positions', () => {
+test('batch requests preserve unique cross-post media pairs and reject invalid requests', () => {
   const one = {
     type: 'download-video',
     postId: '123',
@@ -165,10 +165,30 @@ test('batch requests must target one post with distinct valid media positions', 
     })?.length,
     2,
   )
+  assert.equal(
+    normalizeBatchRequest({
+      type: 'download-videos',
+      requests: [one, { ...one, postId: '456' }],
+    })?.length,
+    2,
+  )
+  assert.equal(
+    normalizeBatchRequest({
+      type: 'download-videos',
+      requests: Array.from({ length: 100 }, (_, index) => ({
+        ...one,
+        postId: String(index + 1),
+      })),
+    })?.length,
+    100,
+  )
   for (const requests of [
+    Array.from({ length: 101 }, (_, index) => ({
+      ...one,
+      postId: String(index + 1),
+    })),
     [],
     [one, one],
-    [one, { ...one, postId: '456', mediaIndex: 2 }],
     [{ ...one, url: 'https://evil.test/a.mp4' }],
   ]) {
     assert.equal(
@@ -225,4 +245,22 @@ test('reads author from user core even when legacy contains other fields', () =>
     },
   })
   assert.equal(posts[0]?.author, 'ntnyq')
+})
+
+test('concurrency defaults to three and only accepts integers from one to six', () => {
+  for (const concurrency of [
+    undefined,
+    0,
+    7,
+    -1,
+    '3',
+    1.5,
+    Number.NaN,
+    Infinity,
+  ]) {
+    assert.equal(normalizePreferences({ concurrency }).concurrency, 3)
+  }
+  for (const concurrency of [1, 2, 3, 4, 5, 6]) {
+    assert.equal(normalizePreferences({ concurrency }).concurrency, concurrency)
+  }
 })

@@ -1,8 +1,14 @@
 actionFailed: 操作失敗，請重試。
+allAuthors: 全部作者
+batchLimitExceeded: 每批最多選擇 $1 個影片，目前 $2 個選擇均已保留。
 cancel: 取消
 cancelVideo: 取消影片 $1
 chooseSaveLocation: 每次下載時選擇儲存位置
+clearFinished: 清理已結束記錄
+clearSelection: 清空選擇
 closePanel: 關閉下載面板
+concurrencyHelp: 同時下載 1–6 個影片（預設 3 個），其餘進入等候佇列。暫停的下載會保留，直到繼續。降低數量不會中止正在下載的工作。
+concurrentDownloads: 同時下載數量
 confirmEachSave: 依序確認每部影片的儲存位置。
 creatingDownload: 正在建立下載…
 creatingDownloads: 正在建立 $1 個下載，請依提示確認儲存位置…
@@ -10,18 +16,26 @@ creatingSave: 正在建立下載，請依提示確認儲存位置…
 currentPageVideos: 目前頁面的影片
 defaultQuality: 預設畫質
 detectVideos: 偵測影片
+dismiss: 略過
+downloadAgain: 再次下載
 downloadCancelled: 已取消下載。
 downloadFailed: 下載未開始，請重試。
 downloadHighest: ↓ 下載最高畫質
 downloadNotice: 進度與瀏覽器下載清單同步。僅下載你有權儲存的內容。
+downloadPageSelected: 下載所選影片（$1）
+downloadPaused: 下載已暫停。
 downloadProgress: 下載進度
-downloadQueued: 已加入瀏覽器下載清單，可在該處查看進度。
+downloadQueued: 已加入下載佇列，可在面板中查看進度。
 downloadReload: 下載未開始，請重新整理頁面後重試。
+downloadResumed: 下載已加入佇列，等候繼續。
 downloadRetried: 已重新建立下載。
 downloadSelected: 下載所選的 $1 部影片
 downloadSettings: 下載設定
 downloadVideos: 下載影片
-downloadsCreated: 已建立 $1 個下載。
+downloadViews: 下載檢視
+downloadsCreated: 已接受 $1 個下載工作，可在下方查看等候與下載進度。
+duplicateDownload: 此影片已有完成的下載記錄，可在面板中確認再次下載。
+duplicateNotice: 所選影片中有 $1 個已有完成的下載記錄，是否再次下載這些影片？
 extensionDescription: 在 X 影片旁顯示下載按鈕，選擇畫質並儲存 MP4。
 extensionName: X 影片下載器
 filenameEmpty: 請輸入檔名範本。
@@ -31,6 +45,7 @@ filenameTemplate: 檔名範本
 filenameTokens: 請僅使用下方列出的變數，並確認大括號完整。
 filenameTooLong: 範本不能超過 160 個字元。
 filenameUnsafe: "範本不能包含路徑、控制字元或 \\ / : * ? \" < > |。"
+filterAuthor: 按作者篩選
 finishedDownload: 這個下載工作已結束。
 foreignDownload: 無法操作其他來源的下載工作。
 formatsHelp: 支援 MP4 影片與以影片形式儲存的 GIF；暫不支援僅有 HLS 分段的直播或影片。頁面中的 blob 網址不是可直接儲存的 MP4。
@@ -40,6 +55,13 @@ guideStepThree: 在面板查看下載進度、取消工作或重試失敗的下�
 guideStepTwo: 單部影片點選下載按鈕即可儲存；也可以展開面板選擇畫質或勾選多部影片。
 guideSteps: 三步儲存影片
 highestSuffix: （最高畫質）
+historyClearHelp: 僅清理篩選結果中已結束的擴充功能記錄，保留下載檔案及正在下載、等候或暫停的工作。清理後的記錄不再觸發重複下載提醒。
+historyCleared: 已清理結束的記錄。
+historyCount: 共 $1 筆下載記錄
+historyEmpty: 尚無擴充功能下載記錄。
+historyNoMatches: 沒有符合篩選條件的下載記錄。
+historySearchPlaceholder: 檔名、貼文 ID 或作者
+historyTab: 記錄與佇列
 hlsUnsupported: 這部影片僅提供 HLS 分段，目前版本尚不支援合併下載。
 interruptedHelp: 下載中斷（$1）。可以重試；若網址已失效，請重新整理原貼文。
 invalidRequest: 下載請求無效，請重新選取影片。
@@ -54,9 +76,15 @@ openPostFirst: 請先開啟包含影片的 X 貼文。
 openX: 開啟 X
 originalMp4: MP4 原始影片
 pageDisconnected: 擴充功能尚未連接此頁面。請重新整理 X 頁面，再開啟擴充功能。
+pageSelection: 已選 $1 / $2 個影片，共 $3 則貼文
+pageVideosTab: 頁面影片
 panelOptions: 影片下載選項
+pause: 暫停
+pauseUnavailable: 目前狀態無法暫停此下載。
+pauseVideo: 暫停影片 $1
 popupTagline: 選好畫質，儲存到本機。
 post: 貼文
+postVideoError: 貼文 $1 · 影片 $2：$3
 preferencesReadFailed: 無法讀取下載設定，請重新開啟頁面。
 preferencesSaved: 下載偏好已儲存。
 privacyHelp: 擴充功能在本機讀取頁面已載入的影片資訊，不需要 API Key，也不會將貼文、Cookie 或登入資訊傳送給第三方解析服務。
@@ -67,9 +95,15 @@ qualityAndProgress: 選擇畫質／進度
 qualityHelp: 用於快速與批次下載的預設選擇。優先選擇不超過目標的解析度；直式影片以短邊計算。「節省空間」優先選擇低位元率。
 qualityHighest: 最高畫質
 qualitySmallest: 節省空間
+queueFull: 下載佇列已滿，請等候工作結束後再試。
 quickDownload: ↓ 快速下載
 refresh: 重新偵測
+removeRecord: 移除記錄
+removeVideoRecord: 移除影片 $1 的記錄
 resetTemplate: 還原預設範本
+resume: 繼續
+resumeUnavailable: 目前狀態無法繼續此下載。
+resumeVideo: 繼續影片 $1
 retry: 重試
 retryUnavailable: 只能重試失敗、取消或已移除的下載工作。
 retryVideo: 重試影片 $1
@@ -78,7 +112,10 @@ saveTemplate: 儲存範本
 saveVideo: ↓ 儲存影片 $1
 saving: 儲存中…
 scanning: 正在偵測目前頁面…
+searchDownloads: 搜尋下載記錄
 selectAll: 全選可下載的影片（$1 / $2）
+selectPageVideos: 選擇目前頁面的全部影片
+selectPostVideos: 選擇貼文 $1 中的影片
 selectVideo: 選取影片 $1
 selectVideos: 選取影片
 selectedPostVideos: 所選貼文的影片
@@ -92,6 +129,7 @@ stateDownloading: 下載中
 stateInterrupted: 下載失敗
 stateMissing: 紀錄已移除
 statePaused: 已暫停
+stateQueued: 等候中
 tabReadFailed: 無法讀取目前分頁，請重新開啟擴充功能。
 templateSaveFailed: 範本未儲存，請重試。
 templateSaved: 檔名範本已儲存。

@@ -1,8 +1,14 @@
 actionFailed: 操作失败，请重试。
+allAuthors: 全部作者
+batchLimitExceeded: 每批最多选择 $1 个视频，当前 $2 个选择均已保留。
 cancel: 取消
 cancelVideo: 取消视频 $1
 chooseSaveLocation: 每次下载时选择保存位置
+clearFinished: 清理已结束记录
+clearSelection: 清空选择
 closePanel: 关闭下载面板
+concurrencyHelp: 同时下载 1–6 个视频（默认 3 个），其余进入等待队列。暂停的下载会保留，直到继续。降低数量不会中止正在下载的任务。
+concurrentDownloads: 同时下载数量
 confirmEachSave: 按顺序确认每个视频的保存位置。
 creatingDownload: 正在创建下载…
 creatingDownloads: 正在创建 $1 个下载，请按提示确认保存位置…
@@ -10,18 +16,26 @@ creatingSave: 正在创建下载，请按提示确认保存位置…
 currentPageVideos: 当前页面的视频
 defaultQuality: 默认画质
 detectVideos: 检测视频
+dismiss: 忽略
+downloadAgain: 再次下载
 downloadCancelled: 已取消下载。
 downloadFailed: 下载未开始，请重试。
 downloadHighest: ↓ 下载最高画质
 downloadNotice: 进度与浏览器下载列表同步。仅下载你有权保存的内容。
+downloadPageSelected: 下载所选视频（$1）
+downloadPaused: 下载已暂停。
 downloadProgress: 下载进度
-downloadQueued: 已加入浏览器下载列表，可在那里查看进度。
+downloadQueued: 已加入下载队列，可在面板中查看进度。
 downloadReload: 下载未开始，请刷新页面后重试。
+downloadResumed: 下载已加入队列，等待继续。
 downloadRetried: 已重新创建下载。
 downloadSelected: 下载已选 $1 个视频
 downloadSettings: 下载设置
 downloadVideos: 下载视频
-downloadsCreated: 已创建 $1 个下载。
+downloadViews: 下载视图
+downloadsCreated: 已接收 $1 个下载任务，可在下方查看等待与下载进度。
+duplicateDownload: 此视频已有完成的下载记录，可在面板中确认再次下载。
+duplicateNotice: 所选视频中有 $1 个已有完成的下载记录，是否再次下载这些视频？
 extensionDescription: 在 X 视频旁显示下载按钮，选择画质并保存 MP4。
 extensionName: X 视频下载器
 filenameEmpty: 请输入文件名模板。
@@ -31,6 +45,7 @@ filenameTemplate: 文件名模板
 filenameTokens: 请仅使用下方列出的变量，并确保花括号完整。
 filenameTooLong: 模板不能超过 160 个字符。
 filenameUnsafe: "模板不能包含路径、控制字符或 \\ / : * ? \" < > |。"
+filterAuthor: 按作者筛选
 finishedDownload: 这个任务已经结束。
 foreignDownload: 无法操作其他来源的下载任务。
 formatsHelp: 支持 MP4 视频和以视频形式存储的 GIF；暂不支持仅有 HLS 分片的直播或视频。页面中的 blob 地址不是可直接保存的 MP4。
@@ -40,6 +55,13 @@ guideStepThree: 在面板查看下载进度、取消任务或重试失败的下�
 guideStepTwo: 单视频点击下载按钮即可保存；也可以展开面板选择画质或勾选多个视频。
 guideSteps: 三步保存视频
 highestSuffix: （最高画质）
+historyClearHelp: 仅清理筛选结果中已结束的扩展记录，保留下载文件及正在下载、等待或暂停的任务。清理后的记录不再触发重复下载提醒。
+historyCleared: 已清理结束的记录。
+historyCount: 共 $1 条下载记录
+historyEmpty: 暂无扩展下载记录。
+historyNoMatches: 没有符合筛选条件的下载记录。
+historySearchPlaceholder: 文件名、帖子 ID 或作者
+historyTab: 记录与队列
 hlsUnsupported: 这个视频只提供 HLS 分片，当前版本暂不支持合并下载。
 interruptedHelp: 下载中断（$1）。可以重试；地址失效时请刷新原帖。
 invalidRequest: 下载请求无效，请重新选择视频。
@@ -54,9 +76,15 @@ openPostFirst: 请先打开一个包含视频的 X 帖子。
 openX: 打开 X
 originalMp4: MP4 原始视频
 pageDisconnected: 插件尚未连接这个页面。请刷新 X 页面，再打开插件。
+pageSelection: 已选 $1 / $2 个视频，共 $3 条帖子
+pageVideosTab: 页面视频
 panelOptions: 视频下载选项
+pause: 暂停
+pauseUnavailable: 当前状态无法暂停此下载。
+pauseVideo: 暂停视频 $1
 popupTagline: 选好画质，保存到本地。
 post: 帖子
+postVideoError: 帖子 $1 · 视频 $2：$3
 preferencesReadFailed: 无法读取下载设置，请重新打开页面。
 preferencesSaved: 下载偏好已保存。
 privacyHelp: 插件在本机读取页面已加载的视频信息，不需要 API Key，也不会向第三方解析站发送帖子、Cookie 或登录信息。
@@ -67,9 +95,15 @@ qualityAndProgress: 选择画质 / 进度
 qualityHelp: 用于快速下载与批量下载的默认选择。优先选择不超过目标的清晰度；竖屏按短边计算。节省空间优先选低码率。
 qualityHighest: 最高画质
 qualitySmallest: 节省空间
+queueFull: 下载队列已满，请等待任务结束后再试。
 quickDownload: ↓ 快速下载
 refresh: 重新检测
+removeRecord: 移除记录
+removeVideoRecord: 移除视频 $1 的记录
 resetTemplate: 恢复默认模板
+resume: 继续
+resumeUnavailable: 当前状态无法继续此下载。
+resumeVideo: 继续视频 $1
 retry: 重试
 retryUnavailable: 只能重试失败、取消或已移除的任务。
 retryVideo: 重试视频 $1
@@ -78,7 +112,10 @@ saveTemplate: 保存模板
 saveVideo: ↓ 保存视频 $1
 saving: 保存中…
 scanning: 正在检测当前页面…
+searchDownloads: 搜索下载记录
 selectAll: 全选可下载视频（$1 / $2）
+selectPageVideos: 选择当前页面的全部视频
+selectPostVideos: 选择帖子 $1 中的视频
 selectVideo: 选择视频 $1
 selectVideos: 选择视频
 selectedPostVideos: 已选帖子的视频
@@ -92,6 +129,7 @@ stateDownloading: 下载中
 stateInterrupted: 下载失败
 stateMissing: 记录已移除
 statePaused: 已暂停
+stateQueued: 等待中
 tabReadFailed: 无法读取当前标签页，请重新打开插件。
 templateSaveFailed: 模板未保存，请重试。
 templateSaved: 文件名模板已保存。

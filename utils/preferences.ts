@@ -5,6 +5,22 @@ import type { DownloadRequest, VideoPost, VideoVariant } from '../types/video'
 
 export const DEFAULT_FILENAME_TEMPLATE =
   '{author}_{date}_{postId}_{index}_{quality}'
+export const DEFAULT_CONCURRENCY = 3
+
+/**
+ * Accepts an integer transfer limit from 1 to 6, otherwise using the default.
+ *
+ * @param value - Untrusted concurrency setting.
+ * @returns A supported transfer limit.
+ */
+export function normalizeConcurrency(value: unknown): number {
+  return typeof value === 'number'
+    && Number.isInteger(value)
+    && value >= 1
+    && value <= 6
+    ? value
+    : DEFAULT_CONCURRENCY
+}
 export const QUALITY_OPTIONS: Array<{
   /**
    * Stored quality preference represented by this option.
@@ -82,6 +98,7 @@ export function normalizePreferences(value: unknown): DownloadPreferences {
   const input = isRecord(value) ? value : {}
   const template = input['filenameTemplate']
   return {
+    concurrency: normalizeConcurrency(input['concurrency']),
     saveAs: typeof input['saveAs'] === 'boolean' ? input['saveAs'] : false,
     quality: normalizeQuality(input['quality']),
     filenameTemplate:

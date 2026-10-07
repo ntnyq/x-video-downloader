@@ -1,6 +1,7 @@
 import { createSharedComposable } from '@vueuse/core'
 import { normalizePreferences } from '~/utils/preferences'
 import {
+  concurrencySetting,
   filenameSetting,
   getDownloadPreferences,
   qualitySetting,
@@ -15,6 +16,13 @@ export const useDownloadPreferences = createSharedComposable(() => {
   const changed = new Set<string>()
 
   const stops = [
+    concurrencySetting.watch(concurrency => {
+      changed.add('concurrency')
+      preferences.value = normalizePreferences({
+        ...preferences.value,
+        concurrency,
+      })
+    }),
     saveAsSetting.watch(saveAs => {
       changed.add('saveAs')
       preferences.value = { ...preferences.value, saveAs }
@@ -37,6 +45,9 @@ export const useDownloadPreferences = createSharedComposable(() => {
   getDownloadPreferences()
     .then(value => {
       preferences.value = {
+        concurrency: changed.has('concurrency')
+          ? preferences.value.concurrency
+          : value.concurrency,
         saveAs: changed.has('saveAs') ? preferences.value.saveAs : value.saveAs,
         quality: changed.has('quality')
           ? preferences.value.quality

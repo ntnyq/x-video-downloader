@@ -147,6 +147,18 @@ function setup() {
      * @param id - Identifier of the fixture download to cancel.
      * @returns A promise resolving after the simulated state update.
      */
+    async pause(id: number) {
+      const item = items.get(id)
+      if (item) {
+        item.paused = true
+      }
+    },
+    async resume(id: number) {
+      const item = items.get(id)
+      if (item) {
+        item.paused = false
+      }
+    },
     async cancel(id: number) {
       const item = items.get(id)
       if (item) {
@@ -297,7 +309,7 @@ test('continues a batch after one failed save and reports per-video results', as
     calls.map(item => item.url),
     [request.url, second.url, third.url],
   )
-  assert.equal((await manager.list('123')).length, 2)
+  assert.equal((await manager.list('123')).length, 3)
 })
 
 test('waits for each save dialog before starting the next batch item', async () => {
@@ -343,8 +355,10 @@ test('waits for each save dialog before starting the next batch item', async () 
   )
 })
 
-test('keeps actual downloads manageable when a persistence write fails', async () => {
+test('keeps actual downloads manageable when a persistence write fails', async t => {
+  const warning = t.mock.method(console, 'warn', () => {})
   const harness = setup()
+  let writes = 0
   const manager = createDownloadManager({
     ...harness.ports,
     /**
@@ -353,11 +367,15 @@ test('keeps actual downloads manageable when a persistence write fails', async (
      * @returns A rejected storage-write promise.
      * @throws Always, with the storage-full fixture error.
      */
-    async writeRecords() {
-      throw new Error('storage full')
+    async writeRecords(records) {
+      if (++writes === 3) {
+        throw new Error('storage full')
+      }
+      await harness.ports.writeRecords(records)
     },
   })
   assert.equal((await manager.start(request)).ok, true)
+  assert.equal(warning.mock.callCount(), 1)
   assert.equal((await manager.list('123'))[0]?.id, 1)
   await manager.start(request)
   assert.equal(harness.calls.length, 1)
@@ -369,4 +387,306 @@ test('forgets erased browser records without controlling other downloads', async
   items.delete(1)
   assert.equal((await manager.list('123'))[0]?.state, 'missing')
   assert.equal((await manager.action(1, 'cancel')).ok, false)
+})
+
+test('persists cross-post queue admission before starting and respects concurrency', async () => {
+  const { ports, calls } = setup()
+  const manager = createDownloadManager({
+    ...ports,
+    readPreferences: async () => ({ concurrency: 2 }),
+    async download(options) {
+      const saved = await ports.readRecords()
+      assert.equal(saved.length, 5)
+      assert.ok(saved.some(record => record.id < 0 && record.starting))
+      return ports.download(options)
+    },
+  })
+  const results = await manager.batch(
+    Array.from({ length: 5 }, (_, index) => ({
+      ...request,
+      postId: String(index + 1),
+    })),
+  )
+  assert.equal(calls.length, 2)
+  assert.ok(results.every(result => result.result.ok))
+  assert.deepEqual(
+    results.map(result => result.postId),
+    ['1', '2', '3', '4', '5'],
+  )
+  const statuses = await manager.list()
+  assert.equal(statuses.filter(status => status.state === 'queued').length, 3)
+  assert.equal(
+    statuses.filter(status => status.state === 'in_progress').length,
+    2,
+  )
+  assert.ok(
+    statuses.every(status => status.author === 'ntnyq' && status.startedAt > 0),
+  )
+})
+
+test('advances a durable queue after completion and worker restart without UI polling', async () => {
+  const { ports, items, calls } = setup()
+  const configured = {
+    ...ports,
+    readPreferences: async () => ({ concurrency: 1 }),
+  }
+  const manager = createDownloadManager(configured)
+  await manager.batch([
+    request,
+    { ...request, postId: '456' },
+    { ...request, postId: '789' },
+  ])
+  assert.equal(calls.length, 1)
+  items.get(1)!.state = 'complete'
+  const reopened = createDownloadManager(configured)
+  await reopened.refresh()
+  assert.equal(calls.length, 2)
+  assert.equal(
+    (await reopened.list()).filter(status => status.state === 'queued').length,
+    1,
+  )
+  items.get(2)!.state = 'interrupted'
+  await reopened.refresh(2)
+  assert.equal(calls.length, 3)
+  await reopened.refresh(900)
+  assert.equal(calls.length, 3)
+})
+
+test('serializes simultaneous admission so distinct requests cannot exceed the transfer limit', async () => {
+  const { ports, calls } = setup()
+  const manager = createDownloadManager({
+    ...ports,
+    readPreferences: async () => ({ concurrency: 1 }),
+  })
+  const results = await Promise.all(
+    Array.from({ length: 6 }, (_, index) =>
+      manager.start({ ...request, postId: String(index + 1) }),
+    ),
+  )
+  assert.ok(results.every(result => result.ok))
+  assert.equal(calls.length, 1)
+  assert.equal(
+    (await manager.list()).filter(status => status.state === 'queued').length,
+    5,
+  )
+})
+
+test('pauses queued and native tasks and queues native resumes behind the concurrency limit', async () => {
+  const { ports, items, calls } = setup()
+  const manager = createDownloadManager({
+    ...ports,
+    readPreferences: async () => ({ concurrency: 1 }),
+  })
+  await manager.batch([request, { ...request, postId: '456' }])
+  const queued = (await manager.list()).find(
+    status => status.state === 'queued',
+  )!
+  await manager.action(queued.id, 'pause')
+  assert.equal((await manager.list())[0]?.state, 'paused')
+  await manager.action(1, 'pause')
+  assert.equal(calls.length, 1)
+  assert.equal(items.get(1)?.paused, true)
+  await manager.action(queued.id, 'resume')
+  assert.equal(calls.length, 2)
+  await manager.action(1, 'resume')
+  assert.equal(
+    (await manager.list()).find(status => status.id === 1)?.state,
+    'queued',
+  )
+  assert.equal(items.get(1)?.paused, true)
+  await manager.action(2, 'cancel')
+  assert.equal(items.get(1)?.paused, false)
+  assert.equal(
+    (await manager.list()).find(status => status.id === 1)?.state,
+    'in_progress',
+  )
+})
+
+test('cancels queued work without native calls and preserves active tasks when clearing history', async () => {
+  const { ports, calls } = setup()
+  const manager = createDownloadManager({
+    ...ports,
+    readPreferences: async () => ({ concurrency: 1 }),
+  })
+  await manager.batch([
+    request,
+    { ...request, postId: '456' },
+    { ...request, postId: '789' },
+  ])
+  const queued = (await manager.list()).filter(
+    status => status.state === 'queued',
+  )
+  await manager.action(queued[0]!.id, 'cancel')
+  await manager.action(queued[1]!.id, 'pause')
+  assert.equal(await manager.clear([1, queued[1]!.id, 999]), 0)
+  assert.equal(await manager.clear(), 1)
+  assert.equal((await manager.list()).length, 2)
+  assert.equal(calls.length, 1)
+  for (const action of ['pause', 'resume', 'cancel', 'retry'] as const) {
+    assert.deepEqual(await manager.action(999, action), {
+      ok: false,
+      error: 'foreignDownload',
+    })
+  }
+})
+
+test('warns about completed media across quality URLs and requires explicit repeat confirmation', async () => {
+  const { manager, items, calls } = setup()
+  await manager.start(request)
+  items.get(1)!.state = 'complete'
+  assert.deepEqual(
+    await manager.start({
+      ...request,
+      url: request.url.replace('1280x720', '1920x1080'),
+    }),
+    { ok: false, error: 'duplicateDownload' },
+  )
+  items.delete(1)
+  assert.deepEqual(await manager.start(request), {
+    ok: false,
+    error: 'duplicateDownload',
+  })
+  assert.deepEqual(await manager.start(request, true), {
+    ok: true,
+    downloadId: 2,
+  })
+  assert.equal(calls.length, 2)
+})
+
+test('recovers an ambiguous native-start handoff as an explicit retry instead of duplicating it', async () => {
+  const { ports, calls } = setup()
+  await ports.writeRecords([
+    {
+      id: -1,
+      filename: 'queued.mp4',
+      request,
+      state: 'queued',
+      starting: true,
+    },
+  ])
+  const manager = createDownloadManager(ports)
+  await manager.refresh()
+  assert.equal(calls.length, 0)
+  const [status] = await manager.list()
+  assert.equal(status?.state, 'interrupted')
+  assert.equal(status?.error, 'START_INTERRUPTED')
+  assert.equal((await manager.action(-1, 'retry')).ok, true)
+  assert.equal(calls.length, 1)
+})
+
+test('rejects queue admission before native effects when the initial storage write fails', async () => {
+  const { ports, calls } = setup()
+  const manager = createDownloadManager({
+    ...ports,
+    async writeRecords() {
+      throw new Error('storage full')
+    },
+  })
+  assert.deepEqual(await manager.start(request), {
+    ok: false,
+    error: 'storage full',
+  })
+  assert.equal(calls.length, 0)
+})
+
+test('bounds terminal history without pruning active tasks or scanning completed native records', async () => {
+  const { ports } = setup()
+  await ports.writeRecords([
+    ...Array.from({ length: 220 }, (_, index) => ({
+      id: index + 1001,
+      filename: 'complete.mp4',
+      request: { ...request, postId: String(index + 1) },
+      state: 'complete' as const,
+    })),
+    { id: -1, filename: 'paused.mp4', request, state: 'paused' },
+  ])
+  const manager = createDownloadManager({
+    ...ports,
+    async search() {
+      throw new Error('completed history must use its persisted snapshot')
+    },
+  })
+  const statuses = await manager.list()
+  assert.equal(statuses.length, 201)
+  assert.equal(statuses.filter(status => status.state === 'paused').length, 1)
+  assert.equal(
+    statuses.some(status => status.id === 1001),
+    false,
+  )
+  assert.equal(
+    statuses.some(status => status.id === 1021),
+    true,
+  )
+  assert.equal((await ports.readRecords()).length, 201)
+})
+
+test('limits outstanding work to one thousand while allowing existing task reuse', async () => {
+  const { ports, calls } = setup()
+  await ports.writeRecords(
+    Array.from({ length: 1000 }, (_, index) => ({
+      id: -(index + 1),
+      filename: 'paused.mp4',
+      request: { ...request, postId: String(index + 1) },
+      state: 'paused',
+    })),
+  )
+  const manager = createDownloadManager(ports)
+  assert.deepEqual(await manager.start({ ...request, postId: '1001' }), {
+    ok: false,
+    error: 'queueFull',
+  })
+  assert.equal((await manager.start({ ...request, postId: '1' })).ok, true)
+  assert.equal(calls.length, 0)
+  await manager.action(-1, 'cancel')
+  assert.equal((await manager.start({ ...request, postId: '1001' })).ok, true)
+  assert.equal(calls.length, 1)
+})
+
+test('recovers a failed handoff write on listing and retains queued action aliases after restart', async t => {
+  t.mock.method(console, 'warn', () => {})
+  const { ports, calls, items } = setup()
+  let writes = 0
+  const manager = createDownloadManager({
+    ...ports,
+    async writeRecords(records) {
+      if (++writes === 2) {
+        throw new Error('temporary storage failure')
+      }
+      await ports.writeRecords(records)
+    },
+  })
+  const result = await manager.start(request)
+  assert.ok(result.ok)
+  assert.ok(result.downloadId < 0)
+  assert.equal(calls.length, 0)
+  assert.equal((await manager.list())[0]?.state, 'in_progress')
+  assert.equal(calls.length, 1)
+  assert.deepEqual(await manager.action(result.downloadId, 'pause'), {
+    ok: true,
+  })
+  assert.equal(items.get(1)?.paused, true)
+  const reopened = createDownloadManager(ports)
+  assert.deepEqual(await reopened.action(result.downloadId, 'resume'), {
+    ok: true,
+  })
+  assert.equal(items.get(1)?.paused, false)
+})
+
+test('keeps a native transfer manageable when the browser refuses to resume it', async () => {
+  const { ports, items } = setup()
+  const manager = createDownloadManager({
+    ...ports,
+    async resume() {
+      throw new Error('NETWORK_FAILED')
+    },
+  })
+  await manager.start(request)
+  await manager.action(1, 'pause')
+  assert.deepEqual(await manager.action(1, 'resume'), {
+    ok: false,
+    error: 'NETWORK_FAILED',
+  })
+  assert.equal(items.get(1)?.paused, true)
+  assert.equal(await manager.clear(), 0)
+  assert.equal((await manager.list())[0]?.state, 'paused')
 })

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { browser } from '#imports'
-import DownloadPanel from '~/components/video/DownloadPanel.vue'
+import DownloadWorkspace from '~/components/video/DownloadWorkspace.vue'
 import FloatingDownloadLauncher from '~/components/video/FloatingDownloadLauncher.vue'
 import { usePageTheme } from '~/composables/usePageTheme'
 import { useTheme } from '~/composables/useTheme'
@@ -145,7 +145,7 @@ watch(
         >
           {{ settingsError }}
         </p>
-        <DownloadPanel
+        <DownloadWorkspace
           @refresh="emit('refresh')"
           @show-all="emit('showAll')"
           :snapshot

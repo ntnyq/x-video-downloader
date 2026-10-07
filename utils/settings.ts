@@ -1,10 +1,20 @@
 import { storage } from '#imports'
-import { DEFAULT_FILENAME_TEMPLATE, normalizePreferences } from './preferences'
+import {
+  DEFAULT_CONCURRENCY,
+  DEFAULT_FILENAME_TEMPLATE,
+  normalizePreferences,
+} from './preferences'
 import type { DownloadRecord, QualityPreference } from '~/types/download'
 
 export const saveAsSetting = storage.defineItem<boolean>('local:saveAs', {
   fallback: false,
 })
+export const concurrencySetting = storage.defineItem<number>(
+  'local:concurrency',
+  {
+    fallback: DEFAULT_CONCURRENCY,
+  },
+)
 export const qualitySetting = storage.defineItem<QualityPreference>(
   'local:quality',
   { fallback: 'highest' },
@@ -25,10 +35,16 @@ export const downloadRecords = storage.defineItem<DownloadRecord[]>(
  * @throws When reading any setting from extension storage fails.
  */
 export async function getDownloadPreferences() {
-  const [saveAs, quality, filenameTemplate] = await Promise.all([
+  const [saveAs, quality, filenameTemplate, concurrency] = await Promise.all([
     saveAsSetting.getValue(),
     qualitySetting.getValue(),
     filenameSetting.getValue(),
+    concurrencySetting.getValue(),
   ])
-  return normalizePreferences({ saveAs, quality, filenameTemplate })
+  return normalizePreferences({
+    saveAs,
+    quality,
+    filenameTemplate,
+    concurrency,
+  })
 }

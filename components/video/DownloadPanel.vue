@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import VideoPostCard from './VideoPostCard.vue'
+import PageVideoList from './PageVideoList.vue'
 import type { PageVideos } from '~/types/video'
 
 const props = defineProps<{
@@ -61,13 +61,10 @@ const visiblePosts = computed(() =>
         {{ i18n.t('refresh') }}
       </button>
     </div>
-    <div v-if="visiblePosts.length">
-      <VideoPostCard
-        v-for="post in visiblePosts"
-        :key="post.id"
-        :post
-      />
-    </div>
+    <PageVideoList
+      v-if="visiblePosts.length"
+      :posts="visiblePosts"
+    />
     <div
       v-else
       class="py-8"

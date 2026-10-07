@@ -1,7 +1,7 @@
 # Privacy Policy / 隐私政策
 
 X Video Downloader / X 视频下载器  
-Last updated / 最后更新：2026-10-03
+Last updated / 最后更新：2026-10-05
 
 ## English
 
@@ -19,9 +19,9 @@ Detected posts are held in page memory, with a cache of up to 250 posts. The ext
 
 ### Information stored locally
 
-The extension uses local extension storage for your preferred quality, save-location prompt preference, filename template, and appearance setting. It also stores records of downloads it initiated: browser download IDs, requested filenames, video URLs, post IDs, media indexes, and author/date metadata when available. These records reflect download actions you requested and allow progress restoration, cancellation, and retry after the background service worker restarts.
+The extension uses local extension storage for your preferred quality, concurrency limit, save-location prompt preference, filename template, and appearance setting. It also stores records of downloads it initiated: queue identifiers, task creation times, queue states, byte counts, browser download IDs, requested filenames, video URLs, post IDs, media indexes, and author/date metadata when available. These records reflect download actions you requested and allow history search, duplicate reminders, queue restoration, pause/resume, cancellation, and retry after the background service worker restarts.
 
-The extension queries Chrome for the state, filename, and byte counts of its own recorded download IDs. It does not enumerate or display unrelated browser download history. Settings and records are not synchronized through the extension's storage.sync API.
+The extension queries the browser for the state, filename, and byte counts of its own recorded download IDs. It does not enumerate or display unrelated browser download history. Settings and records are not synchronized through the extension's storage.sync API.
 
 ### Network requests and sharing
 
@@ -33,9 +33,9 @@ Downloaded files are stored in the location selected by you or your browser. Nor
 
 ### Retention and deletion
 
-In-memory detected-post data is discarded when the page is reloaded or closed. Local preferences and download records can remain across browser sessions. When more than 200 download records are tracked, cleanup can remove older ended or missing records while retaining active transfers and the newest 100 records. This is a count-based cleanup mechanism, not a fixed time-based expiration.
+In-memory detected-post data is discarded when the page is reloaded or closed. Local preferences and download records can remain across browser sessions. The extension retains the newest 200 finished records alongside up to 1,000 queued, active, or paused tasks; older finished records are automatically removed. This is a count-based cleanup mechanism, not a fixed time-based expiration.
 
-You can change preferences in Settings. Removing the extension removes its local extension storage through the browser. Removing the extension does not delete downloaded video files, erase the browser's own download history, or necessarily stop a download already handled by the browser. Manage those separately using your file manager and browser download controls. Clearing browser download history is not a substitute for clearing extension storage.
+You can search and clear finished records under History & queue. Clearing records does not delete saved files or native browser history, and removed records no longer trigger duplicate-download reminders. You can change preferences in Settings. Removing the extension removes its local extension storage through the browser. Removing the extension does not delete downloaded video files, erase the browser's own download history, or necessarily stop a download already handled by the browser. Manage those separately using your file manager and browser download controls. Clearing browser download history is not a substitute for clearing extension storage.
 
 ### Limited use and security
 
@@ -63,7 +63,7 @@ X 视频下载器是由 ntnyq 维护的独立浏览器扩展，用于保存你�
 
 ### 本地保存的信息
 
-扩展在本地扩展存储中保存画质偏好、是否每次选择保存位置、文件名模板和外观设置。还会保存本扩展发起的下载记录，包括浏览器下载 ID、请求的文件名、视频 URL、帖子 ID、视频序号以及可用的作者和日期信息。这些记录反映你发起的下载操作，用于后台服务重启后恢复进度、取消和重试。
+扩展在本地扩展存储中保存画质偏好、并发数量、是否每次选择保存位置、文件名模板和外观设置。还会保存本扩展发起的下载记录，包括队列标识、任务创建时间、队列状态、字节数、浏览器下载 ID、请求的文件名、视频 URL、帖子 ID、视频序号以及可用的作者和日期信息。这些记录反映你发起的下载操作，用于搜索记录、重复下载提醒、后台服务重启后恢复队列及进度、暂停、继续、取消和重试。
 
 扩展只按自身记录的下载 ID 向浏览器查询状态、文件名和字节数，不遍历或显示其他来源的下载历史。设置和任务记录不会通过扩展的 storage.sync API 同步。
 
@@ -77,9 +77,9 @@ X 视频下载器是由 ntnyq 维护的独立浏览器扩展，用于保存你�
 
 ### 保存期限与删除
 
-刷新或关闭页面后，页面内存中的帖子缓存会被释放。本地设置和下载记录可能跨浏览器会话保留。当任务记录超过 200 条时，清理逻辑可删除较早的已结束或已不存在的任务，保留进行中的下载及最新 100 条记录。这是按数量触发的清理，不是按固定天数到期。
+刷新或关闭页面后，页面内存中的帖子缓存会被释放。本地设置和下载记录可能跨浏览器会话保留。扩展保留最新 200 条已结束记录及最多 1,000 个等待、下载中或暂停的任务，较早的已结束记录会自动清理。这是按数量触发的清理，不是按固定天数到期。
 
-你可以在设置页修改偏好。卸载扩展会通过浏览器移除该扩展的本地存储，但不会删除已下载视频、清除浏览器自身的下载历史，也不一定会终止已经交给浏览器执行的下载。请分别使用文件管理器及浏览器下载管理功能处理这些内容。清除浏览器下载历史不等于清除扩展存储。
+你可以在“记录与队列”中搜索和清理已结束的记录。清理记录不会删除已保存文件或浏览器下载历史，被清理的记录也不再触发重复下载提醒。你可以在设置页修改偏好。卸载扩展会通过浏览器移除该扩展的本地存储，但不会删除已下载视频、清除浏览器自身的下载历史，也不一定会终止已经交给浏览器执行的下载。请分别使用文件管理器及浏览器下载管理功能处理这些内容。清除浏览器下载历史不等于清除扩展存储。
 
 ### 有限使用与安全
 

@@ -2,7 +2,7 @@
 import { browser } from '#imports'
 import { useCurrentTabVideos } from '~/composables/useCurrentTabVideos'
 import { useTheme } from '~/composables/useTheme'
-import DownloadPanel from './DownloadPanel.vue'
+import DownloadWorkspace from './DownloadWorkspace.vue'
 
 const { snapshot, isLoading, requestError, refresh } = useCurrentTabVideos()
 const { themeStyle } = useTheme()
@@ -37,35 +37,11 @@ const { themeStyle } = useTheme()
         <UiIcon name="settings" />
       </button>
     </header>
-    <p
-      v-if="isLoading"
-      role="status"
-      class="p-5 text-sm text-muted"
-    >
-      {{ i18n.t('scanning') }}
-    </p>
-    <div
-      v-else-if="requestError"
-      class="p-5"
-    >
-      <p
-        role="status"
-        class="text-sm text-muted leading-relaxed"
-      >
-        {{ requestError }}
-      </p>
-      <a
-        href="https://x.com"
-        target="_blank"
-        rel="noreferrer"
-        class="mt-5 xvd-primary"
-        >{{ i18n.t('openX') }}</a
-      >
-    </div>
-    <DownloadPanel
+    <DownloadWorkspace
       @refresh="refresh"
-      v-else
       :snapshot
+      :is-loading
+      :request-error
     />
   </main>
 </template>

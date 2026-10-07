@@ -15,6 +15,10 @@ export function localizeDownloadError(error: unknown): string {
     case 'foreignDownload':
     case 'finishedDownload':
     case 'retryUnavailable':
+    case 'duplicateDownload':
+    case 'pauseUnavailable':
+    case 'resumeUnavailable':
+    case 'queueFull':
       return i18n.t(error)
     case 'USER_CANCELED':
       return i18n.t('downloadCancelled')

@@ -1,98 +1,104 @@
 <script lang="ts" setup>
-import { useDownloadPreferences } from '~/composables/useDownloadPreferences'
-import { usePostDownloads } from '~/composables/usePostDownloads'
-import { useVideoSelection } from '~/composables/useVideoSelection'
-import DownloadProgress from './DownloadProgress.vue'
 import VideoMediaRow from './VideoMediaRow.vue'
 import type { VideoPost } from '~/types/video'
+import type { VideoSelectionRow } from '~/utils/videoSelection'
 
-const props = defineProps<{
+interface Props {
   /**
-   * Captured post whose videos, selections, and download progress are displayed.
+   * Captured post whose videos and selection controls are displayed.
    */
   post: VideoPost
+  /**
+   * Media selection and quality resolved by the shared page controller.
+   */
+  rows: VideoSelectionRow[]
+  /**
+   * Whether download and selection controls are temporarily unavailable.
+   */
+  disabled: boolean
+  /**
+   * Whether the page is currently starting a download request.
+   */
+  isPending: boolean
+  /**
+   * Whether to offer a best-quality override alongside the current preference.
+   */
+  showHighest: boolean
+  /**
+   * Whether each batch video prompts for its own save location.
+   */
+  saveAs: boolean
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<{
+  /**
+   * Updates a row's shared quality choice.
+   */
+  select: [key: string, url: string]
+  /**
+   * Updates a row's shared batch selection.
+   */
+  check: [key: string, checked: boolean]
+  /**
+   * Updates every downloadable row in this post.
+   */
+  selectAll: [checked: boolean]
+  /**
+   * Requests selected post videos or one media position using shared quality choices.
+   */
+  download: [event: MouseEvent, index?: number, highest?: boolean]
 }>()
 
-const { preferences, isReady, preferenceError } = useDownloadPreferences()
-const {
-  rows,
-  downloadableCount,
-  selectedCount,
-  allSelected,
-  setUrl,
-  setChecked,
-  selectAll,
-  requests,
-} = useVideoSelection(
-  () => props.post,
-  () => preferences.value.quality,
+const downloadableCount = computed(
+  () => props.rows.filter(row => row.variant).length,
 )
-const {
-  downloads,
-  isPending,
-  isActionPending,
-  message,
-  requestError,
-  progressError,
-  start,
-  action,
-} = usePostDownloads(() => props.post.id)
-
-const isDisabled = computed(() => !isReady.value || isPending.value)
-
-/**
- * Starts the selected batch or a single video after checking user intent and readiness.
- *
- * @param event - Click event that must originate from a trusted user interaction.
- * @param index - Optional one-based media position; omitted to download the selected batch.
- * @param highest - Whether to override the selected quality with the highest available version.
- */
-function handleDownload(event: MouseEvent, index?: number, highest = false) {
-  if (!event.isTrusted || isDisabled.value) {
-    return
-  }
-  start(requests(index, highest))
-}
+const selectedCount = computed(
+  () => props.rows.filter(row => row.checked).length,
+)
+const allSelected = computed(
+  () =>
+    downloadableCount.value > 0
+    && downloadableCount.value === selectedCount.value,
+)
+const partiallySelected = computed(
+  () => selectedCount.value > 0 && !allSelected.value,
+)
 
 /**
- * Forwards a trusted cancellation or retry action to the post download controller.
+ * Applies the post checkbox state to its shared page selection.
  *
- * @param id - Browser download identifier targeted by the action.
- * @param operation - Whether to cancel the download or retry it.
- * @param event - Click event used to verify a trusted user interaction.
- */
-function handleAction(
-  id: number,
-  operation: 'cancel' | 'retry',
-  event: MouseEvent,
-) {
-  if (event.isTrusted) {
-    action(id, operation)
-  }
-}
-
-/**
- * Applies the select-all checkbox state to every downloadable video.
- *
- * @param event - Change event expected from the select-all checkbox.
+ * @param event - Change event expected from the post selection checkbox.
  */
 function handleSelectAll(event: Event) {
   if (event.target instanceof HTMLInputElement) {
-    selectAll(event.target.checked)
+    emit('selectAll', event.target.checked)
   }
 }
 </script>
 
 <template>
   <section class="border-t border-line py-4 first:border-t-0">
-    <a
-      :href="`https://x.com/i/status/${post.id}`"
-      target="_blank"
-      rel="noreferrer"
-      class="mb-3 block text-xs text-muted xvd-focus hover:text-ink"
-    >
-      {{ post.author ? `@${post.author}` : i18n.t('post') }} · {{ post.id }}
-    </a>
+    <div class="mb-3 flex items-center gap-2">
+      <input
+        @change="handleSelectAll"
+        v-if="downloadableCount"
+        :checked="allSelected"
+        :indeterminate="partiallySelected"
+        :disabled
+        :aria-label="i18n.t('selectPostVideos', [post.id])"
+        type="checkbox"
+        class="h-4 w-4 shrink-0 accent-primary xvd-focus"
+      />
+      <a
+        :href="`https://x.com/i/status/${post.id}`"
+        target="_blank"
+        rel="noreferrer"
+        class="min-w-0 break-all text-xs text-muted xvd-focus hover:text-ink"
+      >
+        {{ post.author ? `@${post.author}` : i18n.t('post') }} · {{ post.id }}
+      </a>
+    </div>
     <p
       v-if="post.text"
       class="line-clamp-2 mb-4 text-sm leading-relaxed"
@@ -103,24 +109,11 @@ function handleSelectAll(event: Event) {
       v-if="downloadableCount"
       class="mb-4 space-y-3"
     >
-      <label
-        v-if="downloadableCount > 1"
-        class="flex items-center gap-2 text-xs"
-      >
-        <input
-          @change="handleSelectAll"
-          :checked="allSelected"
-          :disabled="isDisabled"
-          type="checkbox"
-          class="h-4 w-4 accent-primary xvd-focus"
-        />
-        {{ i18n.t('selectAll', [selectedCount, downloadableCount]) }}
-      </label>
       <button
-        @click="handleDownload($event)"
-        :disabled="isDisabled || !selectedCount"
+        @click="emit('download', $event)"
+        :disabled="disabled || !selectedCount"
         type="button"
-        class="w-full xvd-primary"
+        class="w-full xvd-secondary"
       >
         {{
           isPending
@@ -131,16 +124,16 @@ function handleSelectAll(event: Event) {
         }}
       </button>
       <button
-        @click="handleDownload($event, undefined, true)"
-        v-if="preferences.quality !== 'highest'"
-        :disabled="isDisabled || !selectedCount"
+        @click="emit('download', $event, undefined, true)"
+        v-if="showHighest"
+        :disabled="disabled || !selectedCount"
         type="button"
         class="xvd-link"
       >
         {{ i18n.t('useHighest') }}
       </button>
       <p
-        v-if="downloadableCount > 1 && preferences.saveAs"
+        v-if="downloadableCount > 1 && saveAs"
         class="text-xs text-muted"
       >
         {{ i18n.t('confirmEachSave') }}
@@ -148,44 +141,18 @@ function handleSelectAll(event: Event) {
     </div>
     <div class="space-y-5">
       <VideoMediaRow
-        @select="setUrl(row.media.id, $event)"
-        @check="setChecked(row.media.id, $event)"
-        @download="handleDownload($event, row.index)"
+        @select="emit('select', row.key, $event)"
+        @check="emit('check', row.key, $event)"
+        @download="emit('download', $event, row.index)"
         v-for="row in rows"
-        :key="row.media.id"
+        :key="row.key"
         :media="row.media"
         :index="row.index"
         :variant="row.variant"
         :checked="row.checked"
-        :selectable="downloadableCount > 1"
-        :disabled="isDisabled"
+        :disabled
+        selectable
       />
     </div>
-    <p
-      v-if="message"
-      role="status"
-      class="mt-3 text-xs text-muted"
-    >
-      {{ message }}
-    </p>
-    <p
-      v-if="requestError || preferenceError"
-      role="alert"
-      class="mt-3 text-xs text-danger"
-    >
-      {{ requestError || preferenceError }}
-    </p>
-    <DownloadProgress
-      @action="handleAction"
-      :downloads
-      :disabled="isActionPending"
-    />
-    <p
-      v-if="progressError"
-      role="status"
-      class="mt-3 text-xs text-muted"
-    >
-      {{ progressError }}
-    </p>
   </section>
 </template>

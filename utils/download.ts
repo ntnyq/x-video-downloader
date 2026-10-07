@@ -8,6 +8,8 @@ import {
 } from './video'
 import type { DownloadRequest } from '../types/video'
 
+export const MAX_DOWNLOAD_BATCH_SIZE = 100
+
 /**
  * Validates a single-video message before it reaches the download manager.
  *
@@ -45,7 +47,7 @@ export function normalizeDownloadRequest(
 }
 
 /**
- * Validates a batch of up to 16 distinct media positions belonging to one post.
+ * Validates up to 100 distinct post and media pairs, including cross-post batches.
  *
  * @param value - Untrusted batch message containing single-video requests.
  * @returns Validated requests in input order, or undefined if any batch constraint fails.
@@ -58,7 +60,7 @@ export function normalizeBatchRequest(
     || value['type'] !== 'download-videos'
     || !Array.isArray(value['requests'])
     || !value['requests'].length
-    || value['requests'].length > 16
+    || value['requests'].length > MAX_DOWNLOAD_BATCH_SIZE
   ) {
     return
   }
@@ -68,8 +70,8 @@ export function normalizeBatchRequest(
   }
   const valid = filterFalsy(requests)
   if (
-    uniqueBy(valid, request => request.postId).length !== 1
-    || uniqueBy(valid, request => request.mediaIndex).length !== valid.length
+    uniqueBy(valid, request => `${request.postId}:${request.mediaIndex}`).length
+    !== valid.length
   ) {
     return
   }
