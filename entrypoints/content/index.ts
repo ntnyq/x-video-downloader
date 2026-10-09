@@ -1,15 +1,16 @@
-import '@unocss/reset/tailwind.css'
-import 'uno.css'
-import '~/assets/theme.css'
+import '~/assets/tailwind.css'
 import { createApp, h, shallowRef } from 'vue'
 import { browser, defineContentScript } from '#imports'
 import InlineDownloadButton from '~/components/video/InlineDownloadButton.vue'
 import { X_MATCHES } from '~/constants/video'
+import { logger } from '~/utils/logger'
 import { isRecord } from '~/utils/video'
 import App from './App.vue'
 import { createPageVideos, getArticlePostId } from './pageVideos'
 import { createDisposableShadowRootUi } from './shadowUi'
 import type { ContentScriptContext } from '#imports'
+
+const log = logger.withTag('content')
 
 export default defineContentScript({
   matches: X_MATCHES,
@@ -229,10 +230,7 @@ export default defineContentScript({
         controls.set(article, { id: postId, remove: removeButton })
       } catch (error) {
         removeButton?.()
-        console.warn(
-          '[X Video Downloader] Could not mount an inline button',
-          error,
-        )
+        log.warn('Could not mount an inline button', error)
       } finally {
         pending.delete(article)
       }

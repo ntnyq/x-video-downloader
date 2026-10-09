@@ -1,5 +1,17 @@
 <script lang="ts" setup>
+import { toast } from 'vue-sonner'
+import { i18n } from '#i18n'
+import { Label } from '~/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select'
+import { Switch } from '~/components/ui/switch'
 import { useDownloadPreferences } from '~/composables/useDownloadPreferences'
+import { logger } from '~/utils/logger'
 import { normalizeQuality, QUALITY_OPTIONS } from '~/utils/preferences'
 import {
   concurrencySetting,
@@ -10,128 +22,153 @@ import FilenameSettings from './FilenameSettings.vue'
 
 const { preferences, isReady, preferenceError } = useDownloadPreferences()
 
+const log = logger.withTag('settings')
+
 const isSaving = shallowRef(false)
 const requestError = shallowRef('')
-const statusMessage = shallowRef('')
 
 /**
- * Persists a save-dialog or quality selection from its form control.
- * Storage failures restore the effective setting and show a localized error.
- *
- * @param event - Change event from the save-dialog checkbox or quality select.
- * @returns A promise resolving after the save attempt, or immediately for an unrelated target.
+ * Persists a setting while retaining the effective value when storage fails.
  */
-async function updatePreference(event: Event) {
-  const target = event.target
-  if (
-    !(target instanceof HTMLInputElement)
-    && !(target instanceof HTMLSelectElement)
-  ) {
+async function savePreference(save: () => Promise<void>) {
+  if (!isReady.value || isSaving.value) {
     return
   }
   isSaving.value = true
+  requestError.value = ''
   try {
-    if (target instanceof HTMLInputElement) {
-      await saveAsSetting.setValue(target.checked)
-    } else if (target.id === 'download-concurrency') {
-      await concurrencySetting.setValue(Number(target.value))
-    } else {
-      await qualitySetting.setValue(normalizeQuality(target.value))
-    }
-    requestError.value = ''
-    statusMessage.value = i18n.t('preferencesSaved')
-  } catch {
-    if (target instanceof HTMLInputElement) {
-      target.checked = preferences.value.saveAs
-    } else if (target.id === 'download-concurrency') {
-      target.value = String(preferences.value.concurrency)
-    } else {
-      target.value = preferences.value.quality
-    }
+    await save()
+    toast.success(i18n.t('preferencesSaved'))
+  } catch (error) {
+    log.warn('Could not save download preferences', error)
     requestError.value = i18n.t('settingsSaveFailed')
   } finally {
     isSaving.value = false
   }
 }
+
+/**
+ * Persists the immediate save-location preference.
+ */
+function updateSaveAs(value: boolean) {
+  return savePreference(() => saveAsSetting.setValue(value))
+}
+
+/**
+ * Retains the last persisted quality until storage confirms the new choice.
+ */
+function updateQuality(value: string) {
+  return savePreference(() => qualitySetting.setValue(normalizeQuality(value)))
+}
+
+/**
+ * Persists the numeric concurrency selected by the control.
+ */
+function updateConcurrency(value: number) {
+  return savePreference(() => concurrencySetting.setValue(value))
+}
 </script>
 
 <template>
-  <section class="border-y border-line py-6 space-y-5">
+  <section class="border-y border-border py-6 space-y-5">
     <h2 class="text-lg font-semibold">{{ i18n.t('downloadSettings') }}</h2>
     <div class="space-y-2">
-      <label
+      <Label
         for="default-quality"
         class="block text-sm font-medium"
-        >{{ i18n.t('defaultQuality') }}</label
+        >{{ i18n.t('defaultQuality') }}</Label
       >
-      <select
-        @change="updatePreference"
-        :value="preferences.quality"
+      <Select
+        @update:model-value="updateQuality"
+        :model-value="preferences.quality"
         :disabled="!isReady || isSaving"
-        id="default-quality"
-        class="w-full xvd-input"
       >
-        <option
-          v-for="option in QUALITY_OPTIONS"
-          :key="option.value"
-          :value="option.value"
+        <SelectTrigger
+          id="default-quality"
+          aria-describedby="default-quality-help"
         >
-          {{ i18n.t(option.label) }}
-        </option>
-      </select>
-      <p class="text-xs text-muted leading-relaxed">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem
+            v-for="option in QUALITY_OPTIONS"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ i18n.t(option.label) }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
+      <p
+        id="default-quality-help"
+        class="text-xs text-muted-foreground leading-relaxed"
+      >
         {{ i18n.t('qualityHelp') }}
       </p>
     </div>
     <div class="space-y-2">
-      <label
+      <Label
         for="download-concurrency"
         class="block text-sm font-medium"
-        >{{ i18n.t('concurrentDownloads') }}</label
+        >{{ i18n.t('concurrentDownloads') }}</Label
       >
-      <select
-        @change="updatePreference"
-        :value="preferences.concurrency"
+      <Select
+        @update:model-value="updateConcurrency"
+        :model-value="preferences.concurrency"
         :disabled="!isReady || isSaving"
-        id="download-concurrency"
-        class="w-full xvd-input"
       >
-        <option
-          v-for="count in 6"
-          :key="count"
-          :value="count"
+        <SelectTrigger
+          id="download-concurrency"
+          aria-describedby="download-concurrency-help"
         >
-          {{ count }}
-        </option>
-      </select>
-      <p class="text-xs text-muted leading-relaxed">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem
+            v-for="count in 6"
+            :key="count"
+            :value="count"
+          >
+            {{ count }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
+      <p
+        id="download-concurrency-help"
+        class="text-xs text-muted-foreground leading-relaxed"
+      >
         {{ i18n.t('concurrencyHelp') }}
       </p>
     </div>
-    <label class="flex cursor-pointer items-start gap-3">
-      <input
-        @change="updatePreference"
-        :checked="preferences.saveAs"
+    <div class="flex items-start gap-3">
+      <Switch
+        @update:model-value="updateSaveAs"
+        :model-value="preferences.saveAs"
         :disabled="!isReady || isSaving"
-        type="checkbox"
-        class="mt-1 h-4 w-4 accent-primary xvd-focus"
+        id="save-location"
+        aria-describedby="save-location-help"
+        class="mt-1"
       />
-      <span
-        ><span class="block text-sm font-medium">{{
-          i18n.t('chooseSaveLocation')
-        }}</span
-        ><span class="mt-1 block text-sm text-muted">{{
-          i18n.t('saveLocationHelp')
-        }}</span></span
-      >
-    </label>
+      <div>
+        <Label
+          for="save-location"
+          class="block text-sm font-medium leading-relaxed"
+          >{{ i18n.t('chooseSaveLocation') }}</Label
+        >
+        <p
+          id="save-location-help"
+          class="mt-1 text-sm text-muted-foreground"
+        >
+          {{ i18n.t('saveLocationHelp') }}
+        </p>
+      </div>
+    </div>
     <p
-      v-if="preferenceError || requestError || statusMessage"
-      :class="preferenceError || requestError ? 'text-danger' : 'text-muted'"
+      v-if="preferenceError || requestError"
       role="status"
-      class="text-xs"
+      class="text-xs text-destructive"
     >
-      {{ preferenceError || requestError || statusMessage }}
+      {{ preferenceError || requestError }}
     </p>
     <FilenameSettings
       :template="preferences.filenameTemplate"

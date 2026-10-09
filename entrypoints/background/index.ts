@@ -4,6 +4,7 @@ import {
   normalizeBatchRequest,
   normalizeDownloadRequest,
 } from '~/utils/download'
+import { logger } from '~/utils/logger'
 import {
   concurrencySetting,
   downloadRecords,
@@ -11,6 +12,8 @@ import {
 } from '~/utils/settings'
 import { isPostId, isRecord, isXUrl } from '~/utils/video'
 import { createDownloadManager } from './downloadManager'
+
+const log = logger.withTag('background')
 
 export default defineBackground(() => {
   const manager = createDownloadManager({
@@ -66,7 +69,7 @@ export default defineBackground(() => {
   function refreshQueue(id?: number) {
     manager
       .refresh(id)
-      .catch(error => console.warn('Could not refresh download queue', error))
+      .catch(error => log.warn('Could not refresh download queue', error))
   }
 
   browser.downloads.onChanged.addListener(delta => refreshQueue(delta.id))

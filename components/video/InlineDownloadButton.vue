@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { i18n } from '#i18n'
+import { Button } from '~/components/ui/button'
 import { useDownloadPreferences } from '~/composables/useDownloadPreferences'
 import { usePageTheme } from '~/composables/usePageTheme'
 import { useTheme } from '~/composables/useTheme'
@@ -96,24 +98,25 @@ watch(
   <div
     :style="themeStyle"
     :data-xvd-theme="pageTheme"
-    class="px-1 py-2 text-ink font-sans"
+    class="px-1 py-2 text-foreground font-sans"
   >
     <div class="flex flex-wrap items-center gap-2">
-      <button
+      <Button
         @click.stop.prevent="handleQuick"
         :disabled="!isReady || isPending"
+        variant="outline"
         type="button"
-        class="xvd-secondary text-sm"
+        class="text-sm"
       >
         {{ isPending ? i18n.t('creatingDownload') : quickLabel }}
-      </button>
-      <button
+      </Button>
+      <Button
         @click.stop.prevent="emit('open')"
+        variant="link"
         type="button"
-        class="xvd-link"
       >
         {{ i18n.t('qualityAndProgress') }}
-      </button>
+      </Button>
     </div>
     <DuplicateDownloadNotice
       @confirm="confirmDuplicate"
@@ -124,7 +127,7 @@ watch(
     <p
       v-if="hasError || preferenceError"
       role="status"
-      class="mt-2 text-xs text-danger"
+      class="mt-2 text-xs text-destructive"
     >
       {{ preferenceError || message }}
     </p>

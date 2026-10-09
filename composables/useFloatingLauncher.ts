@@ -9,8 +9,11 @@ import {
   getNearestFloatingEdge,
   normalizeFloatingPlacement,
 } from '../utils/floatingPosition'
+import { logger } from '../utils/logger'
 import type { ShallowRef } from 'vue'
 import type { FloatingEdge, FloatingPosition } from '../utils/floatingPosition'
+
+const log = logger.withTag('launcher')
 
 /**
  * Controls pointer dragging, edge docking, and panel placement for the launcher.
@@ -58,10 +61,7 @@ export function useFloatingLauncher(
     })
     .catch(error => {
       // Placement is best-effort: storage failures must not disable dragging.
-      console.warn(
-        '[X Video Downloader] Could not restore launcher position',
-        error,
-      )
+      log.warn('Could not restore launcher position', error)
     })
 
   const buttonStyle = computed(() => ({
@@ -140,10 +140,7 @@ export function useFloatingLauncher(
       pendingSave = pendingSave
         .then(() => floatingLauncherSetting.setValue(saved))
         .catch(error => {
-          console.warn(
-            '[X Video Downloader] Could not save launcher position',
-            error,
-          )
+          log.warn('Could not save launcher position', error)
         })
     }
     isDragging.value = false

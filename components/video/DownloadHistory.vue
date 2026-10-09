@@ -1,5 +1,16 @@
 <script lang="ts" setup>
 import { unique } from '@ntnyq/utils'
+import { i18n } from '#i18n'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select'
 import { usePostDownloads } from '~/composables/usePostDownloads'
 import {
   filterDownloadHistory,
@@ -18,6 +29,12 @@ const {
 } = usePostDownloads()
 const query = shallowRef('')
 const author = shallowRef('')
+const authorFilter = computed({
+  get: () => (author.value ? `author:${author.value}` : 'all'),
+  set(value: string) {
+    author.value = value === 'all' ? '' : value.slice('author:'.length)
+  },
+})
 const searchId = useId()
 const authorId = useId()
 const authors = computed(() =>
@@ -58,71 +75,72 @@ function handleClear(event: MouseEvent) {
 <template>
   <section class="px-5 pb-5 space-y-4">
     <div class="space-y-2">
-      <label
+      <Label
         :for="searchId"
         class="block text-xs font-semibold"
-        >{{ i18n.t('searchDownloads') }}</label
+        >{{ i18n.t('searchDownloads') }}</Label
       >
-      <input
+      <Input
         v-model="query"
         :placeholder="i18n.t('historySearchPlaceholder')"
         :id="searchId"
         type="search"
-        class="w-full xvd-input"
+        class="w-full"
       />
-      <label
+      <Label
         :for="authorId"
         class="block text-xs font-semibold"
-        >{{ i18n.t('filterAuthor') }}</label
+        >{{ i18n.t('filterAuthor') }}</Label
       >
-      <select
-        v-model="author"
-        :id="authorId"
-        class="w-full xvd-input"
-      >
-        <option value="">{{ i18n.t('allAuthors') }}</option>
-        <option
-          v-if="author && !authors.includes(author)"
-          :value="author"
-        >
-          @{{ author }}
-        </option>
-        <option
-          v-for="name in authors"
-          :key="name"
-          :value="name"
-        >
-          @{{ name }}
-        </option>
-      </select>
+      <Select v-model="authorFilter">
+        <SelectTrigger :id="authorId">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{{ i18n.t('allAuthors') }}</SelectItem>
+          <SelectItem
+            v-if="author && !authors.includes(author)"
+            :value="`author:${author}`"
+          >
+            @{{ author }}
+          </SelectItem>
+          <SelectItem
+            v-for="name in authors"
+            :key="name"
+            :value="`author:${name}`"
+          >
+            @{{ name }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
     </div>
     <div class="flex flex-wrap items-center justify-between gap-2">
-      <p class="text-xs text-muted">
+      <p class="text-xs text-muted-foreground">
         {{ i18n.t('historyCount', [filtered.length]) }}
       </p>
-      <button
+      <Button
         @click="handleClear"
         :disabled="isActionPending || !terminalIds.length"
+        variant="link"
         type="button"
-        class="xvd-link"
       >
         {{ i18n.t('clearFinished') }}
-      </button>
+      </Button>
     </div>
-    <p class="text-xs text-muted leading-relaxed">
+    <p class="text-xs text-muted-foreground leading-relaxed">
       {{ i18n.t('historyClearHelp') }}
     </p>
     <p
       v-if="requestError || progressError"
       role="alert"
-      class="text-xs text-danger"
+      class="text-xs text-destructive"
     >
       {{ requestError || progressError }}
     </p>
     <p
       v-if="message"
       role="status"
-      class="text-xs text-muted"
+      class="text-xs text-muted-foreground"
     >
       {{ message }}
     </p>
@@ -137,7 +155,7 @@ function handleClear(event: MouseEvent) {
     <p
       v-if="!filtered.length && !progressError"
       role="status"
-      class="py-5 text-sm text-muted"
+      class="py-5 text-sm text-muted-foreground"
     >
       {{ i18n.t(downloads.length ? 'historyNoMatches' : 'historyEmpty') }}
     </p>

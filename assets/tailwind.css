@@ -1,0 +1,46 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "./theme.css";
+@import "./shadow-properties.css";
+
+@source "../components";
+@source "../entrypoints";
+
+@custom-variant dark (&:where([data-xvd-theme="dark"], [data-xvd-theme="dark"] *, [data-xvd-theme="dim"], [data-xvd-theme="dim"] *));
+
+@theme inline {
+  --color-background: var(--xvd-background, var(--xvd-default-background));
+  --color-foreground: var(--xvd-ink, var(--xvd-default-ink));
+  --color-card: var(--xvd-background, var(--xvd-default-background));
+  --color-card-foreground: var(--xvd-ink, var(--xvd-default-ink));
+  --color-popover: var(--xvd-background, var(--xvd-default-background));
+  --color-popover-foreground: var(--xvd-ink, var(--xvd-default-ink));
+  --color-secondary: var(--xvd-surface, var(--xvd-default-surface));
+  --color-secondary-foreground: var(--xvd-ink, var(--xvd-default-ink));
+  --color-muted: var(--xvd-surface, var(--xvd-default-surface));
+  --color-muted-foreground: var(--xvd-muted, var(--xvd-default-muted));
+  --color-accent: var(--xvd-hover, var(--xvd-default-hover));
+  --color-accent-foreground: var(--xvd-ink, var(--xvd-default-ink));
+  --color-destructive: var(--xvd-danger, var(--xvd-default-danger));
+  --color-border: var(--xvd-line, var(--xvd-default-line));
+  --color-input: var(--xvd-control-line, var(--xvd-default-control-line));
+  --color-ring: var(--xvd-ink, var(--xvd-default-ink));
+  --color-control: var(--xvd-input, var(--xvd-default-input));
+  --color-primary: var(--xvd-accent, var(--xvd-theme-accent));
+  --color-primary-foreground: var(--xvd-on-accent, var(--xvd-theme-on-accent));
+  --font-sans: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+@layer base {
+  :root,
+  :host {
+    --radius: 0.75rem;
+    font-size: 16px;
+  }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

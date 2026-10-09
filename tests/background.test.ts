@@ -195,6 +195,9 @@ function createBackground(shouldFail = false) {
      * @throws When the entrypoint imports an unexpected module.
      */
     require(id: string) {
+      if (id === '~/utils/logger') {
+        return { logger: { withTag: () => ({ warn() {} }) } }
+      }
       if (id === '#imports') {
         return {
           browser,

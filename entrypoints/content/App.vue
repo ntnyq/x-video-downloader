@@ -1,7 +1,10 @@
 <script lang="ts" setup>
+import { i18n } from '#i18n'
 import { browser } from '#imports'
+import { Button } from '~/components/ui/button'
 import DownloadWorkspace from '~/components/video/DownloadWorkspace.vue'
 import FloatingDownloadLauncher from '~/components/video/FloatingDownloadLauncher.vue'
+import { provideOverlayTarget } from '~/composables/useOverlayTarget'
 import { usePageTheme } from '~/composables/usePageTheme'
 import { useTheme } from '~/composables/useTheme'
 import { isRecord } from '~/utils/video'
@@ -48,6 +51,9 @@ const panelId = useId()
 const closeButtonRef = useTemplateRef('closeButtonRef')
 const toggleButtonRef = useTemplateRef('toggleButtonRef')
 const settingsError = shallowRef('')
+const overlayRef = useTemplateRef('overlayRef')
+
+provideOverlayTarget(overlayRef)
 
 /**
  * Asks the background to open settings because content scripts lack openOptionsPage.
@@ -86,7 +92,7 @@ watch(
     :style="themeStyle"
     :data-xvd-theme="pageTheme"
     :aria-label="i18n.t('extensionName')"
-    class="pointer-events-none fixed inset-0 z-[2147483647] text-ink font-sans"
+    class="pointer-events-none fixed inset-0 z-2147483647 text-foreground font-sans"
   >
     <FloatingDownloadLauncher
       @toggle="isOpen ? emit('close') : emit('open')"
@@ -98,10 +104,10 @@ watch(
         v-if="isOpen"
         :aria-label="i18n.t('panelOptions')"
         :id="panelId"
-        class="xvd-panel-shadow max-h-[inherit] w-full of-y-auto overscroll-contain border border-line rounded-2xl bg-background"
+        class="animate-in fade-in zoom-in-95 duration-150 motion-reduce:animate-none xvd-panel-shadow max-h-[inherit] w-full overflow-y-auto overscroll-contain border border-border rounded-2xl bg-background"
       >
         <header
-          class="sticky top-0 z-1 flex items-center justify-between gap-3 border-b border-line bg-background px-4 py-3"
+          class="sticky top-0 z-1 flex items-center justify-between gap-3 border-b border-border bg-background px-4 py-3"
         >
           <div class="min-w-0 flex items-center gap-3">
             <UiIcon
@@ -112,36 +118,38 @@ watch(
               <h1 class="text-base font-bold">
                 {{ i18n.t('downloadVideos') }}
               </h1>
-              <p class="mt-1 text-xs text-muted">
+              <p class="mt-1 text-xs text-muted-foreground">
                 {{ i18n.t('extensionName') }}
               </p>
             </div>
           </div>
           <div class="flex shrink-0 items-center gap-1">
-            <button
+            <Button
               @click="openSettings"
               :aria-label="i18n.t('settings')"
               :title="i18n.t('settings')"
+              variant="ghost"
+              size="icon"
               type="button"
-              class="xvd-icon"
             >
               <UiIcon name="settings" />
-            </button>
-            <button
+            </Button>
+            <Button
               @click="emit('close')"
               ref="closeButtonRef"
               :aria-label="i18n.t('closePanel')"
+              variant="ghost"
+              size="icon"
               type="button"
-              class="xvd-icon"
             >
               <UiIcon name="close" />
-            </button>
+            </Button>
           </div>
         </header>
         <p
           v-if="settingsError"
           role="alert"
-          class="px-5 pt-3 text-xs text-danger"
+          class="px-5 pt-3 text-xs text-destructive"
         >
           {{ settingsError }}
         </p>
@@ -153,5 +161,6 @@ watch(
         />
       </section>
     </FloatingDownloadLauncher>
+    <div ref="overlayRef" />
   </aside>
 </template>

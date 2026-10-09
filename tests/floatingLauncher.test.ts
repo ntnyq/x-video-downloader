@@ -45,7 +45,6 @@ function createLauncher(
     {
       exports,
       window,
-      console: { warn: (...args: unknown[]) => warnings.push(args) },
       /**
        * Resolves runtime dependencies while replacing only extension storage.
        *
@@ -54,6 +53,17 @@ function createLauncher(
        * @throws When an unexpected dependency is imported.
        */
       require(id: string) {
+        if (id === '../utils/logger') {
+          return {
+            logger: {
+              withTag() {
+                return {
+                  warn: (...args: unknown[]) => warnings.push(args),
+                }
+              },
+            },
+          }
+        }
         if (id === 'vue') {
           return vue
         }

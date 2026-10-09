@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+import { toast } from 'vue-sonner'
+import { i18n } from '#i18n'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
 import { useTheme } from '~/composables/useTheme'
 import {
   getThemeForeground,
@@ -9,7 +14,6 @@ import {
 const { theme, isReady, isSaving, themeError, saveTheme } = useTheme()
 
 const draft = shallowRef('')
-const statusMessage = shallowRef('')
 
 const parsedColor = computed(() => parseThemeColor(draft.value))
 const isInvalid = computed(() => !!draft.value.trim() && !parsedColor.value)
@@ -21,9 +25,8 @@ const isDisabled = computed(() => !isReady.value || isSaving.value)
  * @param value - Built-in identifier or validated RGB value.
  */
 async function applyTheme(value: string) {
-  statusMessage.value = ''
   if (await saveTheme(value)) {
-    statusMessage.value = i18n.t('themeSaved')
+    toast.success(i18n.t('themeSaved'))
   }
 }
 
@@ -34,14 +37,11 @@ watch(
   },
   { immediate: true },
 )
-watch(draft, () => {
-  statusMessage.value = ''
-})
 </script>
 
 <template>
   <section
-    class="border-t border-line py-6 space-y-5"
+    class="border-t border-border py-6 space-y-5"
     aria-labelledby="theme-heading"
   >
     <div>
@@ -51,7 +51,7 @@ watch(draft, () => {
       >
         {{ i18n.t('themeTitle') }}
       </h2>
-      <p class="mt-2 text-sm text-muted leading-relaxed">
+      <p class="mt-2 text-sm text-muted-foreground leading-relaxed">
         {{ i18n.t('themeDescription') }}
       </p>
     </div>
@@ -60,7 +60,7 @@ watch(draft, () => {
       class="grid grid-cols-3 gap-2 sm:grid-cols-4"
       role="group"
     >
-      <button
+      <Button
         @click="applyTheme(preset.id)"
         v-for="preset in THEME_PRESETS"
         :key="preset.id"
@@ -68,18 +68,19 @@ watch(draft, () => {
         :aria-pressed="theme === preset.id"
         :class="
           theme === preset.id
-            ? 'border-ink bg-input'
-            : 'border-line bg-background hover:bg-surface'
+            ? 'border-foreground bg-control'
+            : 'border-border bg-background hover:bg-secondary'
         "
+        variant="outline"
         type="button"
-        class="min-w-0 flex flex-col cursor-pointer items-center gap-2 border rounded-xl px-2 py-3 text-xs text-ink xvd-focus disabled:cursor-not-allowed disabled:opacity-50"
+        class="h-auto min-w-0 flex flex-col cursor-pointer items-center gap-2 border rounded-xl px-2 py-3 text-xs text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <span
           :style="{
             backgroundColor: preset.color,
             color: getThemeForeground(preset.color),
           }"
-          class="h-8 w-8 flex-center border border-black/10 rounded-full"
+          class="h-8 w-8 flex items-center justify-center border border-black/10 rounded-full"
         >
           <UiIcon
             v-if="theme === preset.id"
@@ -87,19 +88,19 @@ watch(draft, () => {
           />
         </span>
         <span class="text-center">{{ i18n.t(preset.label) }}</span>
-      </button>
+      </Button>
     </div>
     <form
       @submit.prevent="parsedColor && applyTheme(parsedColor)"
       class="space-y-2"
     >
-      <label
+      <Label
         for="theme-rgb"
         class="block text-sm font-medium"
-        >{{ i18n.t('themeCustom') }}</label
+        >{{ i18n.t('themeCustom') }}</Label
       >
       <div class="flex flex-wrap items-center gap-2">
-        <input
+        <Input
           v-model="draft"
           :disabled="isDisabled"
           :aria-invalid="isInvalid"
@@ -109,32 +110,31 @@ watch(draft, () => {
           maxlength="40"
           autocomplete="off"
           spellcheck="false"
-          class="min-w-0 xvd-input flex-1 basis-44"
+          class="min-w-0 flex-1 basis-44"
         />
-        <button
+        <Button
           :disabled="isDisabled || !parsedColor"
           type="submit"
-          class="xvd-primary"
         >
           {{ i18n.t('themeApply') }}
-        </button>
+        </Button>
       </div>
       <p
         id="theme-rgb-help"
-        class="text-xs text-muted leading-relaxed"
+        class="text-xs text-muted-foreground leading-relaxed"
       >
         {{ i18n.t('themeRgbHelp') }}
       </p>
       <p
         id="theme-rgb-error"
-        class="text-xs text-danger"
+        class="text-xs text-destructive"
         aria-live="polite"
       >
         {{ isInvalid ? i18n.t('themeInvalid') : '' }}
       </p>
       <div
         v-if="parsedColor"
-        class="flex items-center gap-3 rounded-xl bg-surface p-3"
+        class="flex items-center gap-3 rounded-xl bg-secondary p-3"
       >
         <span
           :style="{
@@ -146,16 +146,17 @@ watch(draft, () => {
           <UiIcon name="download" />
           {{ i18n.t('downloadVideos') }}
         </span>
-        <span class="text-xs text-muted">{{ i18n.t('themePreview') }}</span>
+        <span class="text-xs text-muted-foreground">{{
+          i18n.t('themePreview')
+        }}</span>
       </div>
     </form>
     <p
-      v-if="themeError || statusMessage"
-      :class="themeError ? 'text-danger' : 'text-muted'"
-      class="text-xs"
+      v-if="themeError"
+      class="text-xs text-destructive"
       role="status"
     >
-      {{ themeError || statusMessage }}
+      {{ themeError }}
     </p>
   </section>
 </template>

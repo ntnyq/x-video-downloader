@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { i18n } from '#i18n'
+import { Button } from '~/components/ui/button'
+
 defineProps<{
   /**
    * Completed videos awaiting an explicit repeat-download choice.
@@ -25,26 +28,26 @@ const emit = defineEmits<{
   <div
     v-if="count"
     role="status"
-    class="my-3 rounded-xl bg-input p-3 text-sm space-y-3"
+    class="my-3 rounded-xl bg-secondary p-3 text-sm space-y-3"
   >
     <p>{{ i18n.t('duplicateNotice', [count]) }}</p>
     <div class="flex flex-wrap gap-3">
-      <button
+      <Button
         @click="emit('confirm', $event)"
         :disabled
+        variant="outline"
         type="button"
-        class="xvd-secondary"
       >
         {{ i18n.t('downloadAgain') }}
-      </button>
-      <button
+      </Button>
+      <Button
         @click="emit('dismiss')"
         :disabled
+        variant="link"
         type="button"
-        class="xvd-link"
       >
         {{ i18n.t('dismiss') }}
-      </button>
+      </Button>
     </div>
   </div>
 </template>

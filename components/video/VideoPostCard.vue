@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { i18n } from '#i18n'
+import { Button } from '~/components/ui/button'
+import { Checkbox } from '~/components/ui/checkbox'
 import VideoMediaRow from './VideoMediaRow.vue'
 import type { VideoPost } from '~/types/video'
 import type { VideoSelectionRow } from '~/utils/videoSelection'
@@ -68,33 +71,28 @@ const partiallySelected = computed(
 /**
  * Applies the post checkbox state to its shared page selection.
  *
- * @param event - Change event expected from the post selection checkbox.
+ * @param value - Checked or mixed state from the post selection control.
  */
-function handleSelectAll(event: Event) {
-  if (event.target instanceof HTMLInputElement) {
-    emit('selectAll', event.target.checked)
-  }
+function handleSelectAll(value: boolean | 'indeterminate') {
+  emit('selectAll', value === true)
 }
 </script>
 
 <template>
-  <section class="border-t border-line py-4 first:border-t-0">
+  <section class="border-t border-border py-4 first:border-t-0">
     <div class="mb-3 flex items-center gap-2">
-      <input
-        @change="handleSelectAll"
+      <Checkbox
+        @update:model-value="handleSelectAll"
         v-if="downloadableCount"
-        :checked="allSelected"
-        :indeterminate="partiallySelected"
+        :model-value="partiallySelected ? 'indeterminate' : allSelected"
         :disabled
         :aria-label="i18n.t('selectPostVideos', [post.id])"
-        type="checkbox"
-        class="h-4 w-4 shrink-0 accent-primary xvd-focus"
       />
       <a
         :href="`https://x.com/i/status/${post.id}`"
         target="_blank"
         rel="noreferrer"
-        class="min-w-0 break-all text-xs text-muted xvd-focus hover:text-ink"
+        class="min-w-0 break-all text-xs text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 hover:text-foreground"
       >
         {{ post.author ? `@${post.author}` : i18n.t('post') }} · {{ post.id }}
       </a>
@@ -109,11 +107,12 @@ function handleSelectAll(event: Event) {
       v-if="downloadableCount"
       class="mb-4 space-y-3"
     >
-      <button
+      <Button
         @click="emit('download', $event)"
         :disabled="disabled || !selectedCount"
+        variant="outline"
         type="button"
-        class="w-full xvd-secondary"
+        class="w-full"
       >
         {{
           isPending
@@ -122,19 +121,19 @@ function handleSelectAll(event: Event) {
               ? i18n.t('downloadSelected', [selectedCount])
               : i18n.t('oneClickDownload')
         }}
-      </button>
-      <button
+      </Button>
+      <Button
         @click="emit('download', $event, undefined, true)"
         v-if="showHighest"
         :disabled="disabled || !selectedCount"
+        variant="link"
         type="button"
-        class="xvd-link"
       >
         {{ i18n.t('useHighest') }}
-      </button>
+      </Button>
       <p
         v-if="downloadableCount > 1 && saveAs"
-        class="text-xs text-muted"
+        class="text-xs text-muted-foreground"
       >
         {{ i18n.t('confirmEachSave') }}
       </p>

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { i18n } from '#i18n'
 import { useFloatingLauncher } from '~/composables/useFloatingLauncher'
 import type { VNode } from 'vue'
 
@@ -69,7 +70,7 @@ defineExpose({
         : 'cursor-grab transition-[left,top,background-color] duration-200 ease-out motion-reduce:transition-none'
     "
     type="button"
-    class="xvd-panel-shadow pointer-events-auto fixed flex-center touch-none select-none border border-control-line rounded-full bg-background p-0 text-ink xvd-focus hover:bg-hover"
+    class="xvd-panel-shadow pointer-events-auto fixed flex items-center justify-center touch-none select-none border border-input rounded-full bg-background p-0 text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 hover:bg-accent"
   >
     <UiIcon :name="isOpen ? 'close' : 'download'" />
   </button>

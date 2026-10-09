@@ -1,4 +1,5 @@
 import { normalizeDownloadRequest } from '../../utils/download'
+import { logger } from '../../utils/logger'
 import { buildFilename, normalizePreferences } from '../../utils/preferences'
 import { isRecord } from '../../utils/video'
 import type { DownloadRecord, DownloadStatus } from '../../types/download'
@@ -134,6 +135,8 @@ function getDownloadState(item?: NativeDownload): DownloadStatus['state'] {
   }
   return item.state
 }
+
+const log = logger.withTag('downloads')
 
 /**
  * Creates a durable queue with serialized mutations and extension-owned history.
@@ -342,7 +345,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
         await persist()
       } catch (error) {
         record.starting = false
-        console.warn('Could not persist download handoff', error)
+        log.warn('Could not persist download handoff', error)
         break
       }
       try {
@@ -374,7 +377,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
       } catch (error) {
         // The native side effect already happened: retain ownership in memory
         // and stop starting further tasks until persistence can succeed again.
-        console.warn('Could not persist download state', error)
+        log.warn('Could not persist download state', error)
         break
       }
     }
@@ -382,7 +385,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
       try {
         await persist()
       } catch (error) {
-        console.warn('Could not persist download history cleanup', error)
+        log.warn('Could not persist download history cleanup', error)
       }
     }
   }

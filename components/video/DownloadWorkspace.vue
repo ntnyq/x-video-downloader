@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { i18n } from '#i18n'
+import { Button } from '~/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import DownloadHistory from './DownloadHistory.vue'
 import DownloadPanel from './DownloadPanel.vue'
 import type { PageVideos } from '~/types/video'
@@ -43,59 +46,54 @@ watch(
 </script>
 
 <template>
-  <nav
-    :aria-label="i18n.t('downloadViews')"
-    class="flex gap-2 px-5 py-3"
-  >
-    <button
-      @click="view = 'videos'"
-      :aria-pressed="view === 'videos'"
-      :class="view === 'videos' ? 'xvd-primary' : 'xvd-secondary'"
-      type="button"
+  <Tabs v-model="view">
+    <div class="px-5 py-3">
+      <TabsList :aria-label="i18n.t('downloadViews')">
+        <TabsTrigger value="videos">{{ i18n.t('pageVideosTab') }}</TabsTrigger>
+        <TabsTrigger value="history">{{ i18n.t('historyTab') }}</TabsTrigger>
+      </TabsList>
+    </div>
+    <TabsContent value="history">
+      <DownloadHistory />
+    </TabsContent>
+    <TabsContent
+      :hidden="view !== 'videos'"
+      value="videos"
+      force-mount
     >
-      {{ i18n.t('pageVideosTab') }}
-    </button>
-    <button
-      @click="view = 'history'"
-      :aria-pressed="view === 'history'"
-      :class="view === 'history' ? 'xvd-primary' : 'xvd-secondary'"
-      type="button"
-    >
-      {{ i18n.t('historyTab') }}
-    </button>
-  </nav>
-  <DownloadHistory v-if="view === 'history'" />
-  <p
-    v-if="view === 'videos' && isLoading"
-    role="status"
-    class="p-5 text-sm text-muted"
-  >
-    {{ i18n.t('scanning') }}
-  </p>
-  <div
-    v-else-if="view === 'videos' && requestError"
-    class="p-5"
-  >
-    <p
-      role="status"
-      class="text-sm text-muted leading-relaxed"
-    >
-      {{ requestError }}
-    </p>
-    <a
-      href="https://x.com"
-      target="_blank"
-      rel="noreferrer"
-      class="mt-5 xvd-primary"
-      >{{ i18n.t('openX') }}</a
-    >
-  </div>
-  <DownloadPanel
-    @refresh="emit('refresh')"
-    @show-all="emit('showAll')"
-    v-if="!isLoading && !requestError"
-    v-show="view === 'videos'"
-    :snapshot
-    :selected-post-id
-  />
+      <p
+        v-if="isLoading"
+        role="status"
+        class="p-5 text-sm text-muted-foreground"
+      >
+        {{ i18n.t('scanning') }}
+      </p>
+      <div
+        v-else-if="requestError"
+        class="p-5"
+      >
+        <p
+          role="status"
+          class="text-sm text-muted-foreground leading-relaxed"
+        >
+          {{ requestError }}
+        </p>
+        <Button
+          as="a"
+          href="https://x.com"
+          target="_blank"
+          rel="noreferrer"
+          class="mt-5"
+          >{{ i18n.t('openX') }}</Button
+        >
+      </div>
+      <DownloadPanel
+        @refresh="emit('refresh')"
+        @show-all="emit('showAll')"
+        v-else
+        :snapshot
+        :selected-post-id
+      />
+    </TabsContent>
+  </Tabs>
 </template>

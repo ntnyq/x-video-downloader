@@ -1,4 +1,8 @@
 <script lang="ts" setup>
+import { i18n } from '#i18n'
+import { Button } from '~/components/ui/button'
+import { Checkbox } from '~/components/ui/checkbox'
+import { Label } from '~/components/ui/label'
 import { useDownloadPreferences } from '~/composables/useDownloadPreferences'
 import { usePageVideoSelection } from '~/composables/usePageVideoSelection'
 import { usePostDownloads } from '~/composables/usePostDownloads'
@@ -97,12 +101,10 @@ function handleAction(
 /**
  * Applies the page checkbox state to every visible downloadable video.
  *
- * @param event - Change event expected from the global selection checkbox.
+ * @param value - Checked or mixed state from the page selection control.
  */
-function handleSelectAll(event: Event) {
-  if (event.target instanceof HTMLInputElement) {
-    selectAll(event.target.checked)
-  }
+function handleSelectAll(value: boolean | 'indeterminate') {
+  selectAll(value === true)
 }
 
 /**
@@ -121,32 +123,29 @@ function handleConfirmDuplicates(event: MouseEvent) {
   <div>
     <div
       v-if="downloadableCount"
-      class="border-b border-line pb-4 space-y-3"
+      class="border-b border-border pb-4 space-y-3"
     >
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <label class="flex items-center gap-2 text-xs">
-          <input
-            @change="handleSelectAll"
-            :checked="allSelected"
-            :indeterminate="partiallySelected"
+        <Label class="flex items-center gap-2 text-xs">
+          <Checkbox
+            @update:model-value="handleSelectAll"
+            :model-value="partiallySelected ? 'indeterminate' : allSelected"
             :disabled="isDisabled"
-            type="checkbox"
-            class="h-4 w-4 accent-primary xvd-focus"
           />
           {{ i18n.t('selectPageVideos') }}
-        </label>
-        <button
+        </Label>
+        <Button
           @click="selectAll(false)"
           :disabled="isDisabled || !selectedCount"
+          variant="link"
           type="button"
-          class="xvd-link"
         >
           {{ i18n.t('clearSelection') }}
-        </button>
+        </Button>
       </div>
       <p
         role="status"
-        class="text-xs text-muted"
+        class="text-xs text-muted-foreground"
       >
         {{
           i18n.t('pageSelection', [
@@ -156,22 +155,22 @@ function handleConfirmDuplicates(event: MouseEvent) {
           ])
         }}
       </p>
-      <button
+      <Button
         @click="handleDownload($event)"
         :disabled="isBatchDisabled"
         type="button"
-        class="w-full xvd-primary"
+        class="w-full"
       >
         {{
           isPending
             ? i18n.t('creatingDownload')
             : i18n.t('downloadPageSelected', [selectedCount])
         }}
-      </button>
+      </Button>
       <p
         v-if="isOverLimit"
         role="alert"
-        class="text-xs text-danger leading-relaxed"
+        class="text-xs text-destructive leading-relaxed"
       >
         {{
           i18n.t('batchLimitExceeded', [MAX_DOWNLOAD_BATCH_SIZE, selectedCount])
@@ -179,7 +178,7 @@ function handleConfirmDuplicates(event: MouseEvent) {
       </p>
       <p
         v-if="selectedCount > 1 && preferences.saveAs"
-        class="text-xs text-muted"
+        class="text-xs text-muted-foreground"
       >
         {{ i18n.t('confirmEachSave') }}
       </p>
@@ -193,14 +192,14 @@ function handleConfirmDuplicates(event: MouseEvent) {
     <p
       v-if="message"
       role="status"
-      class="mt-3 text-xs text-muted"
+      class="mt-3 text-xs text-muted-foreground"
     >
       {{ message }}
     </p>
     <p
       v-if="requestError || preferenceError"
       role="alert"
-      class="mt-3 text-xs text-danger"
+      class="mt-3 text-xs text-destructive"
     >
       {{ requestError || preferenceError }}
     </p>
@@ -213,7 +212,7 @@ function handleConfirmDuplicates(event: MouseEvent) {
     <p
       v-if="progressError"
       role="status"
-      class="mt-3 text-xs text-muted"
+      class="mt-3 text-xs text-muted-foreground"
     >
       {{ progressError }}
     </p>

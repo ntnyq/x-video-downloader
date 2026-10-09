@@ -3,6 +3,7 @@
  * @see {@link https://wxt.dev/api/config.html}
  */
 
+import tailwindcss from '@tailwindcss/vite'
 import vueComponents from 'unplugin-vue-components/vite'
 import { defineConfig } from 'wxt'
 import { resolve } from './scripts/utils'
@@ -36,7 +37,6 @@ export default defineConfig({
   },
 
   modules: [
-    '@wxt-dev/unocss',
     '@wxt-dev/auto-icons',
     '@wxt-dev/i18n/module',
     '@wxt-dev/module-vue',
@@ -82,10 +82,10 @@ export default defineConfig({
       optimizeDeps: {
         // https://github.com/vitejs/vite/discussions/13306
         entries: ['**/entrypoints/**/*.html'],
-        exclude: ['uno.css'],
       },
 
       plugins: [
+        tailwindcss(),
         vueComponents({
           dirs: [resolve('components')],
           dts: 'types/components.d.ts',

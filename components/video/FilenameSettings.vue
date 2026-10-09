@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+import { toast } from 'vue-sonner'
+import { i18n } from '#i18n'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
 import {
   buildFilename,
   DEFAULT_FILENAME_TEMPLATE,
@@ -19,7 +24,6 @@ const props = defineProps<{
 
 const draft = shallowRef(props.template)
 const isSaving = shallowRef(false)
-const statusMessage = shallowRef('')
 const saveError = shallowRef('')
 
 const validationError = computed(() => validateFilenameTemplate(draft.value))
@@ -48,9 +52,10 @@ async function save() {
     return
   }
   isSaving.value = true
+  saveError.value = ''
   try {
     await filenameSetting.setValue(draft.value.trim())
-    statusMessage.value = i18n.t('templateSaved')
+    toast.success(i18n.t('templateSaved'))
   } catch {
     saveError.value = i18n.t('templateSaveFailed')
   } finally {
@@ -65,7 +70,6 @@ watch(
   },
 )
 watch(draft, () => {
-  statusMessage.value = ''
   saveError.value = ''
 })
 </script>
@@ -73,25 +77,25 @@ watch(draft, () => {
 <template>
   <form
     @submit.prevent="save"
-    class="border-t border-line pt-5 space-y-3"
+    class="border-t border-border pt-5 space-y-3"
   >
-    <label
+    <Label
       for="filename-template"
       class="block text-sm font-medium"
-      >{{ i18n.t('filenameTemplate') }}</label
+      >{{ i18n.t('filenameTemplate') }}</Label
     >
-    <input
+    <Input
       v-model="draft"
       :disabled="disabled || isSaving"
       :aria-invalid="!!validationError"
       id="filename-template"
       aria-describedby="filename-help"
       maxlength="160"
-      class="w-full xvd-input font-mono"
+      class="w-full font-mono"
     />
     <p
       id="filename-help"
-      class="text-xs text-muted leading-relaxed"
+      class="text-xs text-muted-foreground leading-relaxed"
     >
       {{
         i18n.t('filenameHelp', [
@@ -106,41 +110,39 @@ watch(draft, () => {
     <p
       v-if="validationError"
       role="alert"
-      class="text-xs text-danger"
+      class="text-xs text-destructive"
     >
       {{ i18n.t(validationError) }}
     </p>
     <div
       v-else
-      class="rounded-lg bg-surface p-3 text-xs"
+      class="rounded-lg bg-secondary p-3 text-xs"
     >
-      <p class="mb-1 text-muted">{{ i18n.t('filenamePreview') }}</p>
+      <p class="mb-1 text-muted-foreground">{{ i18n.t('filenamePreview') }}</p>
       <p class="break-all">{{ preview }}</p>
     </div>
     <div class="flex flex-wrap gap-3">
-      <button
+      <Button
         :disabled="disabled || isSaving || !!validationError"
         type="submit"
-        class="xvd-primary"
       >
         {{ isSaving ? i18n.t('saving') : i18n.t('saveTemplate') }}
-      </button>
-      <button
+      </Button>
+      <Button
         @click="draft = DEFAULT_FILENAME_TEMPLATE"
         :disabled="disabled || isSaving"
+        variant="outline"
         type="button"
-        class="xvd-secondary"
       >
         {{ i18n.t('resetTemplate') }}
-      </button>
+      </Button>
     </div>
     <p
-      v-if="statusMessage || saveError"
-      :class="saveError ? 'text-danger' : 'text-muted'"
+      v-if="saveError"
       role="status"
-      class="text-xs"
+      class="text-xs text-destructive"
     >
-      {{ saveError || statusMessage }}
+      {{ saveError }}
     </p>
   </form>
 </template>
