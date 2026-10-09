@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This WXT extension uses Vue 3, TypeScript, and UnoCSS to download X/Twitter videos.
+This WXT extension uses Vue 3, TypeScript, and Tailwind CSS + shadcn-vue to download X/Twitter videos.
 
 - `entrypoints/`: capture/content scripts, background download management, and popup, options, and welcome pages.
 - `components/video/`: shared UI; `composables/`: reactive download and selection logic.

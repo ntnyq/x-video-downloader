@@ -48,3 +48,49 @@ x-video-download-button {
 When overriding the accent in CSS, also set `--xvd-on-accent` to a readable color;
 automatic foreground selection applies to colors saved through Settings.
 Variables prefixed `--xvd-default-*` and `--xvd-theme-*` are internal fallbacks.
+
+## UI implementation
+
+`assets/tailwind.css` is the shared Tailwind CSS v4 entry point. It maps shadcn
+semantic colors to the public variables above; `assets/theme.css` owns the light,
+dim, and dark fallbacks. WXT injects content styles into each shadow root using
+`cssInjectionMode: 'ui'`, so the Tailwind reset does not affect X. `assets/shadow-properties.css` initializes
+Tailwind properties inside the shadow tree because Chromium does not register
+shadow-root `@property` declarations. Recheck these defaults when upgrading Tailwind.
+
+The local components in `components/ui` follow the shadcn-vue structure used by
+`prettier-now`. `components.json` configures future additions, and `lib/utils.ts`
+combines conditional classes with Tailwind-aware conflict resolution. Select menus
+use a theme-local portal container provided by `useOverlayTarget`, keeping content
+inside the shadow root and outside the panel's scrolling container. Escape closes
+the menu before the containing panel. Save-location preferences use Switch, and
+form controls share Label. The draggable launcher retains a native button for pointer capture.
+
+Settings and welcome pages share one Sonner toaster each. Validation and storage
+errors stay beside their controls. Runtime diagnostics use scoped `consola/browser`
+loggers from `utils/logger.ts`; production logs warnings and errors, while development
+also enables debug messages. Never log captured response bodies or credentials.
+
+## Migration checks
+
+The shadcn migration was checked in an isolated Chromium extension session:
+settings persisted across page loads, a 320px dark settings page had no horizontal
+overflow, and axe reported no WCAG 2A/2AA violations there. Popup tabs support arrow
+keys. A controlled two-video fixture exercised mixed checkbox states, selection
+retention across tabs, and Escape/focus restoration in an independent shadow root
+with all document styles removed. This fixture does not verify live X capture or
+real downloads. Firefox was build-checked only.
+
+![Shadow panel with fixture data](screenshots/shadcn-shadow-panel.png)
+
+![Narrow dark settings page](screenshots/shadcn-settings-narrow-dark.png)
+
+The Select refactor was checked with mocked extension APIs in Chromium: repeated
+quality/concurrency changes, failed-save rollback, author filtering and clearing,
+selected quality in download requests, and pointer/Escape interactions inside the
+content-script shadow root. Both menus fit within a 360px dark viewport. These
+checks do not verify real X downloads or Firefox runtime behavior.
+
+![Select in narrow dark settings](screenshots/shadcn-select-settings-narrow.png)
+
+![Select in the shadow panel](screenshots/shadcn-select-shadow-panel.png)

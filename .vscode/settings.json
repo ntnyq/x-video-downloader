@@ -9,6 +9,9 @@
     "source.organizeImports": "never",
     "source.sortImports": "never"
   },
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
   "eslint.validate": [
     "vue",
     "xml",
@@ -34,6 +37,7 @@
     "esbuild",
     "iconify",
     "IDBP",
+    "lucide",
     "nocheck",
     "nuxt",
     "ofetch",
@@ -41,6 +45,9 @@
     "oxfmtrc",
     "oxlint",
     "pinia",
+    "reka",
+    "remux",
+    "remuxing",
     "shadcn",
     "twimg",
     "uniquified",
