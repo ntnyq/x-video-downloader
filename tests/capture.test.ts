@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { getEventListeners } from 'node:events'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { setImmediate } from 'node:timers/promises'
@@ -42,6 +43,9 @@ function createHarness(response: Response) {
     response = payload
     responseText = JSON.stringify(payload)
     openArgs: unknown[] = []
+    autoComplete = true
+    sendError?: Error
+    openError?: Error
     /**
      * Supplies a JSON content type for the XHR response fixture.
      *
@@ -56,13 +60,23 @@ function createHarness(response: Response) {
      * @param args - Native open arguments supplied by the test.
      */
     open(...args: unknown[]) {
+      if (this.openError) {
+        throw this.openError
+      }
       this.openArgs = args
+      this.dispatchEvent(new Event('readystatechange'))
     }
     /**
      * Synchronously emits the load event to exercise XHR response capture.
      */
     send() {
-      this.dispatchEvent(new Event('load'))
+      if (this.sendError) {
+        throw this.sendError
+      }
+      if (this.autoComplete) {
+        this.dispatchEvent(new Event('load'))
+        this.dispatchEvent(new Event('loadend'))
+      }
     }
   }
   const window = {
@@ -233,4 +247,130 @@ test('ignores unrelated requests, direct messages and cross-origin replay messag
     data: { channel: constants.VIDEO_CHANNEL, type: 'ready' },
   })
   assert.equal(harness.messages.length, 1)
+})
+
+for (const termination of ['abort', 'error', 'timeout']) {
+  test(`releases observers after ${termination} and ignores an excluded response on XHR reuse`, () => {
+    const harness = createHarness(Response.json(payload))
+    const xhr = new harness.MockXhr()
+    xhr.autoComplete = false
+    xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
+    xhr.send()
+    xhr.dispatchEvent(new Event(termination))
+    xhr.dispatchEvent(new Event('loadend'))
+    assert.equal(getEventListeners(xhr, 'load').length, 0)
+    assert.equal(getEventListeners(xhr, 'loadend').length, 0)
+
+    xhr.autoComplete = true
+    xhr.open('GET', 'https://x.com/i/api/1.1/dm/inbox_initial_state.json')
+    xhr.send()
+    assert.equal(harness.messages.length, 1, 'only capture-ready is published')
+
+    xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
+    xhr.send()
+    assert.equal(
+      harness.messages.length,
+      2,
+      'a later eligible response is captured',
+    )
+    assert.equal(getEventListeners(xhr, 'load').length, 0)
+    assert.equal(getEventListeners(xhr, 'loadend').length, 0)
+  })
+}
+
+test('reopening a pending XHR replaces its observer even without a terminal event', () => {
+  const harness = createHarness(Response.json(payload))
+  const xhr = new harness.MockXhr()
+  xhr.autoComplete = false
+  xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
+  xhr.send()
+  xhr.open('GET', 'https://other.test/i/api/graphql/hash/TweetDetail')
+  assert.equal(getEventListeners(xhr, 'load').length, 0)
+  assert.equal(getEventListeners(xhr, 'loadend').length, 0)
+  xhr.autoComplete = true
+  xhr.send()
+  assert.equal(harness.messages.length, 1)
+
+  xhr.autoComplete = false
+  for (let index = 0; index < 3; index++) {
+    xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
+    xhr.send()
+  }
+  xhr.dispatchEvent(new Event('load'))
+  xhr.dispatchEvent(new Event('loadend'))
+  assert.equal(harness.messages.length, 2, 'the replacement is captured once')
+})
+
+test('a synchronous send failure preserves its error and leaves no stale capture observer', () => {
+  const harness = createHarness(Response.json(payload))
+  const xhr = new harness.MockXhr()
+  const error = new Error('send failed')
+  xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
+  xhr.sendError = error
+  assert.throws(
+    () => xhr.send(),
+    candidate => candidate === error,
+  )
+  assert.equal(getEventListeners(xhr, 'load').length, 0)
+  assert.equal(getEventListeners(xhr, 'loadend').length, 0)
+
+  xhr.sendError = undefined
+  xhr.send()
+  assert.equal(
+    harness.messages.length,
+    2,
+    'retrying send captures exactly once',
+  )
+})
+
+test('a rejected second send preserves capture of the already pending request', () => {
+  const harness = createHarness(Response.json(payload))
+  const xhr = new harness.MockXhr()
+  xhr.autoComplete = false
+  xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
+  xhr.send()
+  const error = new Error('request already sent')
+  xhr.sendError = error
+  assert.throws(
+    () => xhr.send(),
+    candidate => candidate === error,
+  )
+  xhr.dispatchEvent(new Event('load'))
+  xhr.dispatchEvent(new Event('loadend'))
+  assert.equal(
+    harness.messages.length,
+    2,
+    'the pending request is captured once',
+  )
+  assert.equal(getEventListeners(xhr, 'load').length, 0)
+  assert.equal(getEventListeners(xhr, 'loadend').length, 0)
+})
+
+test('a rejected open preserves the pending request identity and native error', () => {
+  const harness = createHarness(Response.json(payload))
+  const xhr = new harness.MockXhr()
+  xhr.autoComplete = false
+  xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
+  xhr.send()
+  const error = new Error('invalid URL')
+  xhr.openError = error
+  assert.throws(
+    () => xhr.open('GET', 'invalid URL'),
+    candidate => candidate === error,
+  )
+  xhr.dispatchEvent(new Event('load'))
+  xhr.dispatchEvent(new Event('loadend'))
+  assert.equal(harness.messages.length, 2)
+})
+
+test('send inside the synchronous open event uses the new request eligibility', () => {
+  const harness = createHarness(Response.json(payload))
+  const xhr = new harness.MockXhr()
+  xhr.addEventListener('readystatechange', () => xhr.send())
+  xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
+  assert.equal(harness.messages.length, 2, 'the eligible response is captured')
+  xhr.open('GET', 'https://x.com/i/api/1.1/dm/inbox_initial_state.json')
+  assert.equal(harness.messages.length, 2, 'the excluded response is ignored')
+  assert.equal(getEventListeners(xhr, 'load').length, 0)
+  assert.equal(getEventListeners(xhr, 'loadend').length, 0)
 })

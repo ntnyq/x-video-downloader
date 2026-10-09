@@ -5,6 +5,17 @@ import { MAX_CACHED_POSTS, VIDEO_CHANNEL, X_MATCHES } from '~/constants/video'
 import { extractVideoPosts, isRecord, isXUrl } from '~/utils/video'
 import type { VideoPost } from '~/types/video'
 
+interface XhrRequest {
+  /**
+   * URL associated with one successful open call.
+   */
+  url: string
+  /**
+   * Releases the response observers installed by send.
+   */
+  cleanup?: () => void
+}
+
 export default defineContentScript({
   matches: X_MATCHES,
   runAt: 'document_start',
@@ -15,7 +26,7 @@ export default defineContentScript({
    */
   main() {
     const posts = new Map<string, VideoPost>()
-    const xhrUrls = new WeakMap<XMLHttpRequest, string>()
+    const xhrRequests = new WeakMap<XMLHttpRequest, XhrRequest>()
 
     /**
      * Checks that a request targets an X/Twitter API endpoint outside direct messages.
@@ -107,8 +118,26 @@ export default defineContentScript({
         password?: string | null,
       ]
     ) {
-      xhrUrls.set(this, String(url))
-      return Reflect.apply(originalOpen, this, [method, url, ...rest])
+      const previous = xhrRequests.get(this)
+      const request: XhrRequest = { url: String(url) }
+      // Native open can synchronously dispatch readystatechange, whose handler
+      // may call send before open returns.
+      xhrRequests.set(this, request)
+      try {
+        const result = Reflect.apply(originalOpen, this, [method, url, ...rest])
+        previous?.cleanup?.()
+        return result
+      } catch (error) {
+        request.cleanup?.()
+        if (xhrRequests.get(this) === request) {
+          if (previous) {
+            xhrRequests.set(this, previous)
+          } else {
+            xhrRequests.delete(this)
+          }
+        }
+        throw error
+      }
     }
     /**
      * Observes an eligible XHR response after load without changing native sending.
@@ -117,33 +146,61 @@ export default defineContentScript({
      * @throws When the native send operation fails for the current request state.
      */
     XMLHttpRequest.prototype.send = function (...args) {
-      if (isPostResponse(xhrUrls.get(this) ?? '')) {
-        this.addEventListener(
-          'load',
-          () => {
-            try {
-              if (this.status < 200 || this.status >= 300) {
-                return
-              }
-              if (this.responseType === 'json') {
-                publish(this.response)
-              } else if (
-                (!this.responseType || this.responseType === 'text')
-                && this.getResponseHeader('content-type')?.includes('json')
-              ) {
-                const result = safeParse(this.responseText)
-                if (result.success) {
-                  publish(result.value)
-                }
-              }
-            } catch {
-              // Non-JSON and unsupported responses are intentionally ignored.
-            }
-          },
-          { once: true },
-        )
+      const request = xhrRequests.get(this)
+      if (!request || !isPostResponse(request.url) || request.cleanup) {
+        // A second send may throw while the original request is still pending.
+        // Preserve that request's observer and the native exception.
+        return Reflect.apply(originalSend, this, args)
       }
-      return Reflect.apply(originalSend, this, args)
+
+      /**
+       * Releases observers after completion, failure, reopening, or a failed send.
+       */
+      const cleanup = () => {
+        this.removeEventListener('load', onLoad)
+        this.removeEventListener('loadend', cleanup)
+        if (request.cleanup === cleanup) {
+          request.cleanup = undefined
+        }
+      }
+
+      /**
+       * Publishes only the response belonging to this observed request.
+       */
+      function onLoad(this: XMLHttpRequest) {
+        cleanup()
+        if (xhrRequests.get(this) !== request) {
+          return
+        }
+        try {
+          if (this.status < 200 || this.status >= 300) {
+            return
+          }
+          if (this.responseType === 'json') {
+            publish(this.response)
+          } else if (
+            (!this.responseType || this.responseType === 'text')
+            && this.getResponseHeader('content-type')?.includes('json')
+          ) {
+            const result = safeParse(this.responseText)
+            if (result.success) {
+              publish(result.value)
+            }
+          }
+        } catch {
+          // Non-JSON and unsupported responses are intentionally ignored.
+        }
+      }
+
+      request.cleanup = cleanup
+      this.addEventListener('load', onLoad, { once: true })
+      this.addEventListener('loadend', cleanup, { once: true })
+      try {
+        return Reflect.apply(originalSend, this, args)
+      } catch (error) {
+        cleanup()
+        throw error
+      }
     }
 
     let lastReplay = 0
