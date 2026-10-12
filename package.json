@@ -1,7 +1,7 @@
 {
   "name": "x-video-downloader",
   "type": "module",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "packageManager": "pnpm@12.11.2",
   "description": "Download videos from X with quality selection",
