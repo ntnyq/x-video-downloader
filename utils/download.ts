@@ -1,4 +1,10 @@
-import { filterFalsy, uniqueBy } from '@ntnyq/utils'
+import {
+  filterFalsy,
+  isArray,
+  isInteger,
+  isNumber,
+  uniqueBy,
+} from '@ntnyq/utils'
 import {
   isPostId,
   isRecord,
@@ -30,8 +36,8 @@ export function normalizeDownloadRequest(
   const mediaIndex = value['mediaIndex']
   if (
     !url
-    || typeof mediaIndex !== 'number'
-    || !Number.isInteger(mediaIndex)
+    || !isNumber(mediaIndex)
+    || !isInteger(mediaIndex)
     || mediaIndex < 1
     || mediaIndex > 16
   ) {
@@ -58,7 +64,7 @@ export function normalizeBatchRequest(
   if (
     !isRecord(value)
     || value['type'] !== 'download-videos'
-    || !Array.isArray(value['requests'])
+    || !isArray(value['requests'])
     || !value['requests'].length
     || value['requests'].length > MAX_DOWNLOAD_BATCH_SIZE
   ) {

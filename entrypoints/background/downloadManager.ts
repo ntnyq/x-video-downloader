@@ -1,3 +1,11 @@
+import {
+  differenceBy,
+  isArray,
+  isNumber,
+  isString,
+  isUndefined,
+  noop,
+} from '@ntnyq/utils'
 import { normalizeDownloadRequest } from '../../utils/download'
 import { logger } from '../../utils/logger'
 import { buildFilename, normalizePreferences } from '../../utils/preferences'
@@ -158,7 +166,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
    */
   function serialize<T>(operation: () => Promise<T>): Promise<T> {
     const result = operations.then(operation)
-    operations = result.then(() => {}).catch(() => {})
+    operations = result.then(noop).catch(noop)
     return result
   }
 
@@ -174,14 +182,14 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
     }
     const stored = await ports.readRecords()
     const seen = new Set<number>()
-    records = Array.isArray(stored)
+    records = isArray(stored)
       ? stored.flatMap(value => {
           if (
             !isRecord(value)
-            || typeof value['id'] !== 'number'
+            || !isNumber(value['id'])
             || !Number.isSafeInteger(value['id'])
             || seen.has(value['id'])
-            || typeof value['filename'] !== 'string'
+            || !isString(value['filename'])
           ) {
             return []
           }
@@ -209,7 +217,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
             {
               id,
               queueId:
-                typeof value['queueId'] === 'number'
+                isNumber(value['queueId'])
                 && Number.isSafeInteger(value['queueId'])
                 && value['queueId'] < 0
                   ? value['queueId']
@@ -223,31 +231,30 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
                   ? 'interrupted'
                   : state,
               startedAt:
-                typeof value['startedAt'] === 'number'
+                isNumber(value['startedAt'])
                 && Number.isFinite(value['startedAt'])
                   ? value['startedAt']
                   : 0,
               saveAs: value['saveAs'] === true,
               bytesReceived:
-                typeof value['bytesReceived'] === 'number'
+                isNumber(value['bytesReceived'])
                 && Number.isFinite(value['bytesReceived'])
                   ? value['bytesReceived']
                   : 0,
               totalBytes:
-                typeof value['totalBytes'] === 'number'
+                isNumber(value['totalBytes'])
                 && Number.isFinite(value['totalBytes'])
                   ? value['totalBytes']
                   : -1,
               error:
                 starting && id < 0
                   ? 'START_INTERRUPTED'
-                  : typeof value['error'] === 'string'
+                  : isString(value['error'])
                     ? value['error']
                     : undefined,
-              displayFilename:
-                typeof value['displayFilename'] === 'string'
-                  ? value['displayFilename'].split(/[\\/]/).at(-1)
-                  : undefined,
+              displayFilename: isString(value['displayFilename'])
+                ? value['displayFilename'].split(/[\\/]/).at(-1)
+                : undefined,
             } satisfies DownloadRecord,
           ]
         })
@@ -276,7 +283,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
     for (const record of owned) {
       if (
         record.id < 0
-        || (id === undefined ? !isActive(record) : record.id !== id)
+        || (isUndefined(id) ? !isActive(record) : record.id !== id)
       ) {
         continue
       }
@@ -318,8 +325,11 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
     if (terminal.length <= MAX_TERMINAL_RECORDS) {
       return false
     }
-    const discarded = new Set(terminal.slice(0, -MAX_TERMINAL_RECORDS))
-    records = owned.filter(record => !discarded.has(record))
+    records = differenceBy(
+      owned,
+      terminal.slice(0, -MAX_TERMINAL_RECORDS),
+      record => record,
+    )
     return true
   }
 
@@ -412,13 +422,22 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
       )
       const active = matching.find(isActive)
       if (active) {
-        return { request, record: active }
+        return {
+          request,
+          record: active,
+        }
       }
       if (!force && matching.some(record => record.state === 'complete')) {
-        return { request, error: 'duplicateDownload' }
+        return {
+          request,
+          error: 'duplicateDownload',
+        }
       }
       if (outstanding >= MAX_OUTSTANDING_DOWNLOADS) {
-        return { request, error: 'queueFull' }
+        return {
+          request,
+          error: 'queueFull',
+        }
       }
       const id = nextQueueId--
       const record: DownloadRecord = {
@@ -435,7 +454,10 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
       owned.push(record)
       added.add(record)
       outstanding++
-      return { request, record }
+      return {
+        request,
+        record,
+      }
     })
     try {
       await persist()
@@ -544,11 +566,17 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
         record => record.id === id || record.queueId === id,
       )
       if (!record) {
-        return { ok: false, error: 'foreignDownload' }
+        return {
+          ok: false,
+          error: 'foreignDownload',
+        }
       }
       if (action === 'retry') {
         if (isActive(record) || record.state === 'complete') {
-          return { ok: false, error: 'retryUnavailable' }
+          return {
+            ok: false,
+            error: 'retryUnavailable',
+          }
         }
         return (
           (await enqueue([record.request], false))[0]?.result ?? {
@@ -558,11 +586,16 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
         )
       }
       if (!isActive(record)) {
-        return { ok: false, error: 'finishedDownload' }
+        return {
+          ok: false,
+          error: 'finishedDownload',
+        }
       }
       if (action === 'pause') {
         if (record.state === 'paused') {
-          return { ok: true }
+          return {
+            ok: true,
+          }
         }
         if (record.id >= 0 && record.state === 'in_progress') {
           await ports.pause(record.id)
@@ -570,7 +603,10 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
         record.state = 'paused'
       } else if (action === 'resume') {
         if (record.state !== 'paused') {
-          return { ok: false, error: 'resumeUnavailable' }
+          return {
+            ok: false,
+            error: 'resumeUnavailable',
+          }
         }
         record.state = 'queued'
       } else {
@@ -583,9 +619,14 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
       await persist()
       await drain()
       if (action === 'resume' && record.state === 'paused' && record.error) {
-        return { ok: false, error: record.error }
+        return {
+          ok: false,
+          error: record.error,
+        }
       }
-      return { ok: true }
+      return {
+        ok: true,
+      }
     })
   }
 
@@ -605,7 +646,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
           isActive(record)
           || (selected
             && !selected.has(record.id)
-            && (record.queueId === undefined || !selected.has(record.queueId))),
+            && (isUndefined(record.queueId) || !selected.has(record.queueId))),
       )
       records = retained
       try {
@@ -627,7 +668,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
   function refresh(id?: number) {
     return serialize(async () => {
       const owned = await load()
-      if (id !== undefined && !owned.some(record => record.id === id)) {
+      if (!isUndefined(id) && !owned.some(record => record.id === id)) {
         return
       }
       await reconcile(id)
@@ -636,5 +677,12 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
     })
   }
 
-  return { start, list, action, batch, clear, refresh }
+  return {
+    start,
+    list,
+    action,
+    batch,
+    clear,
+    refresh,
+  }
 }

@@ -1,3 +1,4 @@
+import { isString } from '@ntnyq/utils'
 import { browser } from '#imports'
 import { localizeDownloadError } from '~/utils/i18n'
 import { isRecord } from '~/utils/video'
@@ -11,6 +12,7 @@ export function useVideoDownload(
   const message = shallowRef('')
   const hasError = shallowRef(false)
   const duplicateRequest = shallowRef<DownloadRequest>()
+
   let isDisposed = false
   let scopeVersion = 0
 
@@ -48,7 +50,7 @@ export function useVideoDownload(
       }
       if (!isRecord(result) || result['ok'] !== true) {
         throw new Error(
-          isRecord(result) && typeof result['error'] === 'string'
+          isRecord(result) && isString(result['error'])
             ? localizeDownloadError(result['error'])
             : i18n.t('downloadReload'),
         )

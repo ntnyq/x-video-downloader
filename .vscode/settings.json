@@ -39,6 +39,7 @@
     "IDBP",
     "lucide",
     "nocheck",
+    "nums",
     "nuxt",
     "ofetch",
     "oxfmt",
@@ -48,6 +49,7 @@
     "reka",
     "remux",
     "remuxing",
+    "Segoe",
     "shadcn",
     "twimg",
     "uniquified",
@@ -55,6 +57,7 @@
     "unplugin",
     "unrs",
     "VITE",
-    "vueuse"
+    "vueuse",
+    "WCAG"
   ]
 }

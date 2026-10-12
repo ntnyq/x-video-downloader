@@ -174,10 +174,7 @@ function handleConfirmDuplicates(event: MouseEvent) {
         @select="setUrl"
         @check="setChecked"
         @select-all="selectAll($event, group.post.id)"
-        @download="
-          (event, mediaIndex) =>
-            handleDownload(event, { postId: group.post.id, mediaIndex })
-        "
+        @download="handleDownload"
         @action="handleAction"
         v-for="group in groups"
         :key="group.post.id"

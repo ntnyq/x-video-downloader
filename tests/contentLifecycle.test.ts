@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { runInNewContext } from 'node:vm'
+import * as utils from '@ntnyq/utils'
 import ts from 'typescript'
 import { shallowRef } from 'vue'
 import * as constants from '../constants/video'
@@ -193,8 +194,13 @@ test('repeated scans keep cleanup bounded and cancel pending work on invalidatio
      * @throws When the controller requests an unexpected module.
      */
     require(id: string) {
+      if (id === '@ntnyq/utils') {
+        return utils
+      }
       if (id === 'vue') {
-        return { shallowRef }
+        return {
+          shallowRef,
+        }
       }
       if (id === '~/constants/video') {
         return constants
@@ -293,7 +299,9 @@ test('removed shadow UIs release callbacks while live UIs still invalidate', asy
           if (shouldFail) {
             throw new Error('UI creation failed')
           }
-          return { remove }
+          return {
+            remove,
+          }
         },
       }
     },

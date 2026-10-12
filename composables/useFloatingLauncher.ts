@@ -1,3 +1,4 @@
+import { isUndefined } from '@ntnyq/utils'
 import { useEventListener } from '@vueuse/core'
 import { computed, onScopeDispose, shallowRef } from 'vue'
 import { floatingLauncherSetting } from '../utils/floatingLauncherSetting'
@@ -126,7 +127,7 @@ export function useFloatingLauncher(
   function finishGesture() {
     const pointerId = gesture?.pointerId
     gesture = undefined
-    if (pointerId !== undefined && button.value?.hasPointerCapture(pointerId)) {
+    if (!isUndefined(pointerId) && button.value?.hasPointerCapture(pointerId)) {
       button.value.releasePointerCapture(pointerId)
     }
     if (isDragging.value) {

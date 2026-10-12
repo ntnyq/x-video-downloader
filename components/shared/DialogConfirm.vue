@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { isNull } from '@ntnyq/utils'
 import {
   AlertDialogCancel,
   AlertDialogContent,
@@ -40,7 +41,7 @@ const overlayTarget = useOverlayTarget()
     <AlertDialogTrigger as-child><slot name="trigger" /></AlertDialogTrigger>
     <AlertDialogPortal
       :to="overlayTarget ?? undefined"
-      :disabled="overlayTarget === null"
+      :disabled="isNull(overlayTarget)"
     >
       <AlertDialogOverlay
         class="pointer-events-auto fixed inset-0 z-50 bg-black/35"

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { setImmediate } from 'node:timers/promises'
 import { runInNewContext } from 'node:vm'
+import * as utils from '@ntnyq/utils'
 import ts from 'typescript'
 import * as vue from 'vue'
 import * as downloadHistory from '../utils/downloadHistory'
@@ -109,8 +110,14 @@ function createDownloads(
      * @throws When the module imports an unsupported dependency.
      */
     require(id: string) {
+      if (id === '@ntnyq/utils') {
+        return utils
+      }
       if (id === '#imports') {
-        return { ...vue, browser }
+        return {
+          ...vue,
+          browser,
+        }
       }
       if (id === '~/utils/downloadHistory') {
         return downloadHistory
@@ -184,7 +191,10 @@ test('duplicate confirmation resubmits only matching post-media pairs and preser
   const failed = { ...request, postId: '789' }
   const harness = createDownloads(message => {
     if (message['type'] === 'get-downloads') {
-      return { ok: true, downloads: [] }
+      return {
+        ok: true,
+        downloads: [],
+      }
     }
     return {
       ok: true,
@@ -267,10 +277,15 @@ test('pause and resume send owned actions and refresh the resulting transfer sta
   let state: DownloadStatus['state'] = 'in_progress'
   const harness = createDownloads(message => {
     if (message['type'] === 'get-downloads') {
-      return { ok: true, downloads: [{ ...download, state }] }
+      return {
+        ok: true,
+        downloads: [{ ...download, state }],
+      }
     }
     state = message['action'] === 'pause' ? 'paused' : 'in_progress'
-    return { ok: true }
+    return {
+      ok: true,
+    }
   })
   t.after(() => harness.stop())
   await setImmediate()

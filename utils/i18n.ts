@@ -1,3 +1,4 @@
+import { isString } from '@ntnyq/utils'
 import { i18n } from '#i18n'
 
 /**
@@ -23,9 +24,7 @@ export function localizeDownloadError(error: unknown): string {
     case 'USER_CANCELED':
       return i18n.t('downloadCancelled')
     default:
-      return typeof error === 'string' && error
-        ? error
-        : i18n.t('downloadFailed')
+      return isString(error) && error ? error : i18n.t('downloadFailed')
   }
 }
 

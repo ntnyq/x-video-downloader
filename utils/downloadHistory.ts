@@ -1,3 +1,4 @@
+import { isInteger, isNumber, isString, isUndefined } from '@ntnyq/utils'
 import { isPostId, isRecord } from './video'
 import type { DownloadStatus } from '../types/download'
 
@@ -7,23 +8,23 @@ import type { DownloadStatus } from '../types/download'
 export function isDownloadStatus(value: unknown): value is DownloadStatus {
   return (
     isRecord(value)
-    && typeof value['id'] === 'number'
+    && isNumber(value['id'])
     && Number.isSafeInteger(value['id'])
     && isPostId(value['postId'])
-    && typeof value['filename'] === 'string'
-    && typeof value['mediaIndex'] === 'number'
-    && Number.isInteger(value['mediaIndex'])
+    && isString(value['filename'])
+    && isNumber(value['mediaIndex'])
+    && isInteger(value['mediaIndex'])
     && value['mediaIndex'] >= 1
     && value['mediaIndex'] <= 16
-    && typeof value['bytesReceived'] === 'number'
+    && isNumber(value['bytesReceived'])
     && Number.isFinite(value['bytesReceived'])
-    && typeof value['totalBytes'] === 'number'
+    && isNumber(value['totalBytes'])
     && Number.isFinite(value['totalBytes'])
-    && typeof value['startedAt'] === 'number'
+    && isNumber(value['startedAt'])
     && Number.isFinite(value['startedAt'])
-    && (value['author'] === undefined || typeof value['author'] === 'string')
-    && (value['error'] === undefined || typeof value['error'] === 'string')
-    && typeof value['state'] === 'string'
+    && (isUndefined(value['author']) || isString(value['author']))
+    && (isUndefined(value['error']) || isString(value['error']))
+    && isString(value['state'])
     && [
       'queued',
       'in_progress',

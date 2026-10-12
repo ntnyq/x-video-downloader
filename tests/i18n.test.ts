@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import { runInNewContext } from 'node:vm'
+import * as utils from '@ntnyq/utils'
 import { generateChromeMessages, parseMessagesFile } from '@wxt-dev/i18n/build'
 import ts from 'typescript'
 import { formatBytes, validateFilenameTemplate } from '../utils/preferences'
@@ -78,7 +79,14 @@ for (const locale of LOCALES) {
        *
        * @returns An i18n module backed by the test locale's generated messages.
        */
-      require: () => ({ i18n: { t } }),
+      require(id: string) {
+        if (id === '@ntnyq/utils') {
+          return utils
+        }
+        return {
+          i18n: { t },
+        }
+      },
     })
     assert.ok(exports.localizeDownloadError)
     assert.ok(exports.localizeDocument)

@@ -1,3 +1,4 @@
+import { isString } from '@ntnyq/utils'
 /**
  * Built-in accent palettes; Grok follows the light or dark surface automatically.
  */
@@ -23,7 +24,7 @@ export const THEME_PRESETS = [
  * @returns Canonical RGB CSS, or undefined when a channel or syntax is invalid.
  */
 export function parseThemeColor(value: unknown): string | undefined {
-  if (typeof value !== 'string') {
+  if (!isString(value)) {
     return undefined
   }
   const input = value.trim()

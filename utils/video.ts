@@ -1,4 +1,4 @@
-import { orderBy } from '@ntnyq/utils'
+import { isArray, isNull, isNumber, isString, orderBy } from '@ntnyq/utils'
 import type { VideoMedia, VideoPost, VideoVariant } from '../types/video'
 
 /**
@@ -9,7 +9,7 @@ import type { VideoMedia, VideoPost, VideoVariant } from '../types/video'
  * @returns Whether the value can be inspected as a string-keyed object.
  */
 export function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
+  return typeof value === 'object' && !isNull(value) && !isArray(value)
 }
 
 /**
@@ -19,7 +19,7 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
  * @returns Whether the value is a supported post identifier.
  */
 export function isPostId(value: unknown): value is string {
-  return typeof value === 'string' && /^\d{1,25}$/.test(value)
+  return isString(value) && /^\d{1,25}$/.test(value)
 }
 
 /**
@@ -29,7 +29,7 @@ export function isPostId(value: unknown): value is string {
  * @returns Whether the URL belongs to X, Twitter, or one of their subdomains.
  */
 export function isXUrl(value: unknown): value is string {
-  if (typeof value !== 'string') {
+  if (!isString(value)) {
     return false
   }
   try {
@@ -72,7 +72,7 @@ export function normalizeMediaUrl(
   value: unknown,
   extension: 'mp4' | 'm3u8' = 'mp4',
 ): string | undefined {
-  if (typeof value !== 'string' || value.length > 8192) {
+  if (!isString(value) || value.length > 8192) {
     return
   }
   try {
@@ -100,7 +100,7 @@ export function normalizeMediaUrl(
  * @returns Valid MP4 versions, or an empty array when none can be used.
  */
 export function normalizeVariants(value: unknown): VideoVariant[] {
-  if (!Array.isArray(value)) {
+  if (!isArray(value)) {
     return []
   }
   const variants = new Map<string, VideoVariant>()
@@ -114,7 +114,7 @@ export function normalizeVariants(value: unknown): VideoVariant[] {
     }
     const size = new URL(url).pathname.match(/\/(\d{2,5})x(\d{2,5})\//)
     const rawBitrate = item['bitrate'] ?? item['bit_rate']
-    const bitrate = typeof rawBitrate === 'number' ? rawBitrate : 0
+    const bitrate = isNumber(rawBitrate) ? rawBitrate : 0
     variants.set(url, {
       url,
       bitrate: Number.isFinite(bitrate) && bitrate > 0 ? bitrate : 0,
@@ -136,11 +136,7 @@ export function normalizeVariants(value: unknown): VideoVariant[] {
  * @returns The normalized post, or undefined when no valid video media remains.
  */
 export function normalizePost(value: unknown): VideoPost | undefined {
-  if (
-    !isRecord(value)
-    || !isPostId(value['id'])
-    || !Array.isArray(value['media'])
-  ) {
+  if (!isRecord(value) || !isPostId(value['id']) || !isArray(value['media'])) {
     return
   }
   const media: VideoMedia[] = []
@@ -154,10 +150,9 @@ export function normalizePost(value: unknown): VideoPost | undefined {
       continue
     }
     media.push({
-      id:
-        typeof item['id'] === 'string'
-          ? item['id'].slice(0, 80)
-          : String(media.length + 1),
+      id: isString(item['id'])
+        ? item['id'].slice(0, 80)
+        : String(media.length + 1),
       variants,
       hasHls,
     })
@@ -168,7 +163,7 @@ export function normalizePost(value: unknown): VideoPost | undefined {
   return {
     ...normalizePostMetadata(value),
     id: value['id'],
-    text: typeof value['text'] === 'string' ? value['text'].slice(0, 280) : '',
+    text: isString(value['text']) ? value['text'].slice(0, 280) : '',
     media,
   }
 }
@@ -192,10 +187,8 @@ export function normalizePostMetadata(value: Record<string, unknown>): {
   const author = value['author']
   const createdAt = value['createdAt']
   return {
-    ...(typeof author === 'string' && /^\w{1,30}$/.test(author)
-      ? { author }
-      : {}),
-    ...(typeof createdAt === 'string'
+    ...(isString(author) && /^\w{1,30}$/.test(author) ? { author } : {}),
+    ...(isString(createdAt)
     && createdAt.length <= 80
     && Number.isFinite(Date.parse(createdAt))
       ? { createdAt: new Date(createdAt).toISOString() }
@@ -227,7 +220,7 @@ export function extractVideoPosts(payload: unknown): VideoPost[] {
         ? legacy['extended_entities']
         : legacy['entities']
       const items = isRecord(entities) ? entities['media'] : undefined
-      if (Array.isArray(items)) {
+      if (isArray(items)) {
         const core = node['core']
         const userResults = isRecord(core) ? core['user_results'] : undefined
         const user = isRecord(userResults) ? userResults['result'] : undefined
@@ -251,7 +244,7 @@ export function extractVideoPosts(payload: unknown): VideoPost[] {
                 id: item['id_str'] ?? item['media_key'],
                 variants,
                 hasHls:
-                  Array.isArray(variants)
+                  isArray(variants)
                   && variants.some(
                     variant =>
                       isRecord(variant)

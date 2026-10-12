@@ -49,7 +49,10 @@ function createPost(id: string, count = 1): VideoPost {
  * @returns Selection state with every downloadable video initially included.
  */
 function createSelection(): VideoSelectionState {
-  return { selectedUrls: {}, excludedKeys: [] }
+  return {
+    selectedUrls: {},
+    excludedKeys: [],
+  }
 }
 
 test('page batches include multiple posts while preserving media positions and metadata', () => {

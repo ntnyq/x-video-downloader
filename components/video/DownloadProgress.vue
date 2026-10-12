@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { isUndefined } from '@ntnyq/utils'
 import { i18n } from '#i18n'
 import HelpDisclosure from '~/components/shared/HelpDisclosure.vue'
 import IconButton from '~/components/shared/IconButton.vue'
@@ -180,7 +181,7 @@ function percentage(item: DownloadStatus) {
           {{ formatBytes(item.bytesReceived, i18n.t('unknownSize')) }} /
           {{ formatBytes(item.totalBytes, i18n.t('unknownSize')) }}
           <span
-            v-if="percentage(item) !== undefined"
+            v-if="!isUndefined(percentage(item))"
             class="ml-1 font-medium"
             >{{ percentage(item) }}%</span
           >

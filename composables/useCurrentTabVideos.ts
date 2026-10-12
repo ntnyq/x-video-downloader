@@ -1,3 +1,4 @@
+import { isArray, isUndefined } from '@ntnyq/utils'
 import { browser } from '#imports'
 import { isRecord, isXUrl, normalizePost } from '~/utils/video'
 import type { PageVideos } from '~/types/video'
@@ -20,7 +21,7 @@ export function useCurrentTabVideos() {
    * @returns A promise that settles after the refresh, or immediately when unavailable or busy.
    */
   async function refresh() {
-    if (tabId === undefined || isRefreshing) {
+    if (isUndefined(tabId) || isRefreshing) {
       return
     }
     isRefreshing = true
@@ -28,7 +29,7 @@ export function useCurrentTabVideos() {
       const result: unknown = await browser.tabs.sendMessage(tabId, {
         type: 'get-page-videos',
       })
-      if (!isRecord(result) || !Array.isArray(result['posts'])) {
+      if (!isRecord(result) || !isArray(result['posts'])) {
         throw new Error('invalid-response')
       }
       snapshot.value = {
@@ -52,7 +53,7 @@ export function useCurrentTabVideos() {
         active: true,
         currentWindow: true,
       })
-      if (!isXUrl(tab?.url) || tab?.id === undefined) {
+      if (!isXUrl(tab?.url) || isUndefined(tab?.id)) {
         requestError.value = i18n.t('openPostFirst')
         return
       }

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { isNull } from '@ntnyq/utils'
 import { reactiveOmit } from '@vueuse/core'
 import {
   injectSelectRootContext,
@@ -55,7 +56,7 @@ function handleEscape(event: KeyboardEvent) {
 <template>
   <SelectPortal
     :to="overlayTarget ?? undefined"
-    :disabled="overlayTarget === null"
+    :disabled="isNull(overlayTarget)"
   >
     <SelectContent
       @keydown.esc.stop="handleEscape"

@@ -1,3 +1,4 @@
+import { clamp, isNumber } from '@ntnyq/utils'
 import { isRecord } from './video'
 
 export const FLOATING_BUTTON_SIZE = 44
@@ -37,14 +38,18 @@ export function normalizeFloatingPlacement(
   const { edge, x, y } = value
   if (
     (edge !== 'left' && edge !== 'right' && edge !== 'top' && edge !== 'bottom')
-    || typeof x !== 'number'
+    || !isNumber(x)
     || !Number.isFinite(x)
-    || typeof y !== 'number'
+    || !isNumber(y)
     || !Number.isFinite(y)
   ) {
     return
   }
-  return { edge, x, y }
+  return {
+    edge,
+    x,
+    y,
+  }
 }
 
 /**
@@ -67,8 +72,8 @@ export function clampFloatingPosition(
     viewport.height - FLOATING_BUTTON_SIZE - FLOATING_EDGE_GAP,
   )
   return {
-    x: Math.min(maxX, Math.max(Math.min(FLOATING_EDGE_GAP, maxX), position.x)),
-    y: Math.min(maxY, Math.max(Math.min(FLOATING_EDGE_GAP, maxY), position.y)),
+    x: clamp(position.x, Math.min(FLOATING_EDGE_GAP, maxX), maxX),
+    y: clamp(position.y, Math.min(FLOATING_EDGE_GAP, maxY), maxY),
   }
 }
 
@@ -129,10 +134,7 @@ export function getFloatingPanelStyle(
   viewport: FloatingViewport,
 ) {
   const gap = 12
-  const width = Math.max(
-    0,
-    Math.min(360, viewport.width - FLOATING_EDGE_GAP * 2),
-  )
+  const width = clamp(viewport.width - FLOATING_EDGE_GAP * 2, 0, 360)
   const above = Math.max(0, position.y - gap - FLOATING_EDGE_GAP)
   const below = Math.max(
     0,

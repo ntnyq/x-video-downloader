@@ -1,3 +1,4 @@
+import { isArray, isBoolean, isNumber, isUndefined } from '@ntnyq/utils'
 import { browser, defineBackground } from '#imports'
 import {
   isAllowedSender,
@@ -118,12 +119,17 @@ export default defineBackground(() => {
         const downloadAction = (
           ['cancel', 'pause', 'resume', 'retry'] as const
         ).find(action => action === message['action'])
-        if ('force' in message && typeof message['force'] !== 'boolean') {
-          return { ok: false, error: 'invalidRequest' }
+        if ('force' in message && !isBoolean(message['force'])) {
+          return {
+            ok: false,
+            error: 'invalidRequest',
+          }
         }
         if (message['type'] === 'open-settings') {
           await browser.runtime.openOptionsPage()
-          return { ok: true }
+          return {
+            ok: true,
+          }
         }
         if (message['type'] === 'download-video') {
           const request = normalizeDownloadRequest(message)
@@ -140,27 +146,36 @@ export default defineBackground(() => {
           }
         } else if (
           message['type'] === 'get-downloads'
-          && (message['postId'] === undefined || isPostId(message['postId']))
+          && (isUndefined(message['postId']) || isPostId(message['postId']))
         ) {
-          return { ok: true, downloads: await manager.list(message['postId']) }
+          return {
+            ok: true,
+            downloads: await manager.list(message['postId']),
+          }
         } else if (
           message['type'] === 'clear-downloads'
-          && (message['ids'] === undefined
-            || (Array.isArray(message['ids'])
+          && (isUndefined(message['ids'])
+            || (isArray(message['ids'])
               && message['ids'].every(
-                id => typeof id === 'number' && Number.isSafeInteger(id),
+                (id): id is number => isNumber(id) && Number.isSafeInteger(id),
               )))
         ) {
-          return { ok: true, removed: await manager.clear(message['ids']) }
+          return {
+            ok: true,
+            removed: await manager.clear(message['ids']),
+          }
         } else if (
           message['type'] === 'download-action'
-          && typeof message['downloadId'] === 'number'
+          && isNumber(message['downloadId'])
           && Number.isSafeInteger(message['downloadId'])
           && downloadAction
         ) {
           return manager.action(message['downloadId'], downloadAction)
         }
-        return { ok: false, error: 'invalidRequest' }
+        return {
+          ok: false,
+          error: 'invalidRequest',
+        }
       }
       handleMessage()
         .then(sendResponse)
@@ -182,7 +197,7 @@ export default defineBackground(() => {
       active: true,
       currentWindow: true,
     })
-    if (tab?.id === undefined || !isXUrl(tab.url)) {
+    if (isUndefined(tab?.id) || !isXUrl(tab.url)) {
       return
     }
     try {

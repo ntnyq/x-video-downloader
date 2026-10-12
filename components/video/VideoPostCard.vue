@@ -5,7 +5,10 @@ import DownloadProgress from './DownloadProgress.vue'
 import VideoMediaRow from './VideoMediaRow.vue'
 import type { DownloadStatus } from '~/types/download'
 import type { VideoPost } from '~/types/video'
-import type { VideoSelectionRow } from '~/utils/videoSelection'
+import type {
+  VideoSelectionRow,
+  VideoSelectionScope,
+} from '~/utils/videoSelection'
 
 interface Props {
   /**
@@ -45,7 +48,7 @@ const emit = defineEmits<{
   /**
    * Requests selected post videos or one media position using shared quality choices.
    */
-  download: [event: MouseEvent, index?: number]
+  download: [event: MouseEvent, scope: VideoSelectionScope]
   /** Controls a task next to its source video. */
   action: [
     id: number,
@@ -76,6 +79,24 @@ const partiallySelected = computed(
  */
 function handleSelectAll(value: boolean | 'indeterminate') {
   emit('selectAll', value === true)
+}
+
+/**
+ * Adds the current post to the requested media download scope.
+ */
+function handleDownload(event: MouseEvent, mediaIndex?: number) {
+  emit('download', event, { postId: props.post.id, mediaIndex })
+}
+
+/**
+ * Forwards the download action and its originating click unchanged.
+ */
+function handleAction(
+  id: number,
+  operation: 'cancel' | 'retry' | 'pause' | 'resume',
+  event: MouseEvent,
+) {
+  emit('action', id, operation, event)
 }
 </script>
 
@@ -112,7 +133,7 @@ function handleSelectAll(value: boolean | 'indeterminate') {
       <VideoMediaRow
         @select="emit('select', row.key, $event)"
         @check="emit('check', row.key, $event)"
-        @download="emit('download', $event, row.index)"
+        @download="handleDownload($event, row.index)"
         v-for="row in rows"
         :key="row.key"
         :media="row.media"
@@ -124,9 +145,7 @@ function handleSelectAll(value: boolean | 'indeterminate') {
         selectable
       >
         <DownloadProgress
-          @action="
-            (id, operation, event) => emit('action', id, operation, event)
-          "
+          @action="handleAction"
           :downloads="downloads.filter(item => item.mediaIndex === row.index)"
           :disabled="actionDisabled"
         />

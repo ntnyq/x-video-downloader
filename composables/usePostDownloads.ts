@@ -1,3 +1,4 @@
+import { isArray, isString, isUndefined } from '@ntnyq/utils'
 import { browser } from '#imports'
 import { isDownloadStatus } from '~/utils/downloadHistory'
 import { localizeDownloadError } from '~/utils/i18n'
@@ -44,7 +45,7 @@ export function usePostDownloads(
       if (
         !isRecord(response)
         || response['ok'] !== true
-        || !Array.isArray(response['downloads'])
+        || !isArray(response['downloads'])
       ) {
         throw new Error(i18n.t('progressReadFailed'))
       }
@@ -53,7 +54,7 @@ export function usePostDownloads(
         // for required identity and state before rendering native API data.
         downloads.value = response['downloads']
           .filter(isDownloadStatus)
-          .filter(item => id === undefined || item.postId === id)
+          .filter(item => isUndefined(id) || item.postId === id)
         progressError.value = ''
       }
     } catch {
@@ -93,10 +94,10 @@ export function usePostDownloads(
       if (
         !isRecord(response)
         || response['ok'] !== true
-        || !Array.isArray(response['results'])
+        || !isArray(response['results'])
       ) {
         throw new Error(
-          isRecord(response) && typeof response['error'] === 'string'
+          isRecord(response) && isString(response['error'])
             ? localizeDownloadError(response['error'])
             : i18n.t('downloadFailed'),
         )
@@ -177,7 +178,7 @@ export function usePostDownloads(
       })
       if (!isRecord(response) || response['ok'] !== true) {
         throw new Error(
-          isRecord(response) && typeof response['error'] === 'string'
+          isRecord(response) && isString(response['error'])
             ? localizeDownloadError(response['error'])
             : i18n.t('actionFailed'),
         )

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { runInNewContext } from 'node:vm'
+import * as utils from '@ntnyq/utils'
 import ts from 'typescript'
 import * as vue from 'vue'
 import * as video from '../utils/video'
@@ -76,8 +77,14 @@ function createInlineDownload(
        * @throws When the composable imports an unsupported module.
        */
       require(id: string) {
+        if (id === '@ntnyq/utils') {
+          return utils
+        }
         if (id === '#imports') {
-          return { ...vue, browser }
+          return {
+            ...vue,
+            browser,
+          }
         }
         if (id === 'vue') {
           return vue
@@ -98,7 +105,12 @@ function createInlineDownload(
   const factory = exports.useVideoDownload
   const state = scope.run(() => factory(contextKey))
   assert.ok(state)
-  return { state, calls, scope, contextKey }
+  return {
+    state,
+    calls,
+    scope,
+    contextKey,
+  }
 }
 
 test('inline duplicates require explicit force and clear the prompt after acceptance', async t => {

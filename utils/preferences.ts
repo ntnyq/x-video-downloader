@@ -1,4 +1,12 @@
-import { convertFromBytes, orderBy, STORAGE_UNITS } from '@ntnyq/utils'
+import {
+  convertFromBytes,
+  isBoolean,
+  isInteger,
+  isNumber,
+  isString,
+  orderBy,
+  STORAGE_UNITS,
+} from '@ntnyq/utils'
 import { isRecord, normalizeVariants } from './video'
 import type { DownloadPreferences, QualityPreference } from '../types/download'
 import type { DownloadRequest, VideoPost, VideoVariant } from '../types/video'
@@ -14,10 +22,7 @@ export const DEFAULT_CONCURRENCY = 3
  * @returns A supported transfer limit.
  */
 export function normalizeConcurrency(value: unknown): number {
-  return typeof value === 'number'
-    && Number.isInteger(value)
-    && value >= 1
-    && value <= 6
+  return isNumber(value) && isInteger(value) && value >= 1 && value <= 6
     ? value
     : DEFAULT_CONCURRENCY
 }
@@ -99,10 +104,10 @@ export function normalizePreferences(value: unknown): DownloadPreferences {
   const template = input['filenameTemplate']
   return {
     concurrency: normalizeConcurrency(input['concurrency']),
-    saveAs: typeof input['saveAs'] === 'boolean' ? input['saveAs'] : false,
+    saveAs: isBoolean(input['saveAs']) ? input['saveAs'] : false,
     quality: normalizeQuality(input['quality']),
     filenameTemplate:
-      typeof template === 'string' && !validateFilenameTemplate(template)
+      isString(template) && !validateFilenameTemplate(template)
         ? template
         : DEFAULT_FILENAME_TEMPLATE,
   }

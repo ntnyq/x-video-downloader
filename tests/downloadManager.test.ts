@@ -195,7 +195,11 @@ test('uses direct downloads by default and honors save-location choices for sing
     const { ports, calls } = setup()
     const manager = createDownloadManager({
       ...ports,
-      readPreferences: async () => ({ saveAs }),
+      async readPreferences() {
+        return {
+          saveAs,
+        }
+      },
     })
     assert.equal((await manager.start(request)).ok, true)
     const results = await manager.batch(
@@ -393,7 +397,11 @@ test('persists cross-post queue admission before starting and respects concurren
   const { ports, calls } = setup()
   const manager = createDownloadManager({
     ...ports,
-    readPreferences: async () => ({ concurrency: 2 }),
+    async readPreferences() {
+      return {
+        concurrency: 2,
+      }
+    },
     async download(options) {
       const saved = await ports.readRecords()
       assert.equal(saved.length, 5)
@@ -428,7 +436,11 @@ test('advances a durable queue after completion and worker restart without UI po
   const { ports, items, calls } = setup()
   const configured = {
     ...ports,
-    readPreferences: async () => ({ concurrency: 1 }),
+    async readPreferences() {
+      return {
+        concurrency: 1,
+      }
+    },
   }
   const manager = createDownloadManager(configured)
   await manager.batch([
@@ -456,7 +468,11 @@ test('serializes simultaneous admission so distinct requests cannot exceed the t
   const { ports, calls } = setup()
   const manager = createDownloadManager({
     ...ports,
-    readPreferences: async () => ({ concurrency: 1 }),
+    async readPreferences() {
+      return {
+        concurrency: 1,
+      }
+    },
   })
   const results = await Promise.all(
     Array.from({ length: 6 }, (_, index) =>
@@ -475,7 +491,11 @@ test('pauses queued and native tasks and queues native resumes behind the concur
   const { ports, items, calls } = setup()
   const manager = createDownloadManager({
     ...ports,
-    readPreferences: async () => ({ concurrency: 1 }),
+    async readPreferences() {
+      return {
+        concurrency: 1,
+      }
+    },
   })
   await manager.batch([request, { ...request, postId: '456' }])
   const queued = (await manager.list()).find(
@@ -506,7 +526,11 @@ test('cancels queued work without native calls and preserves active tasks when c
   const { ports, calls } = setup()
   const manager = createDownloadManager({
     ...ports,
-    readPreferences: async () => ({ concurrency: 1 }),
+    async readPreferences() {
+      return {
+        concurrency: 1,
+      }
+    },
   })
   await manager.batch([
     request,

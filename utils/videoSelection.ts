@@ -1,4 +1,4 @@
-import { unique } from '@ntnyq/utils'
+import { differenceBy, isUndefined, unique } from '@ntnyq/utils'
 import { createDownloadRequest, selectPreferredVariant } from './preferences'
 import type { QualityPreference } from '../types/download'
 import type {
@@ -109,11 +109,10 @@ export function setVideoSelectionChecked(
   keys: string[],
   checked: boolean,
 ): VideoSelectionState {
-  const targetKeys = new Set(keys)
   return {
     ...selection,
     excludedKeys: checked
-      ? selection.excludedKeys.filter(key => !targetKeys.has(key))
+      ? differenceBy(selection.excludedKeys, keys, key => key)
       : unique([...selection.excludedKeys, ...keys]),
   }
 }
@@ -131,11 +130,11 @@ export function createSelectedVideoRequests(
   scope: VideoSelectionScope = {},
 ): DownloadRequest[] {
   return rows.flatMap(row => {
-    if (scope.postId !== undefined && row.post.id !== scope.postId) {
+    if (!isUndefined(scope.postId) && row.post.id !== scope.postId) {
       return []
     }
     if (
-      scope.mediaIndex === undefined
+      isUndefined(scope.mediaIndex)
         ? !row.checked
         : row.index !== scope.mediaIndex
     ) {

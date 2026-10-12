@@ -141,7 +141,9 @@ function createHarness(response: Response) {
      */
     require(id: string) {
       if (id === '@ntnyq/utils') {
-        return { safeParse }
+        return {
+          safeParse,
+        }
       }
       if (id === '#imports') {
         return {
@@ -164,7 +166,13 @@ function createHarness(response: Response) {
     },
   })
   exports.default?.main()
-  return { window, messages, listeners, promise, MockXhr }
+  return {
+    window,
+    messages,
+    listeners,
+    promise,
+    MockXhr,
+  }
 }
 
 test('boots independently, preserves fetch promise and leaves response readable', async () => {

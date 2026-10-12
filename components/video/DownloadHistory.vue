@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { unique } from '@ntnyq/utils'
+import { filterFalsy, orderBy, unique } from '@ntnyq/utils'
 import { i18n } from '#i18n'
 import DialogConfirm from '~/components/shared/DialogConfirm.vue'
 import EmptyState from '~/components/shared/EmptyState.vue'
@@ -42,9 +42,10 @@ const authorFilter = computed({
 const searchId = useId()
 const authorId = useId()
 const authors = computed(() =>
-  unique(
-    downloads.value.flatMap(item => (item.author ? [item.author] : [])),
-  ).sort(),
+  orderBy(
+    unique(filterFalsy(downloads.value.map(item => item.author))),
+    author => author,
+  ),
 )
 const filtered = computed(() =>
   filterDownloadHistory(downloads.value, query.value, author.value),
@@ -73,6 +74,15 @@ function handleAction(
 }
 
 /**
+ * Removes one history record after a trusted interaction.
+ */
+function handleRemove(id: number, event: MouseEvent) {
+  if (event.isTrusted) {
+    clear([id])
+  }
+}
+
+/**
  * Clears only the finished records currently matching the visible filters.
  */
 async function handleClear(event: MouseEvent) {
@@ -91,8 +101,9 @@ async function handleClear(event: MouseEvent) {
       <Label
         :for="searchId"
         class="sr-only"
-        >{{ i18n.t('searchDownloads') }}</Label
       >
+        {{ i18n.t('searchDownloads') }}
+      </Label>
       <Input
         v-model="query"
         :placeholder="i18n.t('historySearchPlaceholder')"
@@ -105,8 +116,9 @@ async function handleClear(event: MouseEvent) {
       <Label
         :for="authorId"
         class="sr-only"
-        >{{ i18n.t('filterAuthor') }}</Label
       >
+        {{ i18n.t('filterAuthor') }}
+      </Label>
       <Select v-model="authorFilter">
         <SelectTrigger :id="authorId">
           <SelectValue />
@@ -141,15 +153,15 @@ async function handleClear(event: MouseEvent) {
         :disabled="isActionPending"
         :error="requestError"
       >
-        <template #trigger
-          ><Button
+        <template #trigger>
+          <Button
             :disabled="isActionPending || !terminalIds.length"
             variant="ghost"
             size="sm"
             class="text-xs text-muted-foreground"
             ><UiIcon name="trash" />{{ i18n.t('clearFinished') }}</Button
-          ></template
-        >
+          >
+        </template>
       </DialogConfirm>
     </div>
     <p
@@ -168,7 +180,7 @@ async function handleClear(event: MouseEvent) {
     </p>
     <DownloadProgress
       @action="handleAction"
-      @remove="(id, event) => event.isTrusted && clear([id])"
+      @remove="handleRemove"
       :downloads="filtered"
       :disabled="isActionPending"
       show-post

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { runInNewContext } from 'node:vm'
+import * as utils from '@ntnyq/utils'
 import ts from 'typescript'
 import { createDownloadManager } from '../entrypoints/background/downloadManager'
 import * as download from '../utils/download'
@@ -195,8 +196,19 @@ function createBackground(shouldFail = false) {
      * @throws When the entrypoint imports an unexpected module.
      */
     require(id: string) {
+      if (id === '@ntnyq/utils') {
+        return utils
+      }
       if (id === '~/utils/logger') {
-        return { logger: { withTag: () => ({ warn() {} }) } }
+        return {
+          logger: {
+            withTag() {
+              return {
+                warn() {},
+              }
+            },
+          },
+        }
       }
       if (id === '#imports') {
         return {
@@ -248,7 +260,9 @@ function createBackground(shouldFail = false) {
         }
       }
       if (id === './downloadManager') {
-        return { createDownloadManager }
+        return {
+          createDownloadManager,
+        }
       }
       throw new Error(id)
     },

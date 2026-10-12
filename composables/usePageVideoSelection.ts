@@ -1,3 +1,4 @@
+import { isUndefined } from '@ntnyq/utils'
 import { MAX_DOWNLOAD_BATCH_SIZE } from '~/utils/download'
 import {
   createSelectedVideoRequests,
@@ -104,7 +105,7 @@ export function usePageVideoSelection(
   function selectAll(checked: boolean, postId?: string) {
     const keys = rows.value
       .filter(
-        row => row.variant && (postId === undefined || row.post.id === postId),
+        row => row.variant && (isUndefined(postId) || row.post.id === postId),
       )
       .map(row => row.key)
     selection.value = setVideoSelectionChecked(selection.value, keys, checked)

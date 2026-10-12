@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { runInNewContext } from 'node:vm'
+import * as utils from '@ntnyq/utils'
 import * as vueuse from '@vueuse/core'
 import ts from 'typescript'
 import * as vue from 'vue'
@@ -53,6 +54,9 @@ function createLauncher(
        * @throws When an unexpected dependency is imported.
        */
       require(id: string) {
+        if (id === '@ntnyq/utils') {
+          return utils
+        }
         if (id === '../utils/logger') {
           return {
             logger: {
@@ -90,7 +94,10 @@ function createLauncher(
   )
   assert.ok(exports.useFloatingLauncher)
   const factory = exports.useFloatingLauncher
-  let getRect = () => ({ left: 948, top: 736 })
+  let getRect = () => ({
+    left: 948,
+    top: 736,
+  })
   // Only pointer capture and geometry are needed from the button in this harness.
   const button = vue.shallowRef({
     getBoundingClientRect() {
@@ -105,7 +112,13 @@ function createLauncher(
     left: Number(state.buttonStyle.value.left.slice(0, -2)),
     top: Number(state.buttonStyle.value.top.slice(0, -2)),
   })
-  return { state, scope, window, writes, warnings }
+  return {
+    state,
+    scope,
+    window,
+    writes,
+    warnings,
+  }
 }
 
 /**

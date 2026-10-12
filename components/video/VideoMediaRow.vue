@@ -63,13 +63,20 @@ defineSlots<{
   default?: () => VNode[]
 }>()
 const selectId = useId()
+
+/**
+ * Applies the row checkbox state to its shared batch selection.
+ */
+function handleCheck(value: boolean | 'indeterminate') {
+  emit('check', value === true)
+}
 </script>
 
 <template>
   <div>
     <div class="flex min-h-12 items-center gap-2">
       <Checkbox
-        @update:model-value="value => emit('check', value === true)"
+        @update:model-value="handleCheck"
         v-if="selectable"
         :model-value="checked"
         :disabled="disabled || !variant"
@@ -87,15 +94,16 @@ const selectId = useId()
         <Label
           :for="variant ? selectId : undefined"
           class="text-xs font-medium"
-          >{{ i18n.t('videoNumber', [index]) }}</Label
         >
+          {{ i18n.t('videoNumber', [index]) }}
+        </Label>
         <p class="mt-1 text-[11px] text-muted-foreground">
           {{ variant ? 'MP4' : i18n.t('hlsShort') }}
         </p>
       </div>
       <template v-if="variant">
         <Select
-          @update:model-value="value => emit('select', value)"
+          @update:model-value="emit('select', $event)"
           :model-value="variant.url"
           :disabled
         >
@@ -134,10 +142,12 @@ const selectId = useId()
         v-else
         :title="i18n.t('hlsUnsupported')"
         class="px-2 text-muted-foreground"
-        ><UiIcon
+      >
+        <UiIcon
           name="help"
           class="size-4"
-      /></span>
+        />
+      </span>
     </div>
     <slot />
   </div>

@@ -1,3 +1,4 @@
+import { filterFalsy, isUndefined, noop, unique } from '@ntnyq/utils'
 import { shallowRef } from 'vue'
 import { MAX_CACHED_POSTS, VIDEO_CHANNEL } from '~/constants/video'
 import {
@@ -55,7 +56,7 @@ export function createPageVideos(ctx: ContentScriptContext) {
   /**
    * Provides a no-op scan observer until a consumer subscribes.
    */
-  let onScan = () => {}
+  let onScan = noop
 
   /**
    * Cancels the pending DOM scan and clears its scheduling marker.
@@ -119,12 +120,16 @@ export function createPageVideos(ctx: ContentScriptContext) {
         continue
       }
       // A direct source is a fallback only when the article has one post ID.
-      const linkedIds = new Set(
-        [...article.querySelectorAll<HTMLAnchorElement>('a[href*="/status/"]')]
-          .map(link => getPostId(link.href))
-          .filter(Boolean),
+      const linkedIds = unique(
+        filterFalsy(
+          [
+            ...article.querySelectorAll<HTMLAnchorElement>(
+              'a[href*="/status/"]',
+            ),
+          ].map(link => getPostId(link.href)),
+        ),
       )
-      if (linkedIds.size > 1) {
+      if (linkedIds.length > 1) {
         continue
       }
       const media = [...article.querySelectorAll('video')].flatMap(
@@ -139,7 +144,9 @@ export function createPageVideos(ctx: ContentScriptContext) {
               ...[...video.querySelectorAll('source')].map(
                 source => source.src,
               ),
-            ].map(url => ({ url })),
+            ].map(url => ({
+              url,
+            })),
           )
           return variants.length
             ? [{ id: `dom-${index}`, variants, hasHls: false }]
@@ -172,7 +179,7 @@ export function createPageVideos(ctx: ContentScriptContext) {
    * Schedules one debounced DOM scan while the content-script context remains valid.
    */
   function scheduleScan() {
-    if (scanTimer === undefined && ctx.isValid) {
+    if (isUndefined(scanTimer) && ctx.isValid) {
       // One page-lifetime cleanup replaces WXT's per-timeout registrations.
       scanTimer = window.setTimeout(scan, 120)
     }
@@ -236,5 +243,10 @@ export function createPageVideos(ctx: ContentScriptContext) {
     scan()
   }
 
-  return { snapshot, observe, scan, requestReplay }
+  return {
+    snapshot,
+    observe,
+    scan,
+    requestReplay,
+  }
 }
