@@ -53,7 +53,7 @@ defineExpose({
       cn(
         buttonVariants({
           variant,
-          size: size ?? (variant === 'link' ? 'link' : undefined),
+          size,
         }),
         props.class,
       )
