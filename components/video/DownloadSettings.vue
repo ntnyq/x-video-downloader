@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { toast } from 'vue-sonner'
 import { i18n } from '#i18n'
+import HelpDisclosure from '~/components/shared/HelpDisclosure.vue'
+import SettingsSection from '~/components/shared/SettingsSection.vue'
 import { Label } from '~/components/ui/label'
 import {
   Select,
@@ -70,12 +72,16 @@ function updateConcurrency(value: number) {
 </script>
 
 <template>
-  <section class="border-y border-border py-6 space-y-5">
-    <h2 class="text-lg font-semibold">{{ i18n.t('downloadSettings') }}</h2>
-    <div class="space-y-2">
+  <SettingsSection
+    :title="i18n.t('downloadSettings')"
+    icon="download"
+  >
+    <div
+      class="grid grid-cols-[minmax(0,1fr)_minmax(7rem,40%)] items-center gap-4"
+    >
       <Label
         for="default-quality"
-        class="block text-sm font-medium"
+        class="text-sm"
         >{{ i18n.t('defaultQuality') }}</Label
       >
       <Select
@@ -85,31 +91,21 @@ function updateConcurrency(value: number) {
       >
         <SelectTrigger
           id="default-quality"
-          aria-describedby="default-quality-help"
-        >
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem
+          class="text-xs"
+          ><SelectValue
+        /></SelectTrigger>
+        <SelectContent
+          ><SelectItem
             v-for="option in QUALITY_OPTIONS"
             :key="option.value"
             :value="option.value"
-          >
-            {{ i18n.t(option.label) }}
-          </SelectItem>
-        </SelectContent>
+            >{{ i18n.t(option.label) }}</SelectItem
+          ></SelectContent
+        >
       </Select>
-      <p
-        id="default-quality-help"
-        class="text-xs text-muted-foreground leading-relaxed"
-      >
-        {{ i18n.t('qualityHelp') }}
-      </p>
-    </div>
-    <div class="space-y-2">
       <Label
         for="download-concurrency"
-        class="block text-sm font-medium"
+        class="text-sm"
         >{{ i18n.t('concurrentDownloads') }}</Label
       >
       <Select
@@ -119,60 +115,46 @@ function updateConcurrency(value: number) {
       >
         <SelectTrigger
           id="download-concurrency"
-          aria-describedby="download-concurrency-help"
-        >
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem
+          class="text-xs"
+          ><SelectValue
+        /></SelectTrigger>
+        <SelectContent
+          ><SelectItem
             v-for="count in 6"
             :key="count"
             :value="count"
-          >
-            {{ count }}
-          </SelectItem>
-        </SelectContent>
+            >{{ count }}</SelectItem
+          ></SelectContent
+        >
       </Select>
-      <p
-        id="download-concurrency-help"
-        class="text-xs text-muted-foreground leading-relaxed"
+      <Label
+        for="save-location"
+        class="text-sm leading-relaxed"
+        >{{ i18n.t('chooseSaveLocation') }}</Label
       >
-        {{ i18n.t('concurrencyHelp') }}
-      </p>
-    </div>
-    <div class="flex items-start gap-3">
       <Switch
         @update:model-value="updateSaveAs"
         :model-value="preferences.saveAs"
         :disabled="!isReady || isSaving"
         id="save-location"
-        aria-describedby="save-location-help"
-        class="mt-1"
+        class="justify-self-end"
       />
-      <div>
-        <Label
-          for="save-location"
-          class="block text-sm font-medium leading-relaxed"
-          >{{ i18n.t('chooseSaveLocation') }}</Label
-        >
-        <p
-          id="save-location-help"
-          class="mt-1 text-sm text-muted-foreground"
-        >
-          {{ i18n.t('saveLocationHelp') }}
-        </p>
-      </div>
     </div>
+    <HelpDisclosure :title="i18n.t('downloadRules')"
+      ><p>{{ i18n.t('qualityHelp') }}</p>
+      <p>{{ i18n.t('concurrencyHelp') }}</p>
+      <p>{{ i18n.t('saveLocationHelp') }}</p></HelpDisclosure
+    >
     <p
       v-if="preferenceError || requestError"
-      role="status"
+      role="alert"
       class="text-xs text-destructive"
     >
       {{ preferenceError || requestError }}
     </p>
-    <FilenameSettings
-      :template="preferences.filenameTemplate"
-      :disabled="!isReady"
-    />
-  </section>
+  </SettingsSection>
+  <FilenameSettings
+    :template="preferences.filenameTemplate"
+    :disabled="!isReady"
+  />
 </template>

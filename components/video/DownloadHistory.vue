@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { unique } from '@ntnyq/utils'
 import { i18n } from '#i18n'
+import DialogConfirm from '~/components/shared/DialogConfirm.vue'
+import EmptyState from '~/components/shared/EmptyState.vue'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
@@ -27,6 +29,8 @@ const {
   action,
   clear,
 } = usePostDownloads()
+const clearOpen = shallowRef(false)
+const clearIds = shallowRef<number[]>([])
 const query = shallowRef('')
 const author = shallowRef('')
 const authorFilter = computed({
@@ -49,6 +53,12 @@ const terminalIds = computed(() =>
   filtered.value.filter(isTerminalDownload).map(item => item.id),
 )
 
+watch(clearOpen, value => {
+  if (value) {
+    clearIds.value = [...terminalIds.value]
+  }
+})
+
 /**
  * Applies an owned-download action from a trusted interaction.
  */
@@ -65,31 +75,36 @@ function handleAction(
 /**
  * Clears only the finished records currently matching the visible filters.
  */
-function handleClear(event: MouseEvent) {
+async function handleClear(event: MouseEvent) {
   if (event.isTrusted) {
-    clear(terminalIds.value)
+    await clear(clearIds.value)
+    if (!requestError.value) {
+      clearOpen.value = false
+    }
   }
 }
 </script>
 
 <template>
-  <section class="px-5 pb-5 space-y-4">
-    <div class="space-y-2">
+  <section class="px-4 py-3 space-y-3">
+    <div class="grid grid-cols-[minmax(0,1fr)_7rem] items-center gap-2">
       <Label
         :for="searchId"
-        class="block text-xs font-semibold"
+        class="sr-only"
         >{{ i18n.t('searchDownloads') }}</Label
       >
       <Input
         v-model="query"
         :placeholder="i18n.t('historySearchPlaceholder')"
         :id="searchId"
+        name="download-search"
+        autocomplete="off"
         type="search"
-        class="w-full"
+        class="w-full text-xs"
       />
       <Label
         :for="authorId"
-        class="block text-xs font-semibold"
+        class="sr-only"
         >{{ i18n.t('filterAuthor') }}</Label
       >
       <Select v-model="authorFilter">
@@ -118,18 +133,25 @@ function handleClear(event: MouseEvent) {
       <p class="text-xs text-muted-foreground">
         {{ i18n.t('historyCount', [filtered.length]) }}
       </p>
-      <Button
-        @click="handleClear"
-        :disabled="isActionPending || !terminalIds.length"
-        variant="link"
-        type="button"
+      <DialogConfirm
+        @confirm="handleClear"
+        v-model:open="clearOpen"
+        :title="i18n.t('clearFinished')"
+        :description="i18n.t('historyClearHelp')"
+        :disabled="isActionPending"
+        :error="requestError"
       >
-        {{ i18n.t('clearFinished') }}
-      </Button>
+        <template #trigger
+          ><Button
+            :disabled="isActionPending || !terminalIds.length"
+            variant="ghost"
+            size="sm"
+            class="text-xs text-muted-foreground"
+            ><UiIcon name="trash" />{{ i18n.t('clearFinished') }}</Button
+          ></template
+        >
+      </DialogConfirm>
     </div>
-    <p class="text-xs text-muted-foreground leading-relaxed">
-      {{ i18n.t('historyClearHelp') }}
-    </p>
     <p
       v-if="requestError || progressError"
       role="alert"
@@ -152,12 +174,9 @@ function handleClear(event: MouseEvent) {
       show-post
       can-remove
     />
-    <p
+    <EmptyState
       v-if="!filtered.length && !progressError"
-      role="status"
-      class="py-5 text-sm text-muted-foreground"
-    >
-      {{ i18n.t(downloads.length ? 'historyNoMatches' : 'historyEmpty') }}
-    </p>
+      :title="i18n.t(downloads.length ? 'historyNoMatches' : 'historyEmpty')"
+    />
   </section>
 </template>

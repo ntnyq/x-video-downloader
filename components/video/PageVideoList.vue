@@ -1,15 +1,15 @@
 <script lang="ts" setup>
 import { i18n } from '#i18n'
-import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import { Label } from '~/components/ui/label'
 import { useDownloadPreferences } from '~/composables/useDownloadPreferences'
 import { usePageVideoSelection } from '~/composables/usePageVideoSelection'
 import { usePostDownloads } from '~/composables/usePostDownloads'
 import { MAX_DOWNLOAD_BATCH_SIZE } from '~/utils/download'
-import DownloadProgress from './DownloadProgress.vue'
+import BatchDownloadBar from './BatchDownloadBar.vue'
 import DuplicateDownloadNotice from './DuplicateDownloadNotice.vue'
 import VideoPostCard from './VideoPostCard.vue'
+import type { VNode } from 'vue'
 import type { VideoPost } from '~/types/video'
 import type { VideoSelectionScope } from '~/utils/videoSelection'
 
@@ -18,13 +18,18 @@ const props = defineProps<{
    * Currently visible posts whose videos may be selected for a shared batch.
    */
   posts: VideoPost[]
+  /** Hides redundant row actions for a single-video post. */
+  singlePost?: boolean
+}>()
+
+defineSlots<{
+  tools?: () => VNode[]
 }>()
 
 const { preferences, isReady, preferenceError } = useDownloadPreferences()
 const {
   groups,
   selectedCount,
-  selectedPostCount,
   downloadableCount,
   allSelected,
   isOverLimit,
@@ -120,118 +125,80 @@ function handleConfirmDuplicates(event: MouseEvent) {
 </script>
 
 <template>
-  <div>
+  <div class="min-h-0 flex flex-1 flex-col">
     <div
-      v-if="downloadableCount"
-      class="border-b border-border pb-4 space-y-3"
+      class="mx-4 flex shrink-0 items-center justify-between gap-2 border-b border-border py-2"
     >
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <Label class="flex items-center gap-2 text-xs">
-          <Checkbox
-            @update:model-value="handleSelectAll"
-            :model-value="partiallySelected ? 'indeterminate' : allSelected"
-            :disabled="isDisabled"
-          />
-          {{ i18n.t('selectPageVideos') }}
-        </Label>
-        <Button
-          @click="selectAll(false)"
-          :disabled="isDisabled || !selectedCount"
-          variant="link"
-          type="button"
-        >
-          {{ i18n.t('clearSelection') }}
-        </Button>
+      <Label class="flex items-center gap-2 text-xs">
+        <Checkbox
+          @update:model-value="handleSelectAll"
+          :model-value="partiallySelected ? 'indeterminate' : allSelected"
+          :disabled="isDisabled || !downloadableCount"
+        />
+        {{ i18n.t('selectPageVideos') }}
+      </Label>
+      <div class="flex items-center gap-1 text-xs text-muted-foreground">
+        <span>{{ i18n.t('availableVideos', [downloadableCount]) }}</span
+        ><slot name="tools" />
       </div>
-      <p
-        role="status"
-        class="text-xs text-muted-foreground"
-      >
-        {{
-          i18n.t('pageSelection', [
-            selectedCount,
-            downloadableCount,
-            selectedPostCount,
-          ])
-        }}
-      </p>
-      <Button
-        @click="handleDownload($event)"
-        :disabled="isBatchDisabled"
-        type="button"
-        class="w-full"
-      >
-        {{
-          isPending
-            ? i18n.t('creatingDownload')
-            : i18n.t('downloadPageSelected', [selectedCount])
-        }}
-      </Button>
-      <p
-        v-if="isOverLimit"
-        role="alert"
-        class="text-xs text-destructive leading-relaxed"
-      >
-        {{
-          i18n.t('batchLimitExceeded', [MAX_DOWNLOAD_BATCH_SIZE, selectedCount])
-        }}
-      </p>
-      <p
-        v-if="selectedCount > 1 && preferences.saveAs"
-        class="text-xs text-muted-foreground"
-      >
-        {{ i18n.t('confirmEachSave') }}
-      </p>
     </div>
-    <DuplicateDownloadNotice
-      @confirm="handleConfirmDuplicates"
-      @dismiss="dismissDuplicates"
-      :count="duplicateRequests.length"
-      :disabled="isPending"
-    />
-    <p
-      v-if="message"
-      role="status"
-      class="mt-3 text-xs text-muted-foreground"
-    >
-      {{ message }}
-    </p>
-    <p
-      v-if="requestError || preferenceError"
-      role="alert"
-      class="mt-3 text-xs text-destructive"
-    >
-      {{ requestError || preferenceError }}
-    </p>
-    <DownloadProgress
-      @action="handleAction"
-      :downloads="visibleDownloads"
-      :disabled="isActionPending"
-      show-post
-    />
-    <p
-      v-if="progressError"
-      role="status"
-      class="mt-3 text-xs text-muted-foreground"
-    >
-      {{ progressError }}
-    </p>
-    <VideoPostCard
-      @select="setUrl"
-      @check="setChecked"
-      @select-all="selectAll($event, group.post.id)"
-      @download="
-        (event, mediaIndex, highest) =>
-          handleDownload(event, { postId: group.post.id, mediaIndex, highest })
-      "
-      v-for="group in groups"
-      :key="group.post.id"
-      :post="group.post"
-      :rows="group.rows"
-      :disabled="isDisabled"
-      :is-pending
-      :show-highest="preferences.quality !== 'highest'"
+    <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4">
+      <DuplicateDownloadNotice
+        @confirm="handleConfirmDuplicates"
+        @dismiss="dismissDuplicates"
+        :count="duplicateRequests.length"
+        :disabled="isPending"
+      />
+      <p
+        v-if="message"
+        role="status"
+        class="py-2 text-xs text-muted-foreground"
+      >
+        {{ message }}
+      </p>
+      <p
+        v-if="requestError || preferenceError"
+        role="alert"
+        class="py-2 text-xs text-destructive"
+      >
+        {{ requestError || preferenceError }}
+      </p>
+      <p
+        v-if="progressError"
+        role="status"
+        class="py-2 text-xs text-muted-foreground"
+      >
+        {{ progressError }}
+      </p>
+      <VideoPostCard
+        @select="setUrl"
+        @check="setChecked"
+        @select-all="selectAll($event, group.post.id)"
+        @download="
+          (event, mediaIndex) =>
+            handleDownload(event, { postId: group.post.id, mediaIndex })
+        "
+        @action="handleAction"
+        v-for="group in groups"
+        :key="group.post.id"
+        :post="group.post"
+        :rows="group.rows"
+        :disabled="isDisabled"
+        :downloads="
+          visibleDownloads.filter(item => item.postId === group.post.id)
+        "
+        :action-disabled="isActionPending"
+        :hide-download="singlePost && downloadableCount === 1"
+      />
+    </div>
+    <BatchDownloadBar
+      @download="handleDownload"
+      v-if="downloadableCount"
+      :count="selectedCount"
+      :disabled="isBatchDisabled"
+      :pending="isPending"
       :save-as="preferences.saveAs"
+      :over-limit="isOverLimit"
     />
   </div>
 </template>

@@ -1,15 +1,18 @@
 actionFailed: 操作失敗，請重試。
 allAuthors: 全部作者
+autoSavePreferences: 自動儲存偏好
+availableVideos: $1 個可下載
 batchLimitExceeded: 每批最多選擇 $1 個影片，目前 $2 個選擇均已保留。
 cancel: 取消
 cancelVideo: 取消影片 $1
-chooseSaveLocation: 每次下載時選擇儲存位置
-clearFinished: 清理已結束記錄
+chooseSaveLocation: 每次詢問儲存位置
+clearFinished: 清理已結束
 clearSelection: 清空選擇
 closePanel: 關閉下載面板
 concurrencyHelp: 同時下載 1–6 個影片（預設 3 個），其餘進入等候佇列。暫停的下載會保留，直到繼續。降低數量不會中止正在下載的工作。
 concurrentDownloads: 同時下載數量
-confirmEachSave: 依序確認每部影片的儲存位置。
+confirmEachSave: 需逐一確認儲存位置。
+connectionUnavailable: 暫未連線頁面
 creatingDownload: 正在建立下載…
 creatingDownloads: 正在建立 $1 個下載，請依提示確認儲存位置…
 creatingSave: 正在建立下載，請依提示確認儲存位置…
@@ -19,8 +22,9 @@ detectVideos: 偵測影片
 dismiss: 略過
 downloadAgain: 再次下載
 downloadCancelled: 已取消下載。
+downloadExample: 下載示意
 downloadFailed: 下載未開始，請重試。
-downloadHighest: ↓ 下載最高畫質
+downloadHighest: 下載最高畫質
 downloadNotice: 進度與瀏覽器下載清單同步。僅下載你有權儲存的內容。
 downloadPageSelected: 下載所選影片（$1）
 downloadPaused: 下載已暫停。
@@ -29,22 +33,26 @@ downloadQueued: 已加入下載佇列，可在面板中查看進度。
 downloadReload: 下載未開始，請重新整理頁面後重試。
 downloadResumed: 下載已加入佇列，等候繼續。
 downloadRetried: 已重新建立下載。
+downloadRules: 下載規則
 downloadSelected: 下載所選的 $1 部影片
-downloadSettings: 下載設定
+downloadSelection: 下載所選
+downloadSettings: 下載
 downloadVideos: 下載影片
 downloadViews: 下載檢視
-downloadsCreated: 已接受 $1 個下載工作，可在下方查看等候與下載進度。
+downloadsCreated: $1 個影片已加入佇列。
 duplicateDownload: 此影片已有完成的下載記錄，可在面板中確認再次下載。
 duplicateNotice: 所選影片中有 $1 個已有完成的下載記錄，是否再次下載這些影片？
 extensionDescription: 在 X 影片旁顯示下載按鈕，選擇畫質並儲存 MP4。
 extensionName: X 影片下載器
 filenameEmpty: 請輸入檔名範本。
+filenameExtension: 自動新增 .mp4
 filenameHelp: 可用變數：$1 作者、$2 貼文日期（UTC）、$3 貼文 ID、$4 影片序號、$5 解析度。自動加上 .mp4，缺少作者或日期時使用 unknown / undated。
 filenamePreview: 預覽（範例貼文）
-filenameTemplate: 檔名範本
+filenameTemplate: 檔案名稱
 filenameTokens: 請僅使用下方列出的變數，並確認大括號完整。
 filenameTooLong: 範本不能超過 160 個字元。
 filenameUnsafe: "範本不能包含路徑、控制字元或 \\ / : * ? \" < > |。"
+filenameVariables: 範本變數
 filterAuthor: 按作者篩選
 finishedDownload: 這個下載工作已結束。
 foreignDownload: 無法操作其他來源的下載工作。
@@ -57,21 +65,23 @@ guideSteps: 三步儲存影片
 highestSuffix: （最高畫質）
 historyClearHelp: 僅清理篩選結果中已結束的擴充功能記錄，保留下載檔案及正在下載、等候或暫停的工作。清理後的記錄不再觸發重複下載提醒。
 historyCleared: 已清理結束的記錄。
-historyCount: 共 $1 筆下載記錄
+historyCount: $1 筆記錄
 historyEmpty: 尚無擴充功能下載記錄。
 historyNoMatches: 沒有符合篩選條件的下載記錄。
-historySearchPlaceholder: 檔名、貼文 ID 或作者
-historyTab: 記錄與佇列
+historySearchPlaceholder: 搜尋下載記錄…
+historyTab: 下載記錄
+hlsShort: 僅 HLS，暫不支援
 hlsUnsupported: 這部影片僅提供 HLS 分段，目前版本尚不支援合併下載。
+installed: 已安裝
 interruptedHelp: 下載中斷（$1）。可以重試；若網址已失效，請重新整理原貼文。
 invalidRequest: 下載請求無效，請重新選取影片。
 invalidSender: 下載請求無效，請重新整理 X 頁面後重試。
 languageHelp: 介面跟隨瀏覽器語言，支援英文、簡體中文、繁體中文、日文與韓文。
 networkError: 網路錯誤
-noVideos: 尚未找到可下載的影片
-noVideosReady: 先播放影片，再點選「重新偵測」。若剛安裝或更新擴充功能，請重新整理 X 頁面。
+noVideos: 還沒有偵測到影片
+noVideosReady: 播放影片後重新偵測。安裝或更新後請重新整理 X。
 noVideosReload: 請重新整理 X 頁面，讓擴充功能連接播放器，再播放影片。
-oneClickDownload: ↓ 一鍵下載
+oneClickDownload: 一鍵下載
 openPostFirst: 請先開啟包含影片的 X 貼文。
 openX: 開啟 X
 originalMp4: MP4 原始影片
@@ -96,11 +106,11 @@ qualityHelp: 用於快速與批次下載的預設選擇。優先選擇不超過�
 qualityHighest: 最高畫質
 qualitySmallest: 節省空間
 queueFull: 下載佇列已滿，請等候工作結束後再試。
-quickDownload: ↓ 快速下載
+quickDownload: 快速下載
 refresh: 重新偵測
 removeRecord: 移除記錄
 removeVideoRecord: 移除影片 $1 的記錄
-resetTemplate: 還原預設範本
+resetTemplate: 恢復預設
 resume: 繼續
 resumeUnavailable: 目前狀態無法繼續此下載。
 resumeVideo: 繼續影片 $1
@@ -109,16 +119,17 @@ retryUnavailable: 只能重試失敗、取消或已移除的下載工作。
 retryVideo: 重試影片 $1
 saveLocationHelp: 預設關閉，直接儲存到瀏覽器的下載資料夾，可在瀏覽器設定中變更資料夾。開啟後每部影片都會詢問儲存位置，包括批次下載。
 saveTemplate: 儲存範本
-saveVideo: ↓ 儲存影片 $1
+saveVideo: 儲存影片 $1
 saving: 儲存中…
 scanning: 正在偵測目前頁面…
 searchDownloads: 搜尋下載記錄
 selectAll: 全選可下載的影片（$1 / $2）
-selectPageVideos: 選擇目前頁面的全部影片
+selectPageVideos: 全選
 selectPostVideos: 選擇貼文 $1 中的影片
 selectVideo: 選取影片 $1
 selectVideos: 選取影片
 selectedPostVideos: 所選貼文的影片
+selectedVideos: 已選 $1 個
 settings: 設定
 settingsSaveFailed: 設定未儲存，請重試。
 shortcutHelp: '也可以點選工具列的擴充功能圖示，或按 Alt + O 開啟下載面板。'
@@ -137,7 +148,7 @@ themeAmber: 琥珀
 themeApply: 套用顏色
 themeBlue: X 藍
 themeCustom: 自訂 RGB 顏色
-themeDescription: 預設使用 Grok 黑白灰風格，可自選強調色。X 內面板跟隨頁面明暗，擴充功能頁面跟隨系統。
+themeDescription: 明暗跟隨 X 頁面或系統。
 themeGreen: 翠綠
 themeGrok: Grok · 預設
 themeIndigo: 靛藍
@@ -160,9 +171,11 @@ troubleshootingHelp: 先播放影片，再點選「重新偵測」。安裝或�
 troubleshootingTitle: 沒有偵測到影片？
 uiLanguage: zh-TW
 unknownSize: 大小未知
+usageHelp: 使用說明
 useHighest: 改用最高畫質下載
 videoError: 影片 $1：$2
 videoNumber: 影片 $1
 videoProgress: 影片 $1 的下載進度
+videoQuality: 影片 $1 畫質
 welcomeDescription: X 影片下載器已安裝。重新整理已開啟的 X 頁面，即可開始。
 welcomeTitle: 影片，留在本機。

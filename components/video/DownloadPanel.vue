@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { i18n } from '#i18n'
+import EmptyState from '~/components/shared/EmptyState.vue'
+import IconButton from '~/components/shared/IconButton.vue'
 import { Button } from '~/components/ui/button'
 import PageVideoList from './PageVideoList.vue'
 import type { PageVideos } from '~/types/video'
@@ -33,75 +35,46 @@ const visiblePosts = computed(() =>
 </script>
 
 <template>
-  <div class="px-5 pb-3">
-    <div class="flex items-center justify-between gap-3 py-3">
-      <p class="text-xs text-muted-foreground">
-        {{
-          selectedPostId
-            ? i18n.t('selectedPostVideos')
-            : i18n.t('currentPageVideos')
-        }}
-      </p>
+  <div class="min-h-0 flex flex-1 flex-col">
+    <div
+      v-if="selectedPostId"
+      class="shrink-0 px-4 pt-2"
+    >
       <Button
         @click="emit('showAll')"
-        v-if="selectedPostId"
-        variant="link"
-        type="button"
+        variant="ghost"
+        size="sm"
+        class="text-xs text-muted-foreground"
+        ><UiIcon name="back" />{{ i18n.t('showAll') }}</Button
       >
-        {{ i18n.t('showAll') }}
-      </Button>
-      <Button
-        @click="emit('refresh')"
-        v-else
-        variant="link"
-        type="button"
-        class="inline-flex items-center gap-1.5"
-      >
-        <UiIcon
-          name="refresh"
-          class="h-3.5 w-3.5"
-        />
-        {{ i18n.t('refresh') }}
-      </Button>
     </div>
     <PageVideoList
       v-if="visiblePosts.length"
       :posts="visiblePosts"
-    />
-    <div
-      v-else
-      class="py-8"
+      :single-post="!!selectedPostId"
     >
-      <div
-        class="mb-4 h-12 w-12 flex items-center justify-center rounded-2xl bg-secondary text-foreground"
-        aria-hidden="true"
-      >
-        <UiIcon
-          name="download"
-          class="h-6 w-6"
-        />
-      </div>
-      <h2 class="mb-2 text-base font-semibold">{{ i18n.t('noVideos') }}</h2>
-      <p class="text-sm text-muted-foreground leading-relaxed">
-        {{
-          snapshot.captureReady
-            ? i18n.t('noVideosReady')
-            : i18n.t('noVideosReload')
-        }}
-      </p>
+      <template #tools
+        ><IconButton
+          @click="emit('refresh')"
+          :label="i18n.t('refresh')"
+          icon="refresh"
+      /></template>
+    </PageVideoList>
+    <EmptyState
+      v-else
+      :title="i18n.t('noVideos')"
+      :description="
+        snapshot.captureReady
+          ? i18n.t('noVideosReady')
+          : i18n.t('noVideosReload')
+      "
+    >
       <Button
         @click="emit('refresh')"
         variant="outline"
-        type="button"
-        class="mt-4"
+        size="sm"
+        ><UiIcon name="refresh" />{{ i18n.t('refresh') }}</Button
       >
-        {{ i18n.t('refresh') }}
-      </Button>
-    </div>
-    <p
-      class="border-t border-border py-3 text-xs text-muted-foreground leading-relaxed"
-    >
-      {{ i18n.t('downloadNotice') }}
-    </p>
+    </EmptyState>
   </div>
 </template>

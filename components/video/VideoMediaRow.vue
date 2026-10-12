@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { i18n } from '#i18n'
-import { Button } from '~/components/ui/button'
+import IconButton from '~/components/shared/IconButton.vue'
 import { Checkbox } from '~/components/ui/checkbox'
 import { Label } from '~/components/ui/label'
 import {
@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { formatVariant } from '~/utils/video'
+import type { VNode } from 'vue'
 import type { VideoMedia, VideoVariant } from '~/types/video'
 
 interface Props {
@@ -38,6 +39,8 @@ interface Props {
    * Whether download and selection controls are temporarily unavailable.
    */
   disabled: boolean
+  /** Hides the row action when the footer is sufficient. */
+  hideDownload?: boolean
 }
 
 defineProps<Props>()
@@ -56,65 +59,86 @@ const emit = defineEmits<{
   download: [event: MouseEvent]
 }>()
 
+defineSlots<{
+  default?: () => VNode[]
+}>()
 const selectId = useId()
 </script>
 
 <template>
-  <div class="space-y-3">
-    <div class="flex items-center justify-between gap-3">
-      <div class="flex items-center gap-2">
-        <Checkbox
-          @update:model-value="value => emit('check', value === true)"
-          v-if="selectable && variant"
-          :model-value="checked"
-          :disabled
-          :aria-label="i18n.t('selectVideo', [index])"
+  <div>
+    <div class="flex min-h-12 items-center gap-2">
+      <Checkbox
+        @update:model-value="value => emit('check', value === true)"
+        v-if="selectable"
+        :model-value="checked"
+        :disabled="disabled || !variant"
+        :aria-label="i18n.t('selectVideo', [index])"
+      />
+      <div
+        class="flex h-10 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground"
+      >
+        <UiIcon
+          name="video"
+          class="size-4"
         />
+      </div>
+      <div class="min-w-0 flex-1">
         <Label
-          :for="selectId"
-          class="text-sm font-semibold"
+          :for="variant ? selectId : undefined"
+          class="text-xs font-medium"
           >{{ i18n.t('videoNumber', [index]) }}</Label
         >
+        <p class="mt-1 text-[11px] text-muted-foreground">
+          {{ variant ? 'MP4' : i18n.t('hlsShort') }}
+        </p>
       </div>
-      <span class="text-xs text-muted-foreground">{{
-        variant ? 'MP4' : 'HLS'
-      }}</span>
-    </div>
-    <template v-if="variant">
-      <Select
-        @update:model-value="value => emit('select', value)"
-        :model-value="variant.url"
-        :disabled
-      >
-        <SelectTrigger :id="selectId">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem
-            v-for="(item, variantIndex) in media.variants"
-            :key="item.url"
-            :value="item.url"
+      <template v-if="variant">
+        <Select
+          @update:model-value="value => emit('select', value)"
+          :model-value="variant.url"
+          :disabled
+        >
+          <SelectTrigger
+            :aria-label="i18n.t('videoQuality', [index])"
+            :id="selectId"
+            class="h-8 w-auto max-w-32 border-0 bg-transparent px-2 text-xs shadow-none"
           >
-            {{ formatVariant(item, i18n.t('originalMp4')) }}
-            {{ variantIndex === 0 ? i18n.t('highestSuffix') : '' }}
-          </SelectItem>
-        </SelectContent>
-      </Select>
-      <Button
-        @click="emit('download', $event)"
-        :disabled
-        variant="outline"
-        type="button"
-        class="w-full"
-      >
-        {{ i18n.t('saveVideo', [index]) }}
-      </Button>
-    </template>
-    <p
-      v-else
-      class="text-sm text-muted-foreground leading-relaxed"
-    >
-      {{ i18n.t('hlsUnsupported') }}
-    </p>
+            <SelectValue>{{
+              variant.width && variant.height
+                ? `${Math.min(variant.width, variant.height)}p`
+                : i18n.t('originalMp4')
+            }}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem
+              v-for="(item, variantIndex) in media.variants"
+              :key="item.url"
+              :value="item.url"
+              >{{ formatVariant(item, i18n.t('originalMp4')) }}
+              {{
+                variantIndex === 0 ? i18n.t('highestSuffix') : ''
+              }}</SelectItem
+            >
+          </SelectContent>
+        </Select>
+        <IconButton
+          @click="emit('download', $event)"
+          v-if="!hideDownload"
+          :disabled
+          :label="i18n.t('saveVideo', [index])"
+          icon="download"
+        />
+      </template>
+      <span
+        v-else
+        :title="i18n.t('hlsUnsupported')"
+        class="px-2 text-muted-foreground"
+        ><UiIcon
+          name="help"
+          class="size-4"
+      /></span>
+    </div>
+    <slot />
   </div>
 </template>

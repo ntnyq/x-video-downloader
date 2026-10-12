@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { i18n } from '#i18n'
+import IconButton from '~/components/shared/IconButton.vue'
 import { Button } from '~/components/ui/button'
 import { useDownloadPreferences } from '~/composables/useDownloadPreferences'
 import { usePageTheme } from '~/composables/usePageTheme'
@@ -108,15 +109,15 @@ watch(
         type="button"
         class="text-sm"
       >
-        {{ isPending ? i18n.t('creatingDownload') : quickLabel }}
+        <UiIcon name="download" />{{
+          isPending ? i18n.t('creatingDownload') : quickLabel
+        }}
       </Button>
-      <Button
+      <IconButton
         @click.stop.prevent="emit('open')"
-        variant="link"
-        type="button"
-      >
-        {{ i18n.t('qualityAndProgress') }}
-      </Button>
+        :label="i18n.t('qualityAndProgress')"
+        icon="chevronDown"
+      />
     </div>
     <DuplicateDownloadNotice
       @confirm="confirmDuplicate"

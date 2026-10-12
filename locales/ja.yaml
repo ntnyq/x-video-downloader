@@ -1,15 +1,18 @@
 actionFailed: 操作に失敗しました。再試行してください。
 allAuthors: すべての投稿者
+autoSavePreferences: 設定は自動保存
+availableVideos: $1 件ダウンロード可能
 batchLimitExceeded: 1 回に選べる動画は $1 本までです。$2 本の選択は保持されています。
 cancel: キャンセル
 cancelVideo: 動画 $1 をキャンセル
-chooseSaveLocation: ダウンロードごとに保存先を選ぶ
-clearFinished: 終了した履歴を消去
+chooseSaveLocation: 保存場所を毎回確認
+clearFinished: 終了分を消去
 clearSelection: 選択を解除
 closePanel: ダウンロードパネルを閉じる
 concurrencyHelp: 同時に 1～6 本を転送します（初期値 3）。残りは待機します。一時停止した項目は再開まで保持されます。上限を下げても転送中の項目は停止しません。
 concurrentDownloads: 同時ダウンロード数
-confirmEachSave: 各動画の保存先を順番に確認してください。
+confirmEachSave: 保存場所を1件ずつ確認します。
+connectionUnavailable: ページに接続できません
 creatingDownload: ダウンロードを開始中…
 creatingDownloads: ダウンロードを開始中（$1 件）。表示された場合は保存先を順番に確認してください…
 creatingSave: ダウンロードを開始中。表示された場合は保存先を確認してください…
@@ -19,8 +22,9 @@ detectVideos: 動画を検出
 dismiss: 閉じる
 downloadAgain: もう一度ダウンロード
 downloadCancelled: ダウンロードをキャンセルしました。
+downloadExample: ダウンロード例
 downloadFailed: ダウンロードを開始できませんでした。再試行してください。
-downloadHighest: ↓ 最高画質でダウンロード
+downloadHighest: 最高画質でダウンロード
 downloadNotice: 進捗はブラウザーのダウンロード一覧と同期します。保存する権利のあるコンテンツのみダウンロードしてください。
 downloadPageSelected: 選択した動画をダウンロード（$1）
 downloadPaused: ダウンロードを一時停止しました。
@@ -29,22 +33,26 @@ downloadQueued: キューに追加しました。パネルで進捗を確認で�
 downloadReload: ダウンロードを開始できませんでした。ページを再読み込みして再試行してください。
 downloadResumed: 再開のためキューに追加しました。
 downloadRetried: ダウンロードを再開しました。
+downloadRules: ダウンロードの設定について
 downloadSelected: 選択した動画をダウンロード（$1 件）
-downloadSettings: ダウンロード設定
+downloadSelection: 選択を保存
+downloadSettings: ダウンロード
 downloadVideos: 動画をダウンロード
 downloadViews: ダウンロードの表示切り替え
-downloadsCreated: $1 件を受け付けました。待機と転送状況を下で確認できます.
+downloadsCreated: $1 件をキューに追加しました.
 duplicateDownload: この動画はダウンロード済みです。再度保存するにはパネルを開いてください。
 duplicateNotice: 選択した動画のうち $1 本はダウンロード済みです。もう一度ダウンロードしますか？
 extensionDescription: X の動画をお好みの画質で MP4 として保存できます。
 extensionName: X 動画ダウンローダー
 filenameEmpty: ファイル名のテンプレートを入力してください。
+filenameExtension: .mp4 を自動追加
 filenameHelp: 変数：$1 投稿者、$2 投稿日（UTC）、$3 ポスト ID、$4 動画番号、$5 解像度。.mp4 は自動で付きます。投稿者や日付が不明な場合は unknown / undated を使用します。
 filenamePreview: プレビュー（サンプルのポスト）
-filenameTemplate: ファイル名のテンプレート
+filenameTemplate: ファイル名
 filenameTokens: 下に記載された変数のみを使い、波括弧を正しく閉じてください。
 filenameTooLong: テンプレートは 160 文字以内で入力してください。
 filenameUnsafe: "パス、制御文字、次の記号は使用できません：\\ / : * ? \" < > |"
+filenameVariables: テンプレート変数
 filterAuthor: 投稿者で絞り込み
 finishedDownload: このダウンロードはすでに終了しています。
 foreignDownload: この拡張機能以外で開始したダウンロードは操作できません。
@@ -57,21 +65,23 @@ guideSteps: 3 ステップで動画を保存
 highestSuffix: （最高画質）
 historyClearHelp: 条件に一致する終了した拡張機能の履歴のみを消去します。ファイルと進行中・待機中・一時停止中の項目は残ります。消去した履歴の重複通知は表示されなくなります。
 historyCleared: 終了した履歴を消去しました。
-historyCount: $1 件のダウンロード履歴
+historyCount: $1 件の履歴
 historyEmpty: ダウンロード履歴はまだありません。
 historyNoMatches: 条件に一致する履歴がありません。
-historySearchPlaceholder: ファイル名、投稿 ID、投稿者
-historyTab: 履歴とキュー
+historySearchPlaceholder: 履歴を検索…
+historyTab: 履歴
+hlsShort: HLS のみ・未対応
 hlsUnsupported: この動画は HLS 形式のみです。現在、分割された動画の結合ダウンロードには対応していません。
+installed: インストール済み
 interruptedHelp: ダウンロードが中断されました（$1）。再試行してください。リンクが無効な場合は元のポストを再読み込みしてください。
 invalidRequest: 無効なダウンロード要求です。動画を選び直してください。
 invalidSender: 無効なダウンロード要求です。X を再読み込みして再試行してください。
 languageHelp: 表示言語はブラウザーの設定に従います。英語、簡体字中国語、繁体字中国語、日本語、韓国語に対応しています。
 networkError: ネットワークエラー
-noVideos: ダウンロードできる動画が見つかりません
-noVideosReady: 動画を再生してから「再検出」を押してください。拡張機能をインストールまたは更新した直後は、X のページを再読み込みしてください。
+noVideos: 動画が見つかりません
+noVideosReady: 動画を再生して再検出してください。インストールや更新後は X を再読み込みしてください。
 noVideosReload: X のページを再読み込みして拡張機能をプレーヤーに接続し、動画を再生してください。
-oneClickDownload: ↓ 今すぐダウンロード
+oneClickDownload: 今すぐダウンロード
 openPostFirst: まず動画を含む X のポストを開いてください。
 openX: X を開く
 originalMp4: オリジナル MP4
@@ -96,11 +106,11 @@ qualityHelp: クイックダウンロードと一括ダウンロードに使用�
 qualityHighest: 最高画質
 qualitySmallest: 容量を節約
 queueFull: キューがいっぱいです。終了するまで待ってから再試行してください。
-quickDownload: ↓ クイックダウンロード
+quickDownload: クイックダウンロード
 refresh: 再検出
 removeRecord: 履歴を削除
 removeVideoRecord: 動画 $1 の履歴を削除
-resetTemplate: 標準のテンプレートに戻す
+resetTemplate: 初期値に戻す
 resume: 再開
 resumeUnavailable: 現在の状態では再開できません。
 resumeVideo: 動画 $1 を再開
@@ -109,16 +119,17 @@ retryUnavailable: 失敗、キャンセル、または削除されたダウン�
 retryVideo: 動画 $1 を再試行
 saveLocationHelp: 初期設定はオフです。ブラウザーのダウンロードフォルダーに直接保存します。フォルダーはブラウザーの設定で変更できます。オンにすると、一括ダウンロードでも動画ごとに保存先を確認します。
 saveTemplate: テンプレートを保存
-saveVideo: ↓ 動画 $1 を保存
+saveVideo: 動画 $1 を保存
 saving: 保存中…
 scanning: このページを確認中…
 searchDownloads: ダウンロードを検索
 selectAll: 保存可能な動画をすべて選択（$1 / $2）
-selectPageVideos: ページ内の動画をすべて選択
+selectPageVideos: すべて選択
 selectPostVideos: 投稿 $1 の動画を選択
 selectVideo: 動画 $1 を選択
 selectVideos: 動画を選択
 selectedPostVideos: 選択したポストの動画
+selectedVideos: $1 件選択
 settings: 設定
 settingsSaveFailed: 設定を保存できませんでした。再試行してください。
 shortcutHelp: 'ツールバーのアイコンをクリックするか、Alt + O を押してもパネルを開けます。'
@@ -137,7 +148,7 @@ themeAmber: アンバー
 themeApply: 色を適用
 themeBlue: X ブルー
 themeCustom: カスタム RGB カラー
-themeDescription: 標準は Grok のモノトーン。アクセントカラーを選べます。X 内のパネルはページの明暗に、拡張機能のページはシステムに合わせます。
+themeDescription: パネルは X、拡張ページはシステムの外観に合わせます。
 themeGreen: グリーン
 themeGrok: Grok · 標準
 themeIndigo: インディゴ
@@ -160,9 +171,11 @@ troubleshootingHelp: 動画を再生してから「再検出」を押してく�
 troubleshootingTitle: 動画が検出されない場合
 uiLanguage: ja
 unknownSize: サイズ不明
+usageHelp: 使い方
 useHighest: 最高画質でダウンロード
 videoError: 動画 $1：$2
 videoNumber: 動画 $1
 videoProgress: 動画 $1 のダウンロード進捗
+videoQuality: 動画 $1 の画質
 welcomeDescription: X 動画ダウンローダーをインストールしました。開いている X のページを再読み込みして始めましょう。
 welcomeTitle: 動画を、手元に。

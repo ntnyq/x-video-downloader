@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { i18n } from '#i18n'
-import { Button } from '~/components/ui/button'
+import HelpDisclosure from '~/components/shared/HelpDisclosure.vue'
+import IconButton from '~/components/shared/IconButton.vue'
 import { Progress } from '~/components/ui/progress'
 import { isTerminalDownload } from '~/utils/downloadHistory'
 import { formatBytes } from '~/utils/preferences'
@@ -68,95 +69,126 @@ function percentage(item: DownloadStatus) {
   <section
     v-if="downloads.length"
     :aria-label="i18n.t('downloadProgress')"
-    class="mt-5 border-t border-border pt-4 space-y-4"
+    class="divide-y divide-border"
   >
-    <h3 class="text-sm font-semibold">{{ i18n.t('downloadProgress') }}</h3>
     <div
       v-for="item in downloads"
       :key="item.id"
-      class="space-y-2"
+      class="py-2 space-y-2"
     >
-      <a
-        v-if="showPost"
-        :href="`https://x.com/i/status/${item.postId}`"
-        target="_blank"
-        rel="noreferrer"
-        class="block break-all text-xs text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 hover:text-foreground"
-        >{{ item.author ? `@${item.author}` : i18n.t('post') }} ·
-        {{ item.postId }}</a
-      >
-      <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
-        <span
-          >{{ i18n.t('videoNumber', [item.mediaIndex]) }} ·
-          {{ STATE_LABELS[item.state] }}</span
+      <div class="flex items-start gap-2">
+        <div
+          class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground"
         >
-        <div class="flex flex-wrap gap-3">
-          <Button
+          <UiIcon
+            :name="
+              item.state === 'complete'
+                ? 'check'
+                : item.state === 'interrupted'
+                  ? 'alert'
+                  : item.state === 'paused'
+                    ? 'pause'
+                    : item.state === 'queued'
+                      ? 'clock'
+                      : 'download'
+            "
+            class="size-4"
+          />
+        </div>
+        <div class="min-w-0 flex-1">
+          <HelpDisclosure
+            :title="item.filename"
+            class="[&_summary_span]:truncate [&_summary]:min-h-6 text-foreground"
+          >
+            <p class="break-all">{{ item.filename }}</p>
+            <p>
+              {{ i18n.t('post') }} {{ item.postId }} /
+              {{ i18n.t('videoNumber', [item.mediaIndex]) }}
+            </p>
+            <p v-if="item.startedAt">
+              {{
+                new Intl.DateTimeFormat(i18n.t('uiLanguage'), {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }).format(item.startedAt)
+              }}
+            </p>
+          </HelpDisclosure>
+          <a
+            v-if="showPost"
+            :href="`https://x.com/i/status/${item.postId}`"
+            target="_blank"
+            rel="noreferrer"
+            class="inline-flex max-w-full items-center gap-1 text-[11px] text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring"
+            ><span class="truncate">{{
+              item.author ? `@${item.author}` : i18n.t('post')
+            }}</span
+            ><UiIcon
+              name="external"
+              class="size-3"
+          /></a>
+        </div>
+        <div class="flex shrink-0">
+          <IconButton
             @click="emit('action', item.id, 'pause', $event)"
             v-if="item.state === 'in_progress' || item.state === 'queued'"
             :disabled
-            :aria-label="i18n.t('pauseVideo', [item.mediaIndex])"
-            variant="link"
-            type="button"
-          >
-            {{ i18n.t('pause') }}
-          </Button>
-          <Button
+            :label="i18n.t('pauseVideo', [item.mediaIndex])"
+            icon="pause"
+          />
+          <IconButton
             @click="emit('action', item.id, 'resume', $event)"
             v-if="item.state === 'paused'"
             :disabled
-            :aria-label="i18n.t('resumeVideo', [item.mediaIndex])"
-            variant="link"
-            type="button"
-          >
-            {{ i18n.t('resume') }}
-          </Button>
-          <Button
+            :label="i18n.t('resumeVideo', [item.mediaIndex])"
+            icon="play"
+          />
+          <IconButton
             @click="emit('action', item.id, 'cancel', $event)"
             v-if="!isTerminalDownload(item)"
             :disabled
-            :aria-label="i18n.t('cancelVideo', [item.mediaIndex])"
-            variant="link"
-            type="button"
-          >
-            {{ i18n.t('cancel') }}
-          </Button>
-          <Button
+            :label="i18n.t('cancelVideo', [item.mediaIndex])"
+            icon="close"
+          />
+          <IconButton
             @click="emit('action', item.id, 'retry', $event)"
             v-else-if="item.state !== 'complete'"
             :disabled
-            :aria-label="i18n.t('retryVideo', [item.mediaIndex])"
-            variant="link"
-            type="button"
-          >
-            {{ i18n.t('retry') }}
-          </Button>
-          <Button
+            :label="i18n.t('retryVideo', [item.mediaIndex])"
+            icon="refresh"
+          />
+          <IconButton
             @click="emit('remove', item.id, $event)"
             v-if="canRemove && isTerminalDownload(item)"
             :disabled
-            :aria-label="i18n.t('removeVideoRecord', [item.mediaIndex])"
-            variant="link"
-            type="button"
-          >
-            {{ i18n.t('removeRecord') }}
-          </Button>
+            :label="i18n.t('removeVideoRecord', [item.mediaIndex])"
+            icon="trash"
+          />
         </div>
       </div>
-      <p class="break-all text-xs text-muted-foreground">{{ item.filename }}</p>
-      <template v-if="item.state === 'in_progress' || item.state === 'paused'">
-        <Progress
-          :model-value="percentage(item)"
-          :aria-label="i18n.t('videoProgress', [item.mediaIndex])"
-        />
-        <p class="text-xs text-muted-foreground">
+      <Progress
+        v-if="item.state === 'in_progress' || item.state === 'paused'"
+        :model-value="percentage(item)"
+        :aria-label="i18n.t('videoProgress', [item.mediaIndex])"
+        class="h-1"
+      />
+      <p
+        class="flex flex-wrap justify-between gap-1 text-[11px] text-muted-foreground tabular-nums"
+      >
+        <span>{{ STATE_LABELS[item.state] }}</span>
+        <span v-if="item.state === 'in_progress' || item.state === 'paused'">
           {{ formatBytes(item.bytesReceived, i18n.t('unknownSize')) }} /
-          {{ formatBytes(item.totalBytes, i18n.t('unknownSize'))
-          }}<span v-if="percentage(item) !== undefined">
-            · {{ percentage(item) }}%</span
+          {{ formatBytes(item.totalBytes, i18n.t('unknownSize')) }}
+          <span
+            v-if="percentage(item) !== undefined"
+            class="ml-1 font-medium"
+            >{{ percentage(item) }}%</span
           >
-        </p>
-      </template>
+        </span>
+        <span v-else-if="item.state === 'complete' && item.bytesReceived > 0">{{
+          formatBytes(item.bytesReceived, i18n.t('unknownSize'))
+        }}</span>
+      </p>
       <p
         v-if="item.state === 'interrupted'"
         class="text-xs text-destructive"

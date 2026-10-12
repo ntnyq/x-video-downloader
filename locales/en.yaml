@@ -1,15 +1,18 @@
 actionFailed: Action failed. Please try again.
 allAuthors: All authors
+autoSavePreferences: Preferences save automatically
+availableVideos: $1 available
 batchLimitExceeded: Select at most $1 videos per batch. Your $2 selections are preserved.
 cancel: Cancel
 cancelVideo: Cancel video $1
-chooseSaveLocation: Choose a save location for each download
-clearFinished: Clear finished records
+chooseSaveLocation: Ask where to save
+clearFinished: Clear finished
 clearSelection: Clear selection
 closePanel: Close download panel
 concurrencyHelp: 'Start 1–6 transfers at a time (default: 3). Remaining videos wait in the queue. Paused downloads keep their place until resumed. Lowering the limit does not stop running transfers.'
 concurrentDownloads: Concurrent downloads
-confirmEachSave: Confirm a save location for each video in order.
+confirmEachSave: Confirm each save location.
+connectionUnavailable: Page unavailable
 creatingDownload: Starting download…
 creatingDownloads: Starting downloads ($1). Confirm each save location if prompted…
 creatingSave: Starting download. Confirm the save location if prompted…
@@ -19,8 +22,9 @@ detectVideos: Find videos
 dismiss: Dismiss
 downloadAgain: Download again
 downloadCancelled: Download cancelled.
+downloadExample: Download preview
 downloadFailed: Download did not start. Please try again.
-downloadHighest: ↓ Download best quality
+downloadHighest: Download best quality
 downloadNotice: Progress stays in sync with your browser. Only save content you have permission to download.
 downloadPageSelected: Download selected videos ($1)
 downloadPaused: Download paused.
@@ -29,22 +33,26 @@ downloadQueued: Added to the download queue. Open the panel to track progress.
 downloadReload: Download did not start. Reload the page and try again.
 downloadResumed: Download queued to continue.
 downloadRetried: Download restarted.
+downloadRules: Download rules
 downloadSelected: Download selected videos ($1)
-downloadSettings: Download settings
+downloadSelection: Download selected
+downloadSettings: Downloads
 downloadVideos: Download videos
 downloadViews: Download views
-downloadsCreated: 'Downloads accepted: $1. Track waiting and active tasks below.'
+downloadsCreated: $1 added to queue.
 duplicateDownload: This video has already been downloaded. Open the panel to download it again.
 duplicateNotice: $1 selected videos have completed downloads. Download those videos again?
 extensionDescription: Save videos from X with your preferred MP4 quality.
 extensionName: X Video Downloader
 filenameEmpty: Enter a filename template.
+filenameExtension: Adds .mp4 automatically
 filenameHelp: 'Variables: $1 author, $2 post date (UTC), $3 post ID, $4 video number, $5 resolution. Adds .mp4 automatically. Missing authors or dates use unknown / undated.'
 filenamePreview: Preview (sample post)
-filenameTemplate: Filename template
+filenameTemplate: Filename
 filenameTokens: Use only the variables listed below and close every brace.
 filenameTooLong: The template must be 160 characters or fewer.
 filenameUnsafe: "Paths, control characters and these symbols are not allowed: \\ / : * ? \" < > |"
+filenameVariables: Template variables
 filterAuthor: Filter by author
 finishedDownload: This download has already ended.
 foreignDownload: This download was not created by the extension.
@@ -57,21 +65,23 @@ guideSteps: Save a video in three steps
 highestSuffix: (best quality)
 historyClearHelp: Clears matching finished records from this extension only. Downloaded files and active or paused tasks are kept. Cleared records no longer trigger duplicate reminders.
 historyCleared: Finished records cleared.
-historyCount: $1 download records
+historyCount: $1 records
 historyEmpty: No extension downloads yet.
 historyNoMatches: No downloads match these filters.
-historySearchPlaceholder: 'Filename, post ID or author'
-historyTab: 'History & queue'
+historySearchPlaceholder: Search downloads…
+historyTab: Downloads
+hlsShort: HLS only · unsupported
 hlsUnsupported: This video is only available as HLS segments. Merging them is not supported yet.
+installed: Installed
 interruptedHelp: 'Download interrupted ($1). Retry, or reload the original post if the link has expired.'
 invalidRequest: Invalid download request. Select the video again.
 invalidSender: Invalid download request. Reload X and try again.
 languageHelp: 'The interface follows your browser language. Available in English, Simplified Chinese, Traditional Chinese, Japanese and Korean.'
 networkError: Network error
-noVideos: No downloadable videos found yet
-noVideosReady: 'Play the video, then choose “Scan again”. If you just installed or updated the extension, reload X.'
+noVideos: No videos yet
+noVideosReady: 'Play a video, then scan again. Reload X after installing or updating.'
 noVideosReload: 'Reload X to connect the extension to the player, then play the video.'
-oneClickDownload: ↓ Download now
+oneClickDownload: Download now
 openPostFirst: Open an X post containing a video first.
 openX: Open X
 originalMp4: Original MP4
@@ -96,11 +106,11 @@ qualityHelp: Used for quick and batch downloads. Chooses the best resolution wit
 qualityHighest: Best quality
 qualitySmallest: Save space
 queueFull: 'The download queue is full. Wait for tasks to finish, then try again.'
-quickDownload: ↓ Quick download
+quickDownload: Quick download
 refresh: Scan again
 removeRecord: Remove record
 removeVideoRecord: Remove record for video $1
-resetTemplate: Restore default template
+resetTemplate: Restore default
 resume: Resume
 resumeUnavailable: This download cannot be resumed in its current state.
 resumeVideo: Resume video $1
@@ -109,16 +119,17 @@ retryUnavailable: 'Only failed, cancelled or removed downloads can be retried.'
 retryVideo: Retry video $1
 saveLocationHelp: 'Off by default. Saves directly to your browser’s download folder, which you can change in browser settings. When on, asks for each video, including batch downloads.'
 saveTemplate: Save template
-saveVideo: ↓ Save video $1
+saveVideo: Save video $1
 saving: Saving…
 scanning: Scanning the current page…
 searchDownloads: Search downloads
 selectAll: Select all available videos ($1 / $2)
-selectPageVideos: Select all videos on this page
+selectPageVideos: Select all
 selectPostVideos: Select videos in post $1
 selectVideo: Select video $1
 selectVideos: Select videos
 selectedPostVideos: Videos in the selected post
+selectedVideos: $1 selected
 settings: Settings
 settingsSaveFailed: Settings could not be saved. Try again.
 shortcutHelp: 'You can also click the toolbar icon or press Alt + O to open the download panel.'
@@ -137,7 +148,7 @@ themeAmber: Amber
 themeApply: Apply color
 themeBlue: X blue
 themeCustom: Custom RGB color
-themeDescription: Grok’s neutral surfaces with your choice of accent. Panels on X follow its light or dark background; extension pages follow your system.
+themeDescription: Panels follow X; extension pages follow your system appearance.
 themeGreen: Green
 themeGrok: Grok · Default
 themeIndigo: Indigo
@@ -160,9 +171,11 @@ troubleshootingHelp: 'Play the video, then choose “Scan again”. Reload X aft
 troubleshootingTitle: No video detected?
 uiLanguage: en
 unknownSize: Unknown size
+usageHelp: Help
 useHighest: Download at best quality instead
 videoError: 'Video $1: $2'
 videoNumber: Video $1
 videoProgress: Download progress for video $1
+videoQuality: Quality for video $1
 welcomeDescription: X Video Downloader is installed. Reload any open X pages to get started.
 welcomeTitle: Your videos. Saved locally.

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { i18n } from '#i18n'
+import EmptyState from '~/components/shared/EmptyState.vue'
 import { Button } from '~/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import DownloadHistory from './DownloadHistory.vue'
@@ -35,6 +36,9 @@ const emit = defineEmits<{
    */
   showAll: []
 }>()
+const mediaCount = computed(() =>
+  props.snapshot.posts.reduce((count, post) => count + post.media.length, 0),
+)
 const view = shallowRef<'videos' | 'history'>('videos')
 
 watch(
@@ -46,47 +50,58 @@ watch(
 </script>
 
 <template>
-  <Tabs v-model="view">
-    <div class="px-5 py-3">
+  <Tabs
+    v-model="view"
+    class="min-h-0 flex-1"
+  >
+    <div class="shrink-0 border-b border-border px-4">
       <TabsList :aria-label="i18n.t('downloadViews')">
-        <TabsTrigger value="videos">{{ i18n.t('pageVideosTab') }}</TabsTrigger>
-        <TabsTrigger value="history">{{ i18n.t('historyTab') }}</TabsTrigger>
+        <TabsTrigger value="videos"
+          ><UiIcon
+            name="video"
+            class="size-4"
+          />{{ i18n.t('pageVideosTab')
+          }}<span class="rounded bg-secondary px-1.5 text-xs tabular-nums">{{
+            mediaCount
+          }}</span></TabsTrigger
+        >
+        <TabsTrigger value="history"
+          ><UiIcon
+            name="history"
+            class="size-4"
+          />{{ i18n.t('historyTab') }}</TabsTrigger
+        >
       </TabsList>
     </div>
-    <TabsContent value="history">
+    <TabsContent
+      value="history"
+      class="min-h-0 overflow-y-auto"
+    >
       <DownloadHistory />
     </TabsContent>
     <TabsContent
       :hidden="view !== 'videos'"
       value="videos"
+      class="min-h-0 overflow-hidden data-[state=active]:flex data-[state=active]:flex-col"
       force-mount
     >
-      <p
+      <EmptyState
         v-if="isLoading"
-        role="status"
-        class="p-5 text-sm text-muted-foreground"
-      >
-        {{ i18n.t('scanning') }}
-      </p>
-      <div
+        :title="i18n.t('scanning')"
+      />
+      <EmptyState
         v-else-if="requestError"
-        class="p-5"
+        :title="i18n.t('connectionUnavailable')"
+        :description="requestError"
       >
-        <p
-          role="status"
-          class="text-sm text-muted-foreground leading-relaxed"
-        >
-          {{ requestError }}
-        </p>
         <Button
           as="a"
           href="https://x.com"
           target="_blank"
           rel="noreferrer"
-          class="mt-5"
           >{{ i18n.t('openX') }}</Button
         >
-      </div>
+      </EmptyState>
       <DownloadPanel
         @refresh="emit('refresh')"
         @show-all="emit('showAll')"
