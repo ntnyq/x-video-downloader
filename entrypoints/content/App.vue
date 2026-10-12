@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { onClickOutside } from '@vueuse/core'
 import { i18n } from '#i18n'
 import { browser } from '#imports'
 import IconButton from '~/components/shared/IconButton.vue'
@@ -49,12 +50,20 @@ const emit = defineEmits<{
 const pageTheme = usePageTheme()
 const { themeStyle } = useTheme()
 const panelId = useId()
+const surfaceRef = useTemplateRef('surfaceRef')
 const closeButtonRef = useTemplateRef('closeButtonRef')
 const toggleButtonRef = useTemplateRef('toggleButtonRef')
 const settingsError = shallowRef('')
 const overlayRef = useTemplateRef('overlayRef')
 
 provideOverlayTarget(overlayRef)
+
+// Include the launcher and portalled menus in the same outside-click boundary.
+onClickOutside(surfaceRef, () => {
+  if (props.isOpen) {
+    emit('close')
+  }
+})
 
 /**
  * Asks the background to open settings because content scripts lack openOptionsPage.
@@ -90,6 +99,7 @@ watch(
 <template>
   <aside
     @keydown.esc.stop="emit('close')"
+    ref="surfaceRef"
     :style="themeStyle"
     :data-xvd-theme="pageTheme"
     :aria-label="i18n.t('extensionName')"

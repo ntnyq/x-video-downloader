@@ -54,7 +54,7 @@ const quickLabel = computed(() =>
 
 /**
  * Handles a trusted quick-download click using the saved quality preference.
- * The panel opens for ambiguous media selection or after a successful single download.
+ * The panel opens only when video detection or media selection is needed.
  *
  * @param event - User click used to verify that the action is trusted.
  * @returns A promise resolving after the click has been handled.
@@ -68,22 +68,14 @@ async function handleQuick(event: MouseEvent) {
     emit('open')
     return
   }
-  if (
-    await download(createDownloadRequest(props.post, item.index, item.variant))
-  ) {
-    emit('open')
-  }
+  await download(createDownloadRequest(props.post, item.index, item.variant))
 }
 /**
  * Repeats the completed video only after a trusted confirmation click.
  */
 async function confirmDuplicate(event: MouseEvent) {
-  if (
-    event.isTrusted
-    && duplicateRequest.value
-    && (await download(duplicateRequest.value, true))
-  ) {
-    emit('open')
+  if (event.isTrusted && duplicateRequest.value) {
+    await download(duplicateRequest.value, true)
   }
 }
 
