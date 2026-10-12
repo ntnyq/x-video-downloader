@@ -6,6 +6,7 @@ import * as utils from '@ntnyq/utils'
 import * as vueuse from '@vueuse/core'
 import ts from 'typescript'
 import * as vue from 'vue'
+import * as floatingConstants from '../constants/floatingPosition'
 import * as floatingPosition from '../utils/floatingPosition'
 import type { useFloatingLauncher } from '../composables/useFloatingLauncher'
 import type { FloatingPlacement } from '../utils/floatingPosition'
@@ -54,6 +55,9 @@ function createLauncher(
        * @throws When an unexpected dependency is imported.
        */
       require(id: string) {
+        if (id === '../constants/floatingPosition') {
+          return floatingConstants
+        }
         if (id === '@ntnyq/utils') {
           return utils
         }

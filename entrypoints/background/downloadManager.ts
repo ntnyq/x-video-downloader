@@ -6,15 +6,16 @@ import {
   isUndefined,
   noop,
 } from '@ntnyq/utils'
+import {
+  MAX_OUTSTANDING_DOWNLOADS,
+  MAX_TERMINAL_RECORDS,
+} from '../../constants/download'
 import { normalizeDownloadRequest } from '../../utils/download'
 import { logger } from '../../utils/logger'
 import { buildFilename, normalizePreferences } from '../../utils/preferences'
 import { isRecord } from '../../utils/video'
 import type { DownloadRecord, DownloadStatus } from '../../types/download'
 import type { DownloadRequest, DownloadResult } from '../../types/video'
-
-const MAX_TERMINAL_RECORDS = 200
-const MAX_OUTSTANDING_DOWNLOADS = 1000
 
 interface NativeDownload {
   /**

@@ -1,4 +1,13 @@
 import { isArray, isNull, isNumber, isString, orderBy } from '@ntnyq/utils'
+import {
+  MAX_MEDIA_ID_LENGTH,
+  MAX_MEDIA_URL_LENGTH,
+  MAX_POST_DATE_LENGTH,
+  MAX_POST_MEDIA,
+  MAX_POST_TEXT_LENGTH,
+  MAX_RESPONSE_NODES,
+  MAX_VIDEO_VARIANTS,
+} from '../constants/video'
 import type { VideoMedia, VideoPost, VideoVariant } from '../types/video'
 
 /**
@@ -72,7 +81,7 @@ export function normalizeMediaUrl(
   value: unknown,
   extension: 'mp4' | 'm3u8' = 'mp4',
 ): string | undefined {
-  if (!isString(value) || value.length > 8192) {
+  if (!isString(value) || value.length > MAX_MEDIA_URL_LENGTH) {
     return
   }
   try {
@@ -104,7 +113,7 @@ export function normalizeVariants(value: unknown): VideoVariant[] {
     return []
   }
   const variants = new Map<string, VideoVariant>()
-  for (const item of value.slice(0, 32)) {
+  for (const item of value.slice(0, MAX_VIDEO_VARIANTS)) {
     if (!isRecord(item)) {
       continue
     }
@@ -140,7 +149,7 @@ export function normalizePost(value: unknown): VideoPost | undefined {
     return
   }
   const media: VideoMedia[] = []
-  for (const item of value['media'].slice(0, 16)) {
+  for (const item of value['media'].slice(0, MAX_POST_MEDIA)) {
     if (!isRecord(item)) {
       continue
     }
@@ -151,7 +160,7 @@ export function normalizePost(value: unknown): VideoPost | undefined {
     }
     media.push({
       id: isString(item['id'])
-        ? item['id'].slice(0, 80)
+        ? item['id'].slice(0, MAX_MEDIA_ID_LENGTH)
         : String(media.length + 1),
       variants,
       hasHls,
@@ -163,7 +172,9 @@ export function normalizePost(value: unknown): VideoPost | undefined {
   return {
     ...normalizePostMetadata(value),
     id: value['id'],
-    text: isString(value['text']) ? value['text'].slice(0, 280) : '',
+    text: isString(value['text'])
+      ? value['text'].slice(0, MAX_POST_TEXT_LENGTH)
+      : '',
     media,
   }
 }
@@ -189,7 +200,7 @@ export function normalizePostMetadata(value: Record<string, unknown>): {
   return {
     ...(isString(author) && /^\w{1,30}$/.test(author) ? { author } : {}),
     ...(isString(createdAt)
-    && createdAt.length <= 80
+    && createdAt.length <= MAX_POST_DATE_LENGTH
     && Number.isFinite(Date.parse(createdAt))
       ? { createdAt: new Date(createdAt).toISOString() }
       : {}),
@@ -207,7 +218,7 @@ export function extractVideoPosts(payload: unknown): VideoPost[] {
   const posts = new Map<string, VideoPost>()
   const pending = [payload]
   const visited = new WeakSet<object>()
-  let budget = 60_000
+  let budget = MAX_RESPONSE_NODES
   while (pending.length && budget-- > 0) {
     const node = pending.pop()
     if (!node || typeof node !== 'object' || visited.has(node)) {

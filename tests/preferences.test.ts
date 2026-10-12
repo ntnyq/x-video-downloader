@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { DEFAULT_FILENAME_TEMPLATE } from '../constants/preferences'
 import { normalizeBatchRequest } from '../utils/download'
 import {
   buildFilename,
-  DEFAULT_FILENAME_TEMPLATE,
   formatBytes,
   normalizePreferences,
   selectPreferredVariant,

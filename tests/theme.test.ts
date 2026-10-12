@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { THEME_PRESETS } from '../constants/theme'
 import {
   getThemeForeground,
   getThemeStyle,
   normalizeTheme,
   parseThemeColor,
-  THEME_PRESETS,
 } from '../utils/theme'
 
 test('provides twelve distinct palettes and keeps Grok adaptive by default', () => {

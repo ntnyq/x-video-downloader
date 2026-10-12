@@ -1,5 +1,6 @@
 import { isArray, isUndefined } from '@ntnyq/utils'
 import { browser } from '#imports'
+import { PAGE_VIDEOS_REFRESH_INTERVAL_MS } from '~/constants/video'
 import { isRecord, isXUrl, normalizePost } from '~/utils/video'
 import type { PageVideos } from '~/types/video'
 
@@ -45,7 +46,7 @@ export function useCurrentTabVideos() {
     }
   }
 
-  const { pause } = useIntervalFn(refresh, 1500)
+  const { pause } = useIntervalFn(refresh, PAGE_VIDEOS_REFRESH_INTERVAL_MS)
 
   onMounted(async () => {
     try {

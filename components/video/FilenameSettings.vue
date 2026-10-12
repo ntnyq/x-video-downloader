@@ -6,10 +6,11 @@ import SettingsSection from '~/components/shared/SettingsSection.vue'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import {
-  buildFilename,
   DEFAULT_FILENAME_TEMPLATE,
-  validateFilenameTemplate,
-} from '~/utils/preferences'
+  FILENAME_PREVIEW_REQUEST,
+  MAX_FILENAME_TEMPLATE_LENGTH,
+} from '~/constants/preferences'
+import { buildFilename, validateFilenameTemplate } from '~/utils/preferences'
 import { filenameSetting } from '~/utils/settings'
 
 const props = defineProps<{
@@ -38,17 +39,7 @@ useEventListener(window, 'beforeunload', event => {
 
 const validationError = computed(() => validateFilenameTemplate(draft.value))
 const preview = computed(() =>
-  buildFilename(
-    {
-      type: 'download-video',
-      postId: '2105974296740811141',
-      mediaIndex: 1,
-      author: 'ntnyq',
-      createdAt: '2026-10-02T12:00:00.000Z',
-      url: 'https://video.twimg.com/ext_tw_video/1/pu/vid/1920x1080/sample.mp4',
-    },
-    draft.value,
-  ),
+  buildFilename(FILENAME_PREVIEW_REQUEST, draft.value),
 )
 
 /**
@@ -118,10 +109,10 @@ watch(draft, () => {
         :aria-invalid="!!validationError"
         :aria-label="i18n.t('filenameTemplate')"
         :spellcheck="false"
+        :maxlength="MAX_FILENAME_TEMPLATE_LENGTH"
         id="filename-template"
         name="filename-template"
         aria-describedby="filename-help filename-error"
-        maxlength="160"
         autocomplete="off"
         class="w-full font-mono text-xs"
       />

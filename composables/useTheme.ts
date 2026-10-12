@@ -1,4 +1,5 @@
 import { createSharedComposable } from '@vueuse/core'
+import { DEFAULT_THEME } from '~/constants/theme'
 import { getThemeStyle, normalizeTheme } from '~/utils/theme'
 import { themeSetting } from '~/utils/themeSetting'
 
@@ -6,7 +7,7 @@ import { themeSetting } from '~/utils/themeSetting'
  * Shares the saved accent and storage subscription within an extension context.
  */
 export const useTheme = createSharedComposable(() => {
-  const theme = shallowRef('grok')
+  const theme = shallowRef<string>(DEFAULT_THEME)
   const isReady = shallowRef(false)
   const isSaving = shallowRef(false)
   const themeError = shallowRef('')

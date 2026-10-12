@@ -1,11 +1,15 @@
 import { isUndefined } from '@ntnyq/utils'
 import { useEventListener } from '@vueuse/core'
 import { computed, onScopeDispose, shallowRef } from 'vue'
+import {
+  FLOATING_BUTTON_SIZE,
+  FLOATING_DRAG_THRESHOLD,
+  FLOATING_INITIAL_BOTTOM_GAP,
+} from '../constants/floatingPosition'
 import { floatingLauncherSetting } from '../utils/floatingLauncherSetting'
 import {
   clampFloatingPosition,
   dockFloatingPosition,
-  FLOATING_BUTTON_SIZE,
   getFloatingPanelStyle,
   getNearestFloatingEdge,
   normalizeFloatingPlacement,
@@ -35,7 +39,10 @@ export function useFloatingLauncher(
     dockFloatingPosition(
       {
         x: viewport.value.width,
-        y: viewport.value.height - FLOATING_BUTTON_SIZE - 20,
+        y:
+          viewport.value.height
+          - FLOATING_BUTTON_SIZE
+          - FLOATING_INITIAL_BOTTOM_GAP,
       },
       viewport.value,
       edge.value,
@@ -106,7 +113,7 @@ export function useFloatingLauncher(
     }
     const x = event.clientX - gesture.start.x
     const y = event.clientY - gesture.start.y
-    if (!isDragging.value && Math.hypot(x, y) < 6) {
+    if (!isDragging.value && Math.hypot(x, y) < FLOATING_DRAG_THRESHOLD) {
       return
     }
     event.preventDefault()

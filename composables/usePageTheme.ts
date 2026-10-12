@@ -3,6 +3,10 @@ import {
   useMutationObserver,
   usePreferredDark,
 } from '@vueuse/core'
+import {
+  PAGE_DIM_BRIGHTNESS_THRESHOLD,
+  PAGE_LIGHT_BRIGHTNESS_THRESHOLD,
+} from '~/constants/theme'
 
 /**
  * Follows X's visible page background without reading account or site storage.
@@ -28,7 +32,11 @@ export const usePageTheme = createSharedComposable(() => {
     }
     const brightness = Math.max(...channels)
     pageTheme.value =
-      brightness > 128 ? 'light' : brightness > 20 ? 'dim' : 'dark'
+      brightness > PAGE_LIGHT_BRIGHTNESS_THRESHOLD
+        ? 'light'
+        : brightness > PAGE_DIM_BRIGHTNESS_THRESHOLD
+          ? 'dim'
+          : 'dark'
   }
 
   useMutationObserver(

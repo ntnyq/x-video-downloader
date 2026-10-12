@@ -1,5 +1,6 @@
 import { isArray, isString, isUndefined } from '@ntnyq/utils'
 import { browser } from '#imports'
+import { DOWNLOAD_REFRESH_INTERVAL_MS } from '~/constants/download'
 import { isDownloadStatus } from '~/utils/downloadHistory'
 import { localizeDownloadError } from '~/utils/i18n'
 import { isRecord } from '~/utils/video'
@@ -272,7 +273,7 @@ export function usePostDownloads(
   )
   useIntervalFn(() => {
     refresh()
-  }, 1000)
+  }, DOWNLOAD_REFRESH_INTERVAL_MS)
 
   onScopeDispose(() => {
     isDisposed = true

@@ -2,8 +2,9 @@ import { storage } from '#imports'
 import {
   DEFAULT_CONCURRENCY,
   DEFAULT_FILENAME_TEMPLATE,
-  normalizePreferences,
-} from './preferences'
+  DEFAULT_QUALITY,
+} from '../constants/preferences'
+import { normalizePreferences } from './preferences'
 import type { DownloadRecord, QualityPreference } from '~/types/download'
 
 export const saveAsSetting = storage.defineItem<boolean>('local:saveAs', {
@@ -17,7 +18,7 @@ export const concurrencySetting = storage.defineItem<number>(
 )
 export const qualitySetting = storage.defineItem<QualityPreference>(
   'local:quality',
-  { fallback: 'highest' },
+  { fallback: DEFAULT_QUALITY },
 )
 export const filenameSetting = storage.defineItem<string>(
   'local:filenameTemplate',

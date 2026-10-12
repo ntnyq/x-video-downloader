@@ -6,6 +6,7 @@ import { runInNewContext } from 'node:vm'
 import * as utils from '@ntnyq/utils'
 import ts from 'typescript'
 import * as vue from 'vue'
+import * as downloadConstants from '../constants/download'
 import * as downloadHistory from '../utils/downloadHistory'
 import * as video from '../utils/video'
 import type { usePostDownloads } from '../composables/usePostDownloads'
@@ -110,6 +111,9 @@ function createDownloads(
      * @throws When the module imports an unsupported dependency.
      */
     require(id: string) {
+      if (id === '~/constants/download') {
+        return downloadConstants
+      }
       if (id === '@ntnyq/utils') {
         return utils
       }

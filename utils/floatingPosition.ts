@@ -1,8 +1,12 @@
 import { clamp, isNumber } from '@ntnyq/utils'
+import {
+  FLOATING_BUTTON_SIZE,
+  FLOATING_EDGE_GAP,
+  FLOATING_PANEL_GAP,
+  FLOATING_PANEL_MAX_HEIGHT,
+  FLOATING_PANEL_MAX_WIDTH,
+} from '../constants/floatingPosition'
 import { isRecord } from './video'
-
-export const FLOATING_BUTTON_SIZE = 44
-export const FLOATING_EDGE_GAP = 8
 
 export type FloatingEdge = 'left' | 'right' | 'top' | 'bottom'
 
@@ -133,15 +137,18 @@ export function getFloatingPanelStyle(
   position: FloatingPosition,
   viewport: FloatingViewport,
 ) {
-  const gap = 12
-  const width = clamp(viewport.width - FLOATING_EDGE_GAP * 2, 0, 360)
-  const above = Math.max(0, position.y - gap - FLOATING_EDGE_GAP)
+  const width = clamp(
+    viewport.width - FLOATING_EDGE_GAP * 2,
+    0,
+    FLOATING_PANEL_MAX_WIDTH,
+  )
+  const above = Math.max(0, position.y - FLOATING_PANEL_GAP - FLOATING_EDGE_GAP)
   const below = Math.max(
     0,
     viewport.height
       - position.y
       - FLOATING_BUTTON_SIZE
-      - gap
+      - FLOATING_PANEL_GAP
       - FLOATING_EDGE_GAP,
   )
   const left = Math.max(
@@ -154,9 +161,9 @@ export function getFloatingPanelStyle(
   return {
     left: `${left}px`,
     width: `${width}px`,
-    maxHeight: `${Math.min(640, Math.max(above, below))}px`,
+    maxHeight: `${Math.min(FLOATING_PANEL_MAX_HEIGHT, Math.max(above, below))}px`,
     ...(above >= below
-      ? { bottom: `${viewport.height - position.y + gap}px` }
-      : { top: `${position.y + FLOATING_BUTTON_SIZE + gap}px` }),
+      ? { bottom: `${viewport.height - position.y + FLOATING_PANEL_GAP}px` }
+      : { top: `${position.y + FLOATING_BUTTON_SIZE + FLOATING_PANEL_GAP}px` }),
   }
 }

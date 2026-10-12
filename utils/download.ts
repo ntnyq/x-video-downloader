@@ -5,6 +5,8 @@ import {
   isNumber,
   uniqueBy,
 } from '@ntnyq/utils'
+import { MAX_DOWNLOAD_BATCH_SIZE } from '../constants/download'
+import { MAX_POST_MEDIA } from '../constants/video'
 import {
   isPostId,
   isRecord,
@@ -13,8 +15,6 @@ import {
   normalizePostMetadata,
 } from './video'
 import type { DownloadRequest } from '../types/video'
-
-export const MAX_DOWNLOAD_BATCH_SIZE = 100
 
 /**
  * Validates a single-video message before it reaches the download manager.
@@ -39,7 +39,7 @@ export function normalizeDownloadRequest(
     || !isNumber(mediaIndex)
     || !isInteger(mediaIndex)
     || mediaIndex < 1
-    || mediaIndex > 16
+    || mediaIndex > MAX_POST_MEDIA
   ) {
     return
   }

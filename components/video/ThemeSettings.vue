@@ -7,11 +7,8 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { useTheme } from '~/composables/useTheme'
-import {
-  getThemeForeground,
-  parseThemeColor,
-  THEME_PRESETS,
-} from '~/utils/theme'
+import { THEME_PRESETS } from '~/constants/theme'
+import { getThemeForeground, parseThemeColor } from '~/utils/theme'
 
 const { theme, isReady, isSaving, themeError, saveTheme } = useTheme()
 

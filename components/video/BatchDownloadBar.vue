@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { i18n } from '#i18n'
 import { Button } from '~/components/ui/button'
-import { MAX_DOWNLOAD_BATCH_SIZE } from '~/utils/download'
+import { MAX_DOWNLOAD_BATCH_SIZE } from '~/constants/download'
 
 interface Props {
   /** Number of checked downloadable videos. */

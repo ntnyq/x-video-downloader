@@ -1,21 +1,10 @@
 import { isString } from '@ntnyq/utils'
-/**
- * Built-in accent palettes; Grok follows the light or dark surface automatically.
- */
-export const THEME_PRESETS = [
-  { id: 'grok', label: 'themeGrok', color: 'rgb(15, 20, 25)' },
-  { id: 'blue', label: 'themeBlue', color: 'rgb(29, 155, 240)' },
-  { id: 'ocean', label: 'themeOcean', color: 'rgb(37, 99, 235)' },
-  { id: 'teal', label: 'themeTeal', color: 'rgb(13, 148, 136)' },
-  { id: 'green', label: 'themeGreen', color: 'rgb(22, 163, 74)' },
-  { id: 'lime', label: 'themeLime', color: 'rgb(132, 204, 22)' },
-  { id: 'amber', label: 'themeAmber', color: 'rgb(245, 158, 11)' },
-  { id: 'orange', label: 'themeOrange', color: 'rgb(234, 88, 12)' },
-  { id: 'red', label: 'themeRed', color: 'rgb(220, 38, 38)' },
-  { id: 'rose', label: 'themeRose', color: 'rgb(219, 39, 119)' },
-  { id: 'purple', label: 'themePurple', color: 'rgb(147, 51, 234)' },
-  { id: 'indigo', label: 'themeIndigo', color: 'rgb(79, 70, 229)' },
-] as const
+import {
+  DEFAULT_THEME,
+  DEFAULT_THEME_COLOR,
+  MAX_RGB_CHANNEL,
+  THEME_PRESETS,
+} from '../constants/theme'
 
 /**
  * Parses opaque RGB colors with integer channels, rejecting CSS expressions and alpha.
@@ -36,7 +25,7 @@ export function parseThemeColor(value: unknown): string | undefined {
     return undefined
   }
   const channels = match.slice(1).map(Number)
-  if (channels.some(channel => channel > 255)) {
+  if (channels.some(channel => channel > MAX_RGB_CHANNEL)) {
     return undefined
   }
   return `rgb(${channels.join(', ')})`
@@ -52,7 +41,7 @@ export function normalizeTheme(value: unknown): string {
   return (
     THEME_PRESETS.find(preset => preset.id === value)?.id
     ?? parseThemeColor(value)
-    ?? 'grok'
+    ?? DEFAULT_THEME
   )
 }
 
@@ -64,12 +53,14 @@ export function normalizeTheme(value: unknown): string {
  */
 export function getThemeForeground(color: string): string {
   const channels =
-    (parseThemeColor(color) ?? 'rgb(15, 20, 25)').match(/\d+/g)?.map(value => {
-      const channel = Number(value) / 255
-      return channel <= 0.04045
-        ? channel / 12.92
-        : ((channel + 0.055) / 1.055) ** 2.4
-    }) ?? []
+    (parseThemeColor(color) ?? DEFAULT_THEME_COLOR)
+      .match(/\d+/g)
+      ?.map(value => {
+        const channel = Number(value) / MAX_RGB_CHANNEL
+        return channel <= 0.04045
+          ? channel / 12.92
+          : ((channel + 0.055) / 1.055) ** 2.4
+      }) ?? []
   const luminance =
     (channels[0] ?? 0) * 0.2126
     + (channels[1] ?? 0) * 0.7152
@@ -87,7 +78,7 @@ export function getThemeForeground(color: string): string {
  */
 export function getThemeStyle(value: unknown): Record<string, string> {
   const theme = normalizeTheme(value)
-  if (theme === 'grok') {
+  if (theme === DEFAULT_THEME) {
     return {}
   }
   const color =

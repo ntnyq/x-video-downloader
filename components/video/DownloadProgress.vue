@@ -4,6 +4,7 @@ import { i18n } from '#i18n'
 import HelpDisclosure from '~/components/shared/HelpDisclosure.vue'
 import IconButton from '~/components/shared/IconButton.vue'
 import { Progress } from '~/components/ui/progress'
+import { DOWNLOAD_STATE_LABELS } from '~/constants/download'
 import { isTerminalDownload } from '~/utils/downloadHistory'
 import { formatBytes } from '~/utils/preferences'
 import type { DownloadStatus } from '~/types/download'
@@ -41,16 +42,6 @@ const emit = defineEmits<{
    */
   remove: [id: number, event: MouseEvent]
 }>()
-
-const STATE_LABELS: Record<DownloadStatus['state'], string> = {
-  queued: i18n.t('stateQueued'),
-  in_progress: i18n.t('stateDownloading'),
-  paused: i18n.t('statePaused'),
-  complete: i18n.t('stateComplete'),
-  interrupted: i18n.t('stateInterrupted'),
-  cancelled: i18n.t('stateCancelled'),
-  missing: i18n.t('stateMissing'),
-}
 
 /**
  * Calculates whole-number download progress when the total size is known.
@@ -176,7 +167,7 @@ function percentage(item: DownloadStatus) {
       <p
         class="flex flex-wrap justify-between gap-1 text-[11px] text-muted-foreground tabular-nums"
       >
-        <span>{{ STATE_LABELS[item.state] }}</span>
+        <span>{{ i18n.t(DOWNLOAD_STATE_LABELS[item.state]) }}</span>
         <span v-if="item.state === 'in_progress' || item.state === 'paused'">
           {{ formatBytes(item.bytesReceived, i18n.t('unknownSize')) }} /
           {{ formatBytes(item.totalBytes, i18n.t('unknownSize')) }}

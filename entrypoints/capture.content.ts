@@ -1,7 +1,12 @@
 /* eslint-disable unicorn/no-this-outside-of-class -- Preserve native fetch/XHR receivers. */
 import { safeParse } from '@ntnyq/utils'
 import { defineContentScript } from '#imports'
-import { MAX_CACHED_POSTS, VIDEO_CHANNEL, X_MATCHES } from '~/constants/video'
+import {
+  CAPTURE_REPLAY_INTERVAL_MS,
+  MAX_CACHED_POSTS,
+  VIDEO_CHANNEL,
+  X_MATCHES,
+} from '~/constants/video'
 import { extractVideoPosts, isRecord, isXUrl } from '~/utils/video'
 import type { VideoPost } from '~/types/video'
 
@@ -211,7 +216,7 @@ export default defineContentScript({
         || !isRecord(event.data)
         || event.data['channel'] !== VIDEO_CHANNEL
         || event.data['type'] !== 'ready'
-        || Date.now() - lastReplay < 300
+        || Date.now() - lastReplay < CAPTURE_REPLAY_INTERVAL_MS
       ) {
         return
       }

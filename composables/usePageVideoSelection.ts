@@ -1,5 +1,5 @@
 import { isUndefined } from '@ntnyq/utils'
-import { MAX_DOWNLOAD_BATCH_SIZE } from '~/utils/download'
+import { MAX_DOWNLOAD_BATCH_SIZE } from '~/constants/download'
 import {
   createSelectedVideoRequests,
   createVideoSelectionRows,

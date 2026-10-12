@@ -13,8 +13,9 @@ import {
 } from '~/components/ui/select'
 import { Switch } from '~/components/ui/switch'
 import { useDownloadPreferences } from '~/composables/useDownloadPreferences'
+import { MAX_CONCURRENCY, QUALITY_OPTIONS } from '~/constants/preferences'
 import { logger } from '~/utils/logger'
-import { normalizeQuality, QUALITY_OPTIONS } from '~/utils/preferences'
+import { normalizeQuality } from '~/utils/preferences'
 import {
   concurrencySetting,
   qualitySetting,
@@ -120,7 +121,7 @@ function updateConcurrency(value: number) {
         /></SelectTrigger>
         <SelectContent
           ><SelectItem
-            v-for="count in 6"
+            v-for="count in MAX_CONCURRENCY"
             :key="count"
             :value="count"
             >{{ count }}</SelectItem

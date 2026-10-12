@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import {
-  MAX_DOWNLOAD_BATCH_SIZE,
-  normalizeBatchRequest,
-} from '../utils/download'
+import { MAX_DOWNLOAD_BATCH_SIZE } from '../constants/download'
+import { normalizeBatchRequest } from '../utils/download'
 import { normalizeVariants } from '../utils/video'
 import {
   createSelectedVideoRequests,

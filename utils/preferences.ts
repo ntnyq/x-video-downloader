@@ -7,13 +7,19 @@ import {
   orderBy,
   STORAGE_UNITS,
 } from '@ntnyq/utils'
+import {
+  DEFAULT_CONCURRENCY,
+  DEFAULT_FILENAME_TEMPLATE,
+  DEFAULT_QUALITY,
+  FILENAME_TOKENS,
+  MAX_CONCURRENCY,
+  MAX_FILENAME_STEM_BYTES,
+  MAX_FILENAME_TEMPLATE_LENGTH,
+  QUALITY_OPTIONS,
+} from '../constants/preferences'
 import { isRecord, normalizeVariants } from './video'
 import type { DownloadPreferences, QualityPreference } from '../types/download'
 import type { DownloadRequest, VideoPost, VideoVariant } from '../types/video'
-
-export const DEFAULT_FILENAME_TEMPLATE =
-  '{author}_{date}_{postId}_{index}_{quality}'
-export const DEFAULT_CONCURRENCY = 3
 
 /**
  * Accepts an integer transfer limit from 1 to 6, otherwise using the default.
@@ -22,32 +28,13 @@ export const DEFAULT_CONCURRENCY = 3
  * @returns A supported transfer limit.
  */
 export function normalizeConcurrency(value: unknown): number {
-  return isNumber(value) && isInteger(value) && value >= 1 && value <= 6
+  return isNumber(value)
+    && isInteger(value)
+    && value >= 1
+    && value <= MAX_CONCURRENCY
     ? value
     : DEFAULT_CONCURRENCY
 }
-export const QUALITY_OPTIONS: Array<{
-  /**
-   * Stored quality preference represented by this option.
-   */
-  value: QualityPreference
-  /**
-   * Translation key used to display the quality option.
-   */
-  label: 'qualityHighest' | 'quality1080' | 'quality720' | 'qualitySmallest'
-}> = [
-  { value: 'highest', label: 'qualityHighest' },
-  { value: '1080p', label: 'quality1080' },
-  { value: '720p', label: 'quality720' },
-  { value: 'smallest', label: 'qualitySmallest' },
-]
-const FILENAME_TOKENS = new Set([
-  'author',
-  'date',
-  'postId',
-  'index',
-  'quality',
-])
 
 /**
  * Resolves a stored quality value to a supported preference.
@@ -57,7 +44,8 @@ const FILENAME_TOKENS = new Set([
  */
 export function normalizeQuality(value: unknown): QualityPreference {
   return (
-    QUALITY_OPTIONS.find(option => option.value === value)?.value ?? 'highest'
+    QUALITY_OPTIONS.find(option => option.value === value)?.value
+    ?? DEFAULT_QUALITY
   )
 }
 
@@ -78,7 +66,7 @@ export function validateFilenameTemplate(
   if (!value.trim()) {
     return 'filenameEmpty'
   }
-  if (value.length > 160) {
+  if (value.length > MAX_FILENAME_TEMPLATE_LENGTH) {
     return 'filenameTooLong'
   }
   if (/[\\/<>:"|?*\p{Cc}]/u.test(value) || value.includes('..')) {
@@ -206,7 +194,9 @@ export function buildFilename(
   // Bound UTF-8 bytes too: browser filesystems typically cap one name at 255 bytes.
   let safe = ''
   for (const char of stem || `X-${request.postId}-${request.mediaIndex}`) {
-    if (new TextEncoder().encode(safe + char).length > 200) {
+    if (
+      new TextEncoder().encode(safe + char).length > MAX_FILENAME_STEM_BYTES
+    ) {
       break
     }
     safe += char
