@@ -41,10 +41,10 @@ async function savePreference(save: () => Promise<void>) {
   requestError.value = ''
   try {
     await save()
-    toast.success(i18n.t('preferencesSaved'))
+    toast.success(i18n.t('settings.saved'))
   } catch (error) {
     log.warn('Could not save download preferences', error)
-    requestError.value = i18n.t('settingsSaveFailed')
+    requestError.value = i18n.t('settings.saveFailed')
   } finally {
     isSaving.value = false
   }
@@ -74,7 +74,7 @@ function updateConcurrency(value: number) {
 
 <template>
   <SettingsSection
-    :title="i18n.t('downloadSettings')"
+    :title="i18n.t('settings.downloads')"
     icon="download"
   >
     <div
@@ -83,7 +83,7 @@ function updateConcurrency(value: number) {
       <Label
         for="default-quality"
         class="text-sm"
-        >{{ i18n.t('defaultQuality') }}</Label
+        >{{ i18n.t('settings.defaultQuality') }}</Label
       >
       <Select
         @update:model-value="updateQuality"
@@ -107,7 +107,7 @@ function updateConcurrency(value: number) {
       <Label
         for="download-concurrency"
         class="text-sm"
-        >{{ i18n.t('concurrentDownloads') }}</Label
+        >{{ i18n.t('settings.concurrentDownloads') }}</Label
       >
       <Select
         @update:model-value="updateConcurrency"
@@ -131,7 +131,7 @@ function updateConcurrency(value: number) {
       <Label
         for="save-location"
         class="text-sm leading-relaxed"
-        >{{ i18n.t('chooseSaveLocation') }}</Label
+        >{{ i18n.t('settings.chooseSaveLocation') }}</Label
       >
       <Switch
         @update:model-value="updateSaveAs"
@@ -141,10 +141,10 @@ function updateConcurrency(value: number) {
         class="justify-self-end"
       />
     </div>
-    <HelpDisclosure :title="i18n.t('downloadRules')"
-      ><p>{{ i18n.t('qualityHelp') }}</p>
-      <p>{{ i18n.t('concurrencyHelp') }}</p>
-      <p>{{ i18n.t('saveLocationHelp') }}</p></HelpDisclosure
+    <HelpDisclosure :title="i18n.t('settings.rules')"
+      ><p>{{ i18n.t('settings.qualityHelp') }}</p>
+      <p>{{ i18n.t('settings.concurrencyHelp') }}</p>
+      <p>{{ i18n.t('settings.saveLocationHelp') }}</p></HelpDisclosure
     >
     <p
       v-if="preferenceError || requestError"

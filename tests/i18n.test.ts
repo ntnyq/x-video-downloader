@@ -7,8 +7,18 @@ import * as utils from '@ntnyq/utils'
 import { generateChromeMessages, parseMessagesFile } from '@wxt-dev/i18n/build'
 import ts from 'typescript'
 import { CHANGELOG_ENTRIES } from '../constants/changelog'
+import { DOWNLOAD_STATE_LABELS } from '../constants/download'
+import { QUALITY_OPTIONS } from '../constants/preferences'
+import { THEME_PRESETS } from '../constants/theme'
 import { formatBytes, validateFilenameTemplate } from '../utils/preferences'
 import { formatVariant } from '../utils/video'
+
+const manifestMessageKeys = [
+  ...readFileSync(
+    new URL('../wxt.config.ts', import.meta.url),
+    'utf8',
+  ).matchAll(/__MSG_(\w+)__/g),
+].map(match => match[1])
 
 const LOCALES = ['en', 'zh_CN', 'zh_TW', 'ja', 'ko']
 const reference = await parseMessagesFile(
@@ -42,7 +52,26 @@ for (const locale of LOCALES) {
         namedSubstitutions,
       }))
     assert.deepEqual(signatures(parsed), signatures(reference))
+    const applicationMessages = parsed.filter(
+      ({ key }) => !key[0]?.startsWith('@@'),
+    )
     const messages = generateChromeMessages(parsed)
+    assert.equal(
+      Object.keys(messages).length,
+      applicationMessages.length,
+      'Message keys must not collide after flattening',
+    )
+    assert.ok(
+      applicationMessages.every(({ key }) => key.length >= 2),
+      'Group messages into namespaces',
+    )
+    assert.ok(manifestMessageKeys.length > 0)
+    for (const key of manifestMessageKeys) {
+      assert.ok(
+        key && messages[key]?.message,
+        `Missing manifest message ${locale}.${key}`,
+      )
+    }
     for (const [key, { message }] of Object.entries(messages)) {
       assert.ok(message.trim(), `${locale}.${key} is empty`)
     }
@@ -54,7 +83,7 @@ for (const locale of LOCALES) {
      * @throws When the locale does not provide the requested message.
      */
     const t = (key: string) => {
-      const message = messages[key]?.message
+      const message = messages[key.replaceAll('.', '_')]?.message
       assert.ok(message, `Missing ${locale}.${key}`)
       return message
     }
@@ -63,6 +92,13 @@ for (const locale of LOCALES) {
         assert.ok(t(change.type))
         assert.ok(t(change.key))
       }
+    }
+    for (const key of [
+      ...Object.values(DOWNLOAD_STATE_LABELS),
+      ...QUALITY_OPTIONS.map(option => option.label),
+      ...THEME_PRESETS.map(preset => preset.label),
+    ]) {
+      assert.ok(t(key))
     }
     const exports: {
       /**
@@ -98,8 +134,8 @@ for (const locale of LOCALES) {
     assert.ok(exports.localizeDownloadError)
     assert.ok(exports.localizeDocument)
     exports.localizeDocument()
-    assert.equal(document.documentElement.lang, t('uiLanguage'))
-    assert.equal(document.title, t('extensionName'))
+    assert.equal(document.documentElement.lang, t('extension.language'))
+    assert.equal(document.title, t('extension.name'))
     for (const code of [
       'downloadFailed',
       'actionFailed',
@@ -108,13 +144,20 @@ for (const locale of LOCALES) {
       'foreignDownload',
       'finishedDownload',
       'retryUnavailable',
+      'duplicateDownload',
+      'pauseUnavailable',
+      'resumeUnavailable',
+      'queueFull',
     ]) {
-      assert.equal(exports.localizeDownloadError(code), t(code))
+      assert.equal(exports.localizeDownloadError(code), t(`errors.${code}`))
     }
-    assert.equal(exports.localizeDownloadError(undefined), t('downloadFailed'))
+    assert.equal(
+      exports.localizeDownloadError(undefined),
+      t('errors.downloadFailed'),
+    )
     assert.equal(
       exports.localizeDownloadError('USER_CANCELED'),
-      t('downloadCancelled'),
+      t('download.cancelled'),
     )
     assert.equal(
       exports.localizeDownloadError('NETWORK_FAILED'),
@@ -123,14 +166,20 @@ for (const locale of LOCALES) {
     for (const input of ['', 'x'.repeat(161), '../video', '{unsupported}']) {
       assert.ok(t(validateFilenameTemplate(input)))
     }
-    assert.equal(formatBytes(-1, t('unknownSize')), t('unknownSize'))
+    assert.equal(
+      formatBytes(-1, t('common.unknownSize')),
+      t('common.unknownSize'),
+    )
     assert.equal(
       formatVariant(
         { url: '', width: 0, height: 0, bitrate: 0 },
-        t('originalMp4'),
+        t('quality.originalMp4'),
       ),
-      t('originalMp4'),
+      t('quality.originalMp4'),
     )
-    assert.equal(messages['filenameHelp']?.message.match(/\$[1-5]/g)?.length, 5)
+    assert.equal(
+      messages['filename_help']?.message.match(/\$[1-5]/g)?.length,
+      5,
+    )
   })
 }

@@ -20,11 +20,11 @@ export function localizeDownloadError(error: unknown): string {
     case 'pauseUnavailable':
     case 'resumeUnavailable':
     case 'queueFull':
-      return i18n.t(error)
+      return i18n.t(`errors.${error}`)
     case 'USER_CANCELED':
-      return i18n.t('downloadCancelled')
+      return i18n.t('download.cancelled')
     default:
-      return isString(error) && error ? error : i18n.t('downloadFailed')
+      return isString(error) && error ? error : i18n.t('errors.downloadFailed')
   }
 }
 
@@ -33,6 +33,6 @@ export function localizeDownloadError(error: unknown): string {
  * The resolved locale includes the English fallback when a language is unavailable.
  */
 export function localizeDocument() {
-  document.documentElement.lang = i18n.t('uiLanguage')
-  document.title = i18n.t('extensionName')
+  document.documentElement.lang = i18n.t('extension.language')
+  document.title = i18n.t('extension.name')
 }

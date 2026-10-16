@@ -45,7 +45,7 @@ const visiblePosts = computed(() =>
         variant="ghost"
         size="sm"
         class="text-xs text-muted-foreground"
-        ><UiIcon name="back" />{{ i18n.t('showAll') }}</Button
+        ><UiIcon name="back" />{{ i18n.t('common.showAll') }}</Button
       >
     </div>
     <PageVideoList
@@ -56,24 +56,24 @@ const visiblePosts = computed(() =>
       <template #tools
         ><IconButton
           @click="emit('refresh')"
-          :label="i18n.t('refresh')"
+          :label="i18n.t('common.refresh')"
           icon="refresh"
       /></template>
     </PageVideoList>
     <EmptyState
       v-else
-      :title="i18n.t('noVideos')"
+      :title="i18n.t('page.empty')"
       :description="
         snapshot.captureReady
-          ? i18n.t('noVideosReady')
-          : i18n.t('noVideosReload')
+          ? i18n.t('page.emptyReady')
+          : i18n.t('page.emptyReload')
       "
     >
       <Button
         @click="emit('refresh')"
         variant="outline"
         size="sm"
-        ><UiIcon name="refresh" />{{ i18n.t('refresh') }}</Button
+        ><UiIcon name="refresh" />{{ i18n.t('common.refresh') }}</Button
       >
     </EmptyState>
   </div>

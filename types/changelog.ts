@@ -13,7 +13,7 @@ export interface ChangelogEntry {
    * User-facing changes translated by the bundled locale files.
    */
   changes: readonly {
-    key: Extract<keyof GeneratedI18nStructure, `changelogRelease${string}`>
-    type: 'changelogFeature' | 'changelogFix' | 'changelogImprovement'
+    key: Extract<keyof GeneratedI18nStructure, `changelog.releases.${string}`>
+    type: 'changelog.feature' | 'changelog.fix' | 'changelog.improvement'
   }[]
 }

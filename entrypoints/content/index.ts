@@ -99,7 +99,7 @@ export default defineContentScript({
        * @returns The mounted Vue application for later teardown.
        */
       onMount(container) {
-        container.lang = i18n.t('uiLanguage')
+        container.lang = i18n.t('extension.language')
         const app = createApp({
           /**
            * Renders the floating panel with current capture, visibility, and selection state.
@@ -180,7 +180,7 @@ export default defineContentScript({
            * @returns The mounted Vue application for later teardown.
            */
           onMount(container) {
-            container.lang = i18n.t('uiLanguage')
+            container.lang = i18n.t('extension.language')
             const app = createApp({
               /**
                * Renders the inline button using the latest captured data for its post.

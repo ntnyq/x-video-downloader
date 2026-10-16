@@ -5,18 +5,18 @@ import HelpDisclosure from '~/components/shared/HelpDisclosure.vue'
 
 <template>
   <div class="py-6">
-    <HelpDisclosure :title="i18n.t('usageHelp')">
+    <HelpDisclosure :title="i18n.t('guide.title')">
       <ol class="list-decimal pl-4 space-y-2">
-        <li>{{ i18n.t('guideStepOne') }}</li>
-        <li>{{ i18n.t('guideStepTwo') }}</li>
-        <li>{{ i18n.t('guideStepThree') }}</li>
+        <li>{{ i18n.t('guide.stepOne') }}</li>
+        <li>{{ i18n.t('guide.stepTwo') }}</li>
+        <li>{{ i18n.t('guide.stepThree') }}</li>
       </ol>
-      <p>{{ i18n.t('shortcutHelp') }}</p>
-      <p>{{ i18n.t('troubleshootingHelp') }}</p>
-      <p>{{ i18n.t('formatsHelp') }}</p>
-      <p>{{ i18n.t('languageHelp') }}</p>
-      <p>{{ i18n.t('privacyHelp') }}</p>
-      <p>{{ i18n.t('downloadNotice') }}</p>
+      <p>{{ i18n.t('guide.shortcutHelp') }}</p>
+      <p>{{ i18n.t('guide.troubleshootingHelp') }}</p>
+      <p>{{ i18n.t('guide.formatsHelp') }}</p>
+      <p>{{ i18n.t('guide.languageHelp') }}</p>
+      <p>{{ i18n.t('guide.privacyHelp') }}</p>
+      <p>{{ i18n.t('download.notice') }}</p>
     </HelpDisclosure>
   </div>
 </template>

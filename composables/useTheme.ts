@@ -29,7 +29,7 @@ export const useTheme = createSharedComposable(() => {
       isReady.value = true
     })
     .catch(() => {
-      themeError.value = i18n.t('themeReadFailed')
+      themeError.value = i18n.t('theme.readFailed')
       isReady.value = true
     })
 
@@ -51,7 +51,7 @@ export const useTheme = createSharedComposable(() => {
       theme.value = nextTheme
       return true
     } catch {
-      themeError.value = i18n.t('settingsSaveFailed')
+      themeError.value = i18n.t('settings.saveFailed')
       return false
     } finally {
       isSaving.value = false

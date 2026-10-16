@@ -12,13 +12,13 @@ import ExtensionHelp from './ExtensionHelp.vue'
           <UiIcon
             name="check"
             class="size-4"
-          />{{ i18n.t('installed') }}
+          />{{ i18n.t('welcome.installed') }}
         </p>
         <h2 class="max-w-96 text-4xl font-semibold leading-tight sm:text-5xl">
-          {{ i18n.t('welcomeTitle') }}
+          {{ i18n.t('welcome.title') }}
         </h2>
         <p class="mt-6 max-w-80 text-sm text-muted-foreground leading-relaxed">
-          {{ i18n.t('welcomeDescription') }}
+          {{ i18n.t('welcome.description') }}
         </p>
         <Button
           as="a"
@@ -26,7 +26,7 @@ import ExtensionHelp from './ExtensionHelp.vue'
           target="_blank"
           rel="noreferrer"
           class="mt-7"
-          >{{ i18n.t('openX') }}<UiIcon name="external"
+          >{{ i18n.t('common.openX') }}<UiIcon name="external"
         /></Button>
         <p
           class="mt-6 flex items-start gap-2 text-xs text-muted-foreground leading-relaxed"
@@ -34,11 +34,11 @@ import ExtensionHelp from './ExtensionHelp.vue'
           <UiIcon
             name="keyboard"
             class="size-4"
-          />{{ i18n.t('shortcutHelp') }}
+          />{{ i18n.t('guide.shortcutHelp') }}
         </p>
       </div>
       <div
-        :aria-label="i18n.t('downloadExample')"
+        :aria-label="i18n.t('welcome.example')"
         class="rounded-2xl border border-border p-5"
       >
         <div class="mb-4 flex items-center gap-3">
@@ -48,7 +48,7 @@ import ExtensionHelp from './ExtensionHelp.vue'
             X
           </div>
           <span class="text-sm font-semibold">{{
-            i18n.t('downloadExample')
+            i18n.t('welcome.example')
           }}</span>
         </div>
         <div
@@ -68,7 +68,7 @@ import ExtensionHelp from './ExtensionHelp.vue'
             ><UiIcon
               name="download"
               class="size-4"
-            />{{ i18n.t('downloadVideos') }}</span
+            />{{ i18n.t('download.videos') }}</span
           >
         </div>
         <div class="mt-5 flex items-center gap-3 border-t border-border pt-4">
@@ -79,7 +79,7 @@ import ExtensionHelp from './ExtensionHelp.vue'
               <UiIcon
                 name="check"
                 class="size-3"
-              />{{ i18n.t('stateComplete') }}
+              />{{ i18n.t('download.state.complete') }}
             </p>
           </div>
         </div>
@@ -88,9 +88,9 @@ import ExtensionHelp from './ExtensionHelp.vue'
     <ol class="mt-14 grid gap-6 border-y border-border py-7 md:grid-cols-3">
       <li
         v-for="(key, index) in [
-          'guideStepOne',
-          'guideStepTwo',
-          'guideStepThree',
+          'guide.stepOne',
+          'guide.stepTwo',
+          'guide.stepThree',
         ] as const"
         :key
         class="flex gap-3 text-xs leading-relaxed"

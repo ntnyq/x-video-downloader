@@ -1,7 +1,7 @@
 baseTag: v0.0.3
 changes:
   - id: bundled-changelog
-    type: changelogFeature
+    type: changelog.feature
     messages:
       en: View release notes after updates or from Settings, in five languages, with emoji labels for new features, improvements and fixes.
       zh_CN: 更新后自动展示更新日志，也可从设置页查看，支持五种语言，并以 emoji 标记新功能、改进和修复。

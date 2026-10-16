@@ -4,7 +4,7 @@ import { browser } from '#imports'
 import { CHANGELOG_ENTRIES } from '~/constants/changelog'
 
 const currentVersion = browser.runtime.getManifest().version
-const dateFormatter = new Intl.DateTimeFormat(i18n.t('uiLanguage'), {
+const dateFormatter = new Intl.DateTimeFormat(i18n.t('extension.language'), {
   dateStyle: 'medium',
   timeZone: 'UTC',
 })
@@ -16,12 +16,12 @@ const entries = CHANGELOG_ENTRIES.map(entry => ({
 
 <template>
   <div class="mx-auto max-w-170 px-5 py-8 sm:py-10">
-    <h2 class="text-2xl font-semibold">{{ i18n.t('changelogTitle') }}</h2>
+    <h2 class="text-2xl font-semibold">{{ i18n.t('changelog.title') }}</h2>
     <p class="mt-3 text-sm text-muted-foreground leading-relaxed">
-      {{ i18n.t('changelogDescription') }}
+      {{ i18n.t('changelog.description') }}
     </p>
     <p class="mt-3 text-xs text-muted-foreground">
-      {{ i18n.t('changelogInstalledVersion', [currentVersion]) }}
+      {{ i18n.t('changelog.installedVersion', [currentVersion]) }}
     </p>
     <div class="mt-8 space-y-6">
       <section
@@ -40,7 +40,7 @@ const entries = CHANGELOG_ENTRIES.map(entry => ({
           <span
             v-if="entry.version === currentVersion"
             class="rounded-full bg-secondary px-2 py-1 text-xs font-medium"
-            >{{ i18n.t('changelogCurrentVersion') }}</span
+            >{{ i18n.t('changelog.currentVersion') }}</span
           >
           <time
             :datetime="entry.date"

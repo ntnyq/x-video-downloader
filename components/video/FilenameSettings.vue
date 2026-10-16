@@ -61,9 +61,9 @@ async function save() {
   try {
     await filenameSetting.setValue(draft.value.trim())
     savedTemplate.value = draft.value.trim()
-    toast.success(i18n.t('templateSaved'))
+    toast.success(i18n.t('filename.saved'))
   } catch {
-    saveError.value = i18n.t('templateSaveFailed')
+    saveError.value = i18n.t('filename.saveFailed')
   } finally {
     isSaving.value = false
   }
@@ -85,7 +85,7 @@ watch(draft, () => {
 
 <template>
   <SettingsSection
-    :title="i18n.t('filenameTemplate')"
+    :title="i18n.t('filename.template')"
     icon="file"
   >
     <template #actions
@@ -95,7 +95,7 @@ watch(draft, () => {
         variant="ghost"
         size="sm"
         class="text-xs text-muted-foreground"
-        >{{ i18n.t('resetTemplate') }}</Button
+        >{{ i18n.t('filename.reset') }}</Button
       ></template
     >
     <form
@@ -107,7 +107,7 @@ watch(draft, () => {
         ref="inputRef"
         :disabled="disabled || isSaving"
         :aria-invalid="!!validationError"
-        :aria-label="i18n.t('filenameTemplate')"
+        :aria-label="i18n.t('filename.template')"
         :spellcheck="false"
         :maxlength="MAX_FILENAME_TEMPLATE_LENGTH"
         id="filename-template"
@@ -116,10 +116,10 @@ watch(draft, () => {
         autocomplete="off"
         class="w-full font-mono text-xs"
       />
-      <HelpDisclosure :title="i18n.t('filenameVariables')"
+      <HelpDisclosure :title="i18n.t('filename.variables')"
         ><p id="filename-help">
           {{
-            i18n.t('filenameHelp', [
+            i18n.t('filename.help', [
               '{author}',
               '{date}',
               '{postId}',
@@ -145,20 +145,22 @@ watch(draft, () => {
           class="size-4"
         />
         <p class="min-w-0 break-all">
-          <span class="sr-only">{{ i18n.t('filenamePreview') }}: </span
+          <span class="sr-only">{{ i18n.t('filename.preview') }}: </span
           >{{ preview }}
         </p>
       </div>
       <div class="flex flex-wrap items-center justify-between gap-3">
         <span class="text-xs text-muted-foreground">{{
-          i18n.t('filenameExtension')
+          i18n.t('filename.extension')
         }}</span>
         <Button
           :disabled="disabled || isSaving || !isDirty"
           variant="outline"
           type="submit"
           size="sm"
-          >{{ isSaving ? i18n.t('saving') : i18n.t('saveTemplate') }}</Button
+          >{{
+            isSaving ? i18n.t('common.saving') : i18n.t('filename.save')
+          }}</Button
         >
       </div>
     </form>

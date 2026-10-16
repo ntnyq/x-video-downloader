@@ -45,11 +45,11 @@ const downloadable = computed(
 const quickLabel = computed(() =>
   downloadable.value.length === 1
     ? preferences.value.quality === 'highest'
-      ? i18n.t('downloadHighest')
-      : i18n.t('quickDownload')
+      ? i18n.t('download.highest')
+      : i18n.t('download.quick')
     : downloadable.value.length > 1
-      ? i18n.t('selectVideos')
-      : i18n.t('detectVideos'),
+      ? i18n.t('selection.videos')
+      : i18n.t('page.detect'),
 )
 
 /**
@@ -102,12 +102,12 @@ watch(
         class="text-sm"
       >
         <UiIcon name="download" />{{
-          isPending ? i18n.t('creatingDownload') : quickLabel
+          isPending ? i18n.t('download.starting') : quickLabel
         }}
       </Button>
       <IconButton
         @click.stop.prevent="emit('open')"
-        :label="i18n.t('qualityAndProgress')"
+        :label="i18n.t('panel.qualityAndProgress')"
         icon="chevronDown"
       />
     </div>

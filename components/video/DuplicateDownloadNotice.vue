@@ -30,7 +30,7 @@ const emit = defineEmits<{
     role="status"
     class="my-3 rounded-xl bg-secondary p-3 text-sm space-y-3"
   >
-    <p>{{ i18n.t('duplicateNotice', [count]) }}</p>
+    <p>{{ i18n.t('download.duplicateNotice', [count]) }}</p>
     <div class="flex flex-wrap gap-3">
       <Button
         @click="emit('confirm', $event)"
@@ -38,7 +38,7 @@ const emit = defineEmits<{
         variant="outline"
         type="button"
       >
-        {{ i18n.t('downloadAgain') }}
+        {{ i18n.t('download.again') }}
       </Button>
       <Button
         @click="emit('dismiss')"
@@ -46,7 +46,7 @@ const emit = defineEmits<{
         variant="link"
         type="button"
       >
-        {{ i18n.t('dismiss') }}
+        {{ i18n.t('common.dismiss') }}
       </Button>
     </div>
   </div>

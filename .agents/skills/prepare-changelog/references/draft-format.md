@@ -7,7 +7,7 @@ root. The extension does not import this file.
 baseTag: v0.0.3
 changes:
   - id: bundled-changelog
-    type: changelogFeature
+    type: changelog.feature
     messages:
       en: View release notes after updates or from Settings, in five languages.
       zh_CN: 更新后自动展示更新日志，也可从设置页查看，支持五种语言。
@@ -26,7 +26,7 @@ changes:
   changing an existing base.
 - `id`: stable lowercase hyphenated name for the user-visible behavior,
   independent of the eventual version.
-- `type`: `changelogFeature`, `changelogImprovement`, or `changelogFix`.
+- `type`: `changelog.feature`, `changelog.improvement`, or `changelog.fix`.
 - `messages`: exactly `en`, `zh_CN`, `zh_TW`, `ja`, `ko`, with non-empty
   plain text. Quote YAML scalars when punctuation requires it.
 - `paths`: repository-relative changed paths supporting the note. Deleted paths

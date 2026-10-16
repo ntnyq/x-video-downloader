@@ -20,10 +20,10 @@ provideOverlayTarget(overlayRef)
     :style="themeStyle"
     class="h-[600px] w-[360px] flex flex-col overflow-hidden bg-background text-foreground font-sans"
   >
-    <SurfaceHeader :title="i18n.t('extensionName')">
+    <SurfaceHeader :title="i18n.t('extension.name')">
       <IconButton
         @click="browser.runtime.openOptionsPage()"
-        :label="i18n.t('settings')"
+        :label="i18n.t('common.settings')"
         icon="settings"
       />
     </SurfaceHeader>

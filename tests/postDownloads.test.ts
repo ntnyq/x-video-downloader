@@ -237,7 +237,7 @@ test('duplicate confirmation resubmits only matching post-media pairs and preser
     [...harness.state.duplicateRequests.value].map(item => item.postId),
     ['456'],
   )
-  assert.equal(harness.state.message.value, 'downloadsCreated:1')
+  assert.equal(harness.state.message.value, 'download.created:1')
   assert.match(harness.state.requestError.value, /789\|1\|error:NETWORK_FAILED/)
   await harness.state.confirmDuplicates()
   const batches = harness.calls.filter(
@@ -295,10 +295,10 @@ test('pause and resume send owned actions and refresh the resulting transfer sta
   await setImmediate()
   await harness.state.action(42, 'pause')
   assert.equal(harness.state.downloads.value[0]?.state, 'paused')
-  assert.equal(harness.state.message.value, 'downloadPaused:')
+  assert.equal(harness.state.message.value, 'download.paused:')
   await harness.state.action(42, 'resume')
   assert.equal(harness.state.downloads.value[0]?.state, 'in_progress')
-  assert.equal(harness.state.message.value, 'downloadResumed:')
+  assert.equal(harness.state.message.value, 'download.resumed:')
   assert.deepEqual(
     harness.calls.filter(item => item['type'] === 'download-action'),
     [
@@ -334,7 +334,7 @@ test('history clearing sends only terminal IDs selected by the active filters', 
       ids: [42, 45],
     },
   )
-  assert.equal(harness.state.message.value, 'historyCleared:')
+  assert.equal(harness.state.message.value, 'history.cleared:')
   await harness.state.clear([])
   assert.equal(
     harness.calls.filter(item => item['type'] === 'clear-downloads').length,
@@ -597,7 +597,7 @@ test('rescanning the same visible post IDs preserves pending replies and duplica
   const pending = harness.state.start([request])
   snapshot.value = { posts: [{ id: '123' }] }
   await vue.nextTick()
-  assert.equal(harness.state.message.value, 'creatingDownload:')
+  assert.equal(harness.state.message.value, 'download.starting:')
 
   batch.resolve({
     ok: true,
@@ -611,12 +611,12 @@ test('rescanning the same visible post IDs preserves pending replies and duplica
   })
   await pending
   assert.equal(harness.state.duplicateRequests.value.length, 1)
-  assert.equal(harness.state.message.value, 'downloadsCreated:0')
+  assert.equal(harness.state.message.value, 'download.created:0')
 
   snapshot.value = { posts: [{ id: '123' }] }
   await vue.nextTick()
   assert.equal(harness.state.duplicateRequests.value.length, 1)
-  assert.equal(harness.state.message.value, 'downloadsCreated:0')
+  assert.equal(harness.state.message.value, 'download.created:0')
 
   snapshot.value = { posts: [{ id: '456' }] }
   await vue.nextTick()

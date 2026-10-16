@@ -25,7 +25,7 @@ const isDisabled = computed(() => !isReady.value || isSaving.value)
  */
 async function applyTheme(value: string) {
   if (await saveTheme(value)) {
-    toast.success(i18n.t('themeSaved'))
+    toast.success(i18n.t('theme.saved'))
   }
 }
 
@@ -40,11 +40,11 @@ watch(
 
 <template>
   <SettingsSection
-    :title="i18n.t('themeTitle')"
+    :title="i18n.t('theme.title')"
     icon="palette"
   >
     <div
-      :aria-label="i18n.t('themePresets')"
+      :aria-label="i18n.t('theme.presets')"
       class="flex flex-wrap gap-2"
       role="group"
     >
@@ -79,7 +79,7 @@ watch(
         </span>
       </Button>
     </div>
-    <HelpDisclosure :title="i18n.t('themeCustom')">
+    <HelpDisclosure :title="i18n.t('theme.custom')">
       <form
         @submit.prevent="parsedColor && applyTheme(parsedColor)"
         class="space-y-2"
@@ -87,7 +87,7 @@ watch(
         <Label
           for="theme-rgb"
           class="block text-sm font-medium"
-          >{{ i18n.t('themeCustom') }}</Label
+          >{{ i18n.t('theme.custom') }}</Label
         >
         <div class="flex flex-wrap items-center gap-2">
           <Input
@@ -107,21 +107,21 @@ watch(
             :disabled="isDisabled || !parsedColor"
             type="submit"
           >
-            {{ i18n.t('themeApply') }}
+            {{ i18n.t('theme.apply') }}
           </Button>
         </div>
         <p
           id="theme-rgb-help"
           class="text-xs text-muted-foreground leading-relaxed"
         >
-          {{ i18n.t('themeRgbHelp') }}
+          {{ i18n.t('theme.rgbHelp') }}
         </p>
         <p
           id="theme-rgb-error"
           class="text-xs text-destructive"
           aria-live="polite"
         >
-          {{ isInvalid ? i18n.t('themeInvalid') : '' }}
+          {{ isInvalid ? i18n.t('theme.invalid') : '' }}
         </p>
         <div
           v-if="parsedColor"
@@ -135,16 +135,16 @@ watch(
             class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold"
           >
             <UiIcon name="download" />
-            {{ i18n.t('downloadVideos') }}
+            {{ i18n.t('download.videos') }}
           </span>
           <span class="text-xs text-muted-foreground">{{
-            i18n.t('themePreview')
+            i18n.t('theme.preview')
           }}</span>
         </div>
       </form>
     </HelpDisclosure>
     <p class="text-xs text-muted-foreground leading-relaxed">
-      {{ i18n.t('themeDescription') }}
+      {{ i18n.t('theme.description') }}
     </p>
     <p
       v-if="themeError"

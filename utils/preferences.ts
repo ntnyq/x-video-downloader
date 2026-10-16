@@ -59,24 +59,24 @@ export function validateFilenameTemplate(
   value: string,
 ):
   | ''
-  | 'filenameEmpty'
-  | 'filenameTooLong'
-  | 'filenameUnsafe'
-  | 'filenameTokens' {
+  | 'filename.empty'
+  | 'filename.tooLong'
+  | 'filename.unsafe'
+  | 'filename.tokens' {
   if (!value.trim()) {
-    return 'filenameEmpty'
+    return 'filename.empty'
   }
   if (value.length > MAX_FILENAME_TEMPLATE_LENGTH) {
-    return 'filenameTooLong'
+    return 'filename.tooLong'
   }
   if (/[\\/<>:"|?*\p{Cc}]/u.test(value) || value.includes('..')) {
-    return 'filenameUnsafe'
+    return 'filename.unsafe'
   }
   const remainder = value.replace(/\{(\w+)\}/g, (_, token: string) =>
     FILENAME_TOKENS.has(token) ? '' : '{}',
   )
   if (/[{}]/.test(remainder)) {
-    return 'filenameTokens'
+    return 'filename.tokens'
   }
   return ''
 }

@@ -55,12 +55,12 @@ watch(
     class="min-h-0 flex-1"
   >
     <div class="shrink-0 border-b border-border px-4">
-      <TabsList :aria-label="i18n.t('downloadViews')">
+      <TabsList :aria-label="i18n.t('panel.views')">
         <TabsTrigger value="videos"
           ><UiIcon
             name="video"
             class="size-4"
-          />{{ i18n.t('pageVideosTab')
+          />{{ i18n.t('page.tab')
           }}<span class="rounded bg-secondary px-1.5 text-xs tabular-nums">{{
             mediaCount
           }}</span></TabsTrigger
@@ -69,7 +69,7 @@ watch(
           ><UiIcon
             name="history"
             class="size-4"
-          />{{ i18n.t('historyTab') }}</TabsTrigger
+          />{{ i18n.t('history.tab') }}</TabsTrigger
         >
       </TabsList>
     </div>
@@ -87,11 +87,11 @@ watch(
     >
       <EmptyState
         v-if="isLoading"
-        :title="i18n.t('scanning')"
+        :title="i18n.t('page.scanning')"
       />
       <EmptyState
         v-else-if="requestError"
-        :title="i18n.t('connectionUnavailable')"
+        :title="i18n.t('page.connectionUnavailable')"
         :description="requestError"
       >
         <Button
@@ -99,7 +99,7 @@ watch(
           href="https://x.com"
           target="_blank"
           rel="noreferrer"
-          >{{ i18n.t('openX') }}</Button
+          >{{ i18n.t('common.openX') }}</Button
         >
       </EmptyState>
       <DownloadPanel

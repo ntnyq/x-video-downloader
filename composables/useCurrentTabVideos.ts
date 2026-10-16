@@ -39,7 +39,7 @@ export function useCurrentTabVideos() {
       }
       requestError.value = ''
     } catch {
-      requestError.value = i18n.t('pageDisconnected')
+      requestError.value = i18n.t('page.disconnected')
     } finally {
       isLoading.value = false
       isRefreshing = false
@@ -55,13 +55,13 @@ export function useCurrentTabVideos() {
         currentWindow: true,
       })
       if (!isXUrl(tab?.url) || isUndefined(tab?.id)) {
-        requestError.value = i18n.t('openPostFirst')
+        requestError.value = i18n.t('page.openPostFirst')
         return
       }
       tabId = tab.id
       await refresh()
     } catch {
-      requestError.value = i18n.t('tabReadFailed')
+      requestError.value = i18n.t('page.readFailed')
     } finally {
       isLoading.value = false
     }

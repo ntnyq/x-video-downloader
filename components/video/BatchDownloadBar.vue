@@ -27,14 +27,14 @@ const emit = defineEmits<{
       <span
         role="status"
         class="text-xs text-muted-foreground tabular-nums"
-        >{{ i18n.t('selectedVideos', [count]) }}</span
+        >{{ i18n.t('selection.selected', [count]) }}</span
       >
       <Button
         @click="emit('download', $event)"
         :disabled
         class="text-xs"
         ><UiIcon name="download" />{{
-          pending ? i18n.t('creatingDownload') : i18n.t('downloadSelection')
+          pending ? i18n.t('download.starting') : i18n.t('download.selection')
         }}</Button
       >
     </div>
@@ -43,13 +43,15 @@ const emit = defineEmits<{
       role="alert"
       class="mt-2 text-xs text-destructive"
     >
-      {{ i18n.t('batchLimitExceeded', [MAX_DOWNLOAD_BATCH_SIZE, count]) }}
+      {{
+        i18n.t('selection.batchLimitExceeded', [MAX_DOWNLOAD_BATCH_SIZE, count])
+      }}
     </p>
     <p
       v-if="count > 1 && saveAs"
       class="mt-2 text-xs text-muted-foreground"
     >
-      {{ i18n.t('confirmEachSave') }}
+      {{ i18n.t('settings.confirmEachSave') }}
     </p>
   </footer>
 </template>

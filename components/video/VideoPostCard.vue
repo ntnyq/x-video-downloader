@@ -108,7 +108,7 @@ function handleAction(
         v-if="downloadableCount"
         :model-value="partiallySelected ? 'indeterminate' : allSelected"
         :disabled
-        :aria-label="i18n.t('selectPostVideos', [post.id])"
+        :aria-label="i18n.t('selection.post', [post.id])"
       />
       <a
         :href="`https://x.com/i/status/${post.id}`"
@@ -116,7 +116,7 @@ function handleAction(
         rel="noreferrer"
         class="min-w-0 inline-flex items-center gap-2 truncate text-xs font-semibold focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 hover:text-foreground"
       >
-        {{ post.author ? `@${post.author}` : i18n.t('post')
+        {{ post.author ? `@${post.author}` : i18n.t('video.post')
         }}<UiIcon
           name="external"
           class="size-3"

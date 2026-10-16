@@ -4,6 +4,6 @@ import { localizeDocument } from '~/utils/i18n'
 import App from './App.vue'
 
 localizeDocument()
-document.title = `${i18n.t('changelogTitle')} · ${i18n.t('extensionName')}`
+document.title = `${i18n.t('changelog.title')} · ${i18n.t('extension.name')}`
 
 createApp(App).mount('#app')

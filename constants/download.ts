@@ -25,19 +25,19 @@ export const DOWNLOAD_REFRESH_INTERVAL_MS = 1000
  */
 export const DOWNLOAD_STATE_LABELS: Record<
   DownloadStatus['state'],
-  | 'stateQueued'
-  | 'stateDownloading'
-  | 'statePaused'
-  | 'stateComplete'
-  | 'stateInterrupted'
-  | 'stateCancelled'
-  | 'stateMissing'
+  | 'download.state.queued'
+  | 'download.state.downloading'
+  | 'download.state.paused'
+  | 'download.state.complete'
+  | 'download.state.interrupted'
+  | 'download.state.cancelled'
+  | 'download.state.missing'
 > = {
-  cancelled: 'stateCancelled',
-  complete: 'stateComplete',
-  in_progress: 'stateDownloading',
-  interrupted: 'stateInterrupted',
-  missing: 'stateMissing',
-  paused: 'statePaused',
-  queued: 'stateQueued',
+  cancelled: 'download.state.cancelled',
+  complete: 'download.state.complete',
+  in_progress: 'download.state.downloading',
+  interrupted: 'download.state.interrupted',
+  missing: 'download.state.missing',
+  paused: 'download.state.paused',
+  queued: 'download.state.queued',
 }

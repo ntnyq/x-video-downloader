@@ -30,7 +30,7 @@ export function useVideoDownload(
     isPending.value = true
     hasError.value = false
     duplicateRequest.value = undefined
-    message.value = i18n.t('creatingSave')
+    message.value = i18n.t('download.startingSave')
     try {
       const result: unknown = await browser.runtime.sendMessage({
         ...request,
@@ -52,10 +52,10 @@ export function useVideoDownload(
         throw new Error(
           isRecord(result) && isString(result['error'])
             ? localizeDownloadError(result['error'])
-            : i18n.t('downloadReload'),
+            : i18n.t('download.reload'),
         )
       }
-      message.value = i18n.t('downloadQueued')
+      message.value = i18n.t('download.queued')
       return true
     } catch (error) {
       if (isDisposed || version !== scopeVersion) {
@@ -63,7 +63,7 @@ export function useVideoDownload(
       }
       hasError.value = true
       message.value =
-        error instanceof Error ? error.message : i18n.t('downloadFailed')
+        error instanceof Error ? error.message : i18n.t('errors.downloadFailed')
       return false
     } finally {
       isPending.value = false

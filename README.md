@@ -183,7 +183,9 @@ AI-assisted commits use the project-local [prepare-changelog skill](.agents/skil
 
 You can also invoke `$prepare-changelog` explicitly to prepare notes from the current changes, a commit range, or a release tag. For example: “Use $prepare-changelog to generate release notes from v0.0.2 to v0.0.3.” Historical backfills preserve other releases; pending notes receive a version only during release preparation.
 
-Before publishing a version, prepend its release date and changes to `constants/changelog.ts` and add the referenced `changelogRelease…` messages to all five `locales/*.yaml` files. Use the same version as `package.json`, keep entries newest first, and describe user-visible changes. Tests check that the latest entry matches the package version and that every change is translated.
+Locale messages use nested YAML namespaces, for example `theme.title`, `filename.template`, and `download.state.queued`. Keep the same structure and placeholders in all five locale files, and access messages with `i18n.t('theme.title')`. WXT generates typed dotted keys and flattens them with underscores for browser messages; manifest references therefore use forms such as `__MSG_extension_name__`.
+
+Before publishing a version, prepend its release date and changes to `constants/changelog.ts` and add the referenced `changelog.releases.<version>.*` messages to all five `locales/*.yaml` files. Use the same version as `package.json`, keep entries newest first, and describe user-visible changes. Tests check that the latest entry matches the package version and that every change is translated.
 
 The changelog is packaged with the extension and makes no release-note network requests. First installation opens the welcome page; version updates open `changelog.html`. WXT development updates, same-version reloads and browser-only updates do not open the changelog.
 

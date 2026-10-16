@@ -48,7 +48,7 @@ export function usePostDownloads(
         || response['ok'] !== true
         || !isArray(response['downloads'])
       ) {
-        throw new Error(i18n.t('progressReadFailed'))
+        throw new Error(i18n.t('download.progressReadFailed'))
       }
       if (!isDisposed && version === scopeVersion && id === toValue(postId)) {
         // This channel is served only by our background; keep boundary checks
@@ -60,7 +60,7 @@ export function usePostDownloads(
       }
     } catch {
       if (!isDisposed && version === scopeVersion && id === toValue(postId)) {
-        progressError.value = i18n.t('progressReadFailed')
+        progressError.value = i18n.t('download.progressReadFailed')
       }
     } finally {
       isRefreshing = false
@@ -84,8 +84,8 @@ export function usePostDownloads(
     duplicateRequests.value = []
     message.value =
       requests.length > 1
-        ? i18n.t('creatingDownloads', [requests.length])
-        : i18n.t('creatingDownload')
+        ? i18n.t('download.startingBatch', [requests.length])
+        : i18n.t('download.starting')
     try {
       const response: unknown = await browser.runtime.sendMessage({
         type: 'download-videos',
@@ -100,7 +100,7 @@ export function usePostDownloads(
         throw new Error(
           isRecord(response) && isString(response['error'])
             ? localizeDownloadError(response['error'])
-            : i18n.t('downloadFailed'),
+            : i18n.t('errors.downloadFailed'),
         )
       }
       if (isDisposed || version !== scopeVersion) {
@@ -119,7 +119,7 @@ export function usePostDownloads(
             && item['result']['error'] === 'duplicateDownload',
         ),
       )
-      message.value = i18n.t('downloadsCreated', [
+      message.value = i18n.t('download.created', [
         results.length - failures.length,
       ])
       const errors = failures.filter(
@@ -130,7 +130,7 @@ export function usePostDownloads(
       if (errors.length) {
         requestError.value = errors
           .map(item =>
-            i18n.t('postVideoError', [
+            i18n.t('download.postVideoError', [
               String(item['postId']),
               String(item['mediaIndex']),
               localizeDownloadError(
@@ -145,7 +145,7 @@ export function usePostDownloads(
         return
       }
       requestError.value =
-        error instanceof Error ? error.message : i18n.t('downloadFailed')
+        error instanceof Error ? error.message : i18n.t('errors.downloadFailed')
       message.value = ''
     } finally {
       isPending.value = false
@@ -181,7 +181,7 @@ export function usePostDownloads(
         throw new Error(
           isRecord(response) && isString(response['error'])
             ? localizeDownloadError(response['error'])
-            : i18n.t('actionFailed'),
+            : i18n.t('errors.actionFailed'),
         )
       }
       if (isDisposed || version !== scopeVersion) {
@@ -189,18 +189,18 @@ export function usePostDownloads(
       }
       message.value =
         action === 'cancel'
-          ? i18n.t('downloadCancelled')
+          ? i18n.t('download.cancelled')
           : action === 'pause'
-            ? i18n.t('downloadPaused')
+            ? i18n.t('download.paused')
             : action === 'resume'
-              ? i18n.t('downloadResumed')
-              : i18n.t('downloadRetried')
+              ? i18n.t('download.resumed')
+              : i18n.t('download.retried')
     } catch (error) {
       if (isDisposed || version !== scopeVersion) {
         return
       }
       requestError.value =
-        error instanceof Error ? error.message : i18n.t('actionFailed')
+        error instanceof Error ? error.message : i18n.t('errors.actionFailed')
     } finally {
       isActionPending.value = false
       await refresh()
@@ -230,14 +230,14 @@ export function usePostDownloads(
         )
       }
       if (!isDisposed && version === scopeVersion) {
-        message.value = i18n.t('historyCleared')
+        message.value = i18n.t('history.cleared')
       }
     } catch (error) {
       if (isDisposed || version !== scopeVersion) {
         return
       }
       requestError.value =
-        error instanceof Error ? error.message : i18n.t('actionFailed')
+        error instanceof Error ? error.message : i18n.t('errors.actionFailed')
     } finally {
       isActionPending.value = false
       await refresh()

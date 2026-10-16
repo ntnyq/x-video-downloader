@@ -135,10 +135,10 @@ function handleConfirmDuplicates(event: MouseEvent) {
           :model-value="partiallySelected ? 'indeterminate' : allSelected"
           :disabled="isDisabled || !downloadableCount"
         />
-        {{ i18n.t('selectPageVideos') }}
+        {{ i18n.t('selection.page') }}
       </Label>
       <div class="flex items-center gap-1 text-xs text-muted-foreground">
-        <span>{{ i18n.t('availableVideos', [downloadableCount]) }}</span
+        <span>{{ i18n.t('selection.available', [downloadableCount]) }}</span
         ><slot name="tools" />
       </div>
     </div>

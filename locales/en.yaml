@@ -1,198 +1,220 @@
-actionFailed: Action failed. Please try again.
-allAuthors: All authors
-autoSavePreferences: Preferences save automatically
-availableVideos: $1 available
-batchLimitExceeded: Select at most $1 videos per batch. Your $2 selections are preserved.
-cancel: Cancel
-cancelVideo: Cancel video $1
-changelogCurrentVersion: Current version
-changelogDescription: New features, improvements and fixes in each release.
-changelogFeature: ✨ New
-changelogFix: 🐛 Fix
-changelogImprovement: ⚡ Improved
-changelogInstalledVersion: 'Installed version: $1'
-changelogRelease001Download: Download X videos as MP4 with quality selection and batch downloads from a post.
-changelogRelease001Languages: Available in English, Simplified Chinese, Traditional Chinese, Japanese and Korean.
-changelogRelease001Preferences: Customize filenames and color themes. Save directly to your browser’s download folder by default.
-changelogRelease002Batch: Select and download videos across multiple posts on the current page.
-changelogRelease002Interface: Updated controls and settings built with shadcn-vue.
-changelogRelease002Position: Remember the floating download button’s position after reloading the page.
-changelogRelease002Queue: Added a persistent download queue and history, with pause, resume, retry and duplicate reminders.
-changelogRelease003Interface: Redesigned the download panel, popup, settings and welcome page with consistent controls and clearer layouts.
-changelogRelease003QuickDownload: Quick downloads no longer open the download panel unexpectedly.
-changelogTitle: Changelog
-changelogView: View changelog
-chooseSaveLocation: Ask where to save
-clearFinished: Clear finished
-clearSelection: Clear selection
-closePanel: Close download panel
-concurrencyHelp: 'Start 1–6 transfers at a time (default: 3). Remaining videos wait in the queue. Paused downloads keep their place until resumed. Lowering the limit does not stop running transfers.'
-concurrentDownloads: Concurrent downloads
-confirmEachSave: Confirm each save location.
-connectionUnavailable: Page unavailable
-creatingDownload: Starting download…
-creatingDownloads: Starting downloads ($1). Confirm each save location if prompted…
-creatingSave: Starting download. Confirm the save location if prompted…
-currentPageVideos: Videos on this page
-defaultQuality: Default quality
-detectVideos: Find videos
-dismiss: Dismiss
-downloadAgain: Download again
-downloadCancelled: Download cancelled.
-downloadExample: Download preview
-downloadFailed: Download did not start. Please try again.
-downloadHighest: Download best quality
-downloadNotice: Progress stays in sync with your browser. Only save content you have permission to download.
-downloadPageSelected: Download selected videos ($1)
-downloadPaused: Download paused.
-downloadProgress: Download progress
-downloadQueued: Added to the download queue. Open the panel to track progress.
-downloadReload: Download did not start. Reload the page and try again.
-downloadResumed: Download queued to continue.
-downloadRetried: Download restarted.
-downloadRules: Download rules
-downloadSelected: Download selected videos ($1)
-downloadSelection: Download selected
-downloadSettings: Downloads
-downloadVideos: Download videos
-downloadViews: Download views
-downloadsCreated: $1 added to queue.
-duplicateDownload: This video has already been downloaded. Open the panel to download it again.
-duplicateNotice: $1 selected videos have completed downloads. Download those videos again?
-extensionDescription: Save videos from X with your preferred MP4 quality.
-extensionName: X Video Downloader
-filenameEmpty: Enter a filename template.
-filenameExtension: Adds .mp4 automatically
-filenameHelp: 'Variables: $1 author, $2 post date (UTC), $3 post ID, $4 video number, $5 resolution. Adds .mp4 automatically. Missing authors or dates use unknown / undated.'
-filenamePreview: Preview (sample post)
-filenameTemplate: Filename
-filenameTokens: Use only the variables listed below and close every brace.
-filenameTooLong: The template must be 160 characters or fewer.
-filenameUnsafe: "Paths, control characters and these symbols are not allowed: \\ / : * ? \" < > |"
-filenameVariables: Template variables
-filterAuthor: Filter by author
-finishedDownload: This download has already ended.
-foreignDownload: This download was not created by the extension.
-formatsHelp: Supports MP4 videos and GIFs stored as video. HLS-only streams are not supported yet. A blob URL is not a directly downloadable MP4.
-guideDescription: Download settings and getting started
-guideStepOne: Open an X post with a video and wait for the player to load.
-guideStepThree: 'Track progress in the panel, cancel a download, or retry a failed one.'
-guideStepTwo: 'Use the download button to save a single video, or open the panel to choose quality and select multiple videos.'
-guideSteps: Save a video in three steps
-highestSuffix: (best quality)
-historyClearHelp: Clears matching finished records from this extension only. Downloaded files and active or paused tasks are kept. Cleared records no longer trigger duplicate reminders.
-historyCleared: Finished records cleared.
-historyCount: $1 records
-historyEmpty: No extension downloads yet.
-historyNoMatches: No downloads match these filters.
-historySearchPlaceholder: Search downloads…
-historyTab: Downloads
-hlsShort: HLS only · unsupported
-hlsUnsupported: This video is only available as HLS segments. Merging them is not supported yet.
-installed: Installed
-interruptedHelp: 'Download interrupted ($1). Retry, or reload the original post if the link has expired.'
-invalidRequest: Invalid download request. Select the video again.
-invalidSender: Invalid download request. Reload X and try again.
-languageHelp: 'The interface follows your browser language. Available in English, Simplified Chinese, Traditional Chinese, Japanese and Korean.'
-networkError: Network error
-noVideos: No videos yet
-noVideosReady: 'Play a video, then scan again. Reload X after installing or updating.'
-noVideosReload: 'Reload X to connect the extension to the player, then play the video.'
-oneClickDownload: Download now
-openPostFirst: Open an X post containing a video first.
-openX: Open X
-originalMp4: Original MP4
-pageDisconnected: 'The extension is not connected to this page. Reload X, then open the extension again.'
-pageSelection: Selected $1 of $2 videos across $3 posts
-pageVideosTab: Page videos
-panelOptions: Video download options
-pause: Pause
-pauseUnavailable: This download cannot be paused in its current state.
-pauseVideo: Pause video $1
-popupTagline: Choose the quality. Keep it locally.
-post: Post
-postVideoError: 'Post $1 · video $2: $3'
-preferencesReadFailed: Could not read download settings. Open the page again.
-preferencesSaved: Download preferences saved.
-privacyHelp: 'The extension reads loaded video information locally. No API key is needed, and posts, cookies and login details are never sent to third-party download services.'
-progressReadFailed: Progress is temporarily unavailable. Check your browser’s download list.
-quality1080: Prefer 1080p
-quality720: Prefer 720p
-qualityAndProgress: Quality / progress
-qualityHelp: Used for quick and batch downloads. Chooses the best resolution within the target; portrait videos use the shorter edge. “Save space” prefers a lower bitrate.
-qualityHighest: Best quality
-qualitySmallest: Save space
-queueFull: 'The download queue is full. Wait for tasks to finish, then try again.'
-quickDownload: Quick download
-refresh: Scan again
-removeRecord: Remove record
-removeVideoRecord: Remove record for video $1
-resetTemplate: Restore default
-resume: Resume
-resumeUnavailable: This download cannot be resumed in its current state.
-resumeVideo: Resume video $1
-retry: Retry
-retryUnavailable: 'Only failed, cancelled or removed downloads can be retried.'
-retryVideo: Retry video $1
-saveLocationHelp: 'Off by default. Saves directly to your browser’s download folder, which you can change in browser settings. When on, asks for each video, including batch downloads.'
-saveTemplate: Save template
-saveVideo: Save video $1
-saving: Saving…
-scanning: Scanning the current page…
-searchDownloads: Search downloads
-selectAll: Select all available videos ($1 / $2)
-selectPageVideos: Select all
-selectPostVideos: Select videos in post $1
-selectVideo: Select video $1
-selectVideos: Select videos
-selectedPostVideos: Videos in the selected post
-selectedVideos: $1 selected
-settings: Settings
-settingsSaveFailed: Settings could not be saved. Try again.
-shortcutHelp: 'You can also click the toolbar icon or press Alt + O to open the download panel.'
-showAll: Show all
-stateCancelled: Cancelled
-stateComplete: Completed
-stateDownloading: Downloading
-stateInterrupted: Failed
-stateMissing: Record removed
-statePaused: Paused
-stateQueued: Waiting
-tabReadFailed: Could not read the current tab. Open the extension again.
-templateSaveFailed: Template could not be saved. Try again.
-templateSaved: Filename template saved.
-themeAmber: Amber
-themeApply: Apply color
-themeBlue: X blue
-themeCustom: Custom RGB color
-themeDescription: Panels follow X; extension pages follow your system appearance.
-themeGreen: Green
-themeGrok: Grok · Default
-themeIndigo: Indigo
-themeInvalid: Enter three RGB values between 0 and 255.
-themeLime: Lime
-themeOcean: Ocean
-themeOrange: Orange
-themePresets: Built-in color themes
-themePreview: Preview
-themePurple: Purple
-themeReadFailed: Could not read the theme. You can choose and save it again.
-themeRed: Red
-themeRgbHelp: 'Use rgb(29, 155, 240) or 29, 155, 240. Each channel must be an integer from 0 to 255.'
-themeRose: Rose
-themeSaved: Theme saved.
-themeTeal: Teal
-themeTitle: Appearance
-togglePanel: Open or close the video download panel
-troubleshootingHelp: 'Play the video, then choose “Scan again”. Reload X after installing or updating. Restricted posts require an X account with permission to view them.'
-troubleshootingTitle: No video detected?
-uiLanguage: en
-unknownSize: Unknown size
-usageHelp: Help
-useHighest: Download at best quality instead
-videoError: 'Video $1: $2'
-videoNumber: Video $1
-videoProgress: Download progress for video $1
-videoQuality: Quality for video $1
-welcomeDescription: X Video Downloader is installed. Reload any open X pages to get started.
-welcomeTitle: Your videos. Saved locally.
+changelog:
+  currentVersion: Current version
+  description: New features, improvements and fixes in each release.
+  feature: ✨ New
+  fix: 🐛 Fix
+  improvement: ⚡ Improved
+  installedVersion: 'Installed version: $1'
+  releases:
+    v0_0_1:
+      download: Download X videos as MP4 with quality selection and batch downloads from a post.
+      languages: Available in English, Simplified Chinese, Traditional Chinese, Japanese and Korean.
+      preferences: Customize filenames and color themes. Save directly to your browser’s download folder by default.
+    v0_0_2:
+      batch: Select and download videos across multiple posts on the current page.
+      interface: Updated controls and settings built with shadcn-vue.
+      position: Remember the floating download button’s position after reloading the page.
+      queue: Added a persistent download queue and history, with pause, resume, retry and duplicate reminders.
+    v0_0_3:
+      interface: Redesigned the download panel, popup, settings and welcome page with consistent controls and clearer layouts.
+      quickDownload: Quick downloads no longer open the download panel unexpectedly.
+  title: Changelog
+  view: View changelog
+common:
+  cancel: Cancel
+  dismiss: Dismiss
+  openX: Open X
+  pause: Pause
+  refresh: Scan again
+  resume: Resume
+  retry: Retry
+  saving: Saving…
+  settings: Settings
+  showAll: Show all
+  unknownSize: Unknown size
+download:
+  again: Download again
+  cancelVideo: Cancel video $1
+  cancelled: Download cancelled.
+  created: $1 added to queue.
+  duplicateNotice: $1 selected videos have completed downloads. Download those videos again?
+  highest: Download best quality
+  interruptedHelp: 'Download interrupted ($1). Retry, or reload the original post if the link has expired.'
+  notice: Progress stays in sync with your browser. Only save content you have permission to download.
+  now: Download now
+  pageSelected: Download selected videos ($1)
+  pauseVideo: Pause video $1
+  paused: Download paused.
+  postVideoError: 'Post $1 · video $2: $3'
+  progress: Download progress
+  progressReadFailed: Progress is temporarily unavailable. Check your browser’s download list.
+  queued: Added to the download queue. Open the panel to track progress.
+  quick: Quick download
+  reload: Download did not start. Reload the page and try again.
+  removeRecord: Remove record
+  removeVideoRecord: Remove record for video $1
+  resumeVideo: Resume video $1
+  resumed: Download queued to continue.
+  retried: Download restarted.
+  retryVideo: Retry video $1
+  saveVideo: Save video $1
+  selected: Download selected videos ($1)
+  selection: Download selected
+  starting: Starting download…
+  startingBatch: Starting downloads ($1). Confirm each save location if prompted…
+  startingSave: Starting download. Confirm the save location if prompted…
+  state:
+    cancelled: Cancelled
+    complete: Completed
+    downloading: Downloading
+    interrupted: Failed
+    missing: Record removed
+    paused: Paused
+    queued: Waiting
+  useHighest: Download at best quality instead
+  videoError: 'Video $1: $2'
+  videoProgress: Download progress for video $1
+  videos: Download videos
+errors:
+  actionFailed: Action failed. Please try again.
+  downloadFailed: Download did not start. Please try again.
+  duplicateDownload: This video has already been downloaded. Open the panel to download it again.
+  finishedDownload: This download has already ended.
+  foreignDownload: This download was not created by the extension.
+  invalidRequest: Invalid download request. Select the video again.
+  invalidSender: Invalid download request. Reload X and try again.
+  networkError: Network error
+  pauseUnavailable: This download cannot be paused in its current state.
+  queueFull: 'The download queue is full. Wait for tasks to finish, then try again.'
+  resumeUnavailable: This download cannot be resumed in its current state.
+  retryUnavailable: 'Only failed, cancelled or removed downloads can be retried.'
+extension:
+  description: Save videos from X with your preferred MP4 quality.
+  language: en
+  name: X Video Downloader
+filename:
+  empty: Enter a filename template.
+  extension: Adds .mp4 automatically
+  help: 'Variables: $1 author, $2 post date (UTC), $3 post ID, $4 video number, $5 resolution. Adds .mp4 automatically. Missing authors or dates use unknown / undated.'
+  preview: Preview (sample post)
+  reset: Restore default
+  save: Save template
+  saveFailed: Template could not be saved. Try again.
+  saved: Filename template saved.
+  template: Filename
+  tokens: Use only the variables listed below and close every brace.
+  tooLong: The template must be 160 characters or fewer.
+  unsafe: "Paths, control characters and these symbols are not allowed: \\ / : * ? \" < > |"
+  variables: Template variables
+guide:
+  description: Download settings and getting started
+  formatsHelp: Supports MP4 videos and GIFs stored as video. HLS-only streams are not supported yet. A blob URL is not a directly downloadable MP4.
+  languageHelp: 'The interface follows your browser language. Available in English, Simplified Chinese, Traditional Chinese, Japanese and Korean.'
+  privacyHelp: 'The extension reads loaded video information locally. No API key is needed, and posts, cookies and login details are never sent to third-party download services.'
+  shortcutHelp: 'You can also click the toolbar icon or press Alt + O to open the download panel.'
+  stepOne: Open an X post with a video and wait for the player to load.
+  stepThree: 'Track progress in the panel, cancel a download, or retry a failed one.'
+  stepTwo: 'Use the download button to save a single video, or open the panel to choose quality and select multiple videos.'
+  steps: Save a video in three steps
+  title: Help
+  troubleshootingHelp: 'Play the video, then choose “Scan again”. Reload X after installing or updating. Restricted posts require an X account with permission to view them.'
+  troubleshootingTitle: No video detected?
+history:
+  allAuthors: All authors
+  clearFinished: Clear finished
+  clearHelp: Clears matching finished records from this extension only. Downloaded files and active or paused tasks are kept. Cleared records no longer trigger duplicate reminders.
+  cleared: Finished records cleared.
+  count: $1 records
+  empty: No extension downloads yet.
+  filterAuthor: Filter by author
+  noMatches: No downloads match these filters.
+  search: Search downloads
+  searchPlaceholder: Search downloads…
+  tab: Downloads
+page:
+  connectionUnavailable: Page unavailable
+  detect: Find videos
+  disconnected: 'The extension is not connected to this page. Reload X, then open the extension again.'
+  empty: No videos yet
+  emptyReady: 'Play a video, then scan again. Reload X after installing or updating.'
+  emptyReload: 'Reload X to connect the extension to the player, then play the video.'
+  openPostFirst: Open an X post containing a video first.
+  readFailed: Could not read the current tab. Open the extension again.
+  scanning: Scanning the current page…
+  tab: Page videos
+  title: Videos on this page
+panel:
+  close: Close download panel
+  options: Video download options
+  qualityAndProgress: Quality / progress
+  toggle: Open or close the video download panel
+  views: Download views
+popup:
+  tagline: Choose the quality. Keep it locally.
+quality:
+  highest: Best quality
+  highestSuffix: (best quality)
+  originalMp4: Original MP4
+  prefer1080: Prefer 1080p
+  prefer720: Prefer 720p
+  smallest: Save space
+  video: Quality for video $1
+selection:
+  all: Select all available videos ($1 / $2)
+  available: $1 available
+  batchLimitExceeded: Select at most $1 videos per batch. Your $2 selections are preserved.
+  clear: Clear selection
+  page: Select all
+  post: Select videos in post $1
+  selected: $1 selected
+  selectedPost: Videos in the selected post
+  summary: Selected $1 of $2 videos across $3 posts
+  video: Select video $1
+  videos: Select videos
+settings:
+  autoSave: Preferences save automatically
+  chooseSaveLocation: Ask where to save
+  concurrencyHelp: 'Start 1–6 transfers at a time (default: 3). Remaining videos wait in the queue. Paused downloads keep their place until resumed. Lowering the limit does not stop running transfers.'
+  concurrentDownloads: Concurrent downloads
+  confirmEachSave: Confirm each save location.
+  defaultQuality: Default quality
+  downloads: Downloads
+  qualityHelp: Used for quick and batch downloads. Chooses the best resolution within the target; portrait videos use the shorter edge. “Save space” prefers a lower bitrate.
+  readFailed: Could not read download settings. Open the page again.
+  rules: Download rules
+  saveFailed: Settings could not be saved. Try again.
+  saveLocationHelp: 'Off by default. Saves directly to your browser’s download folder, which you can change in browser settings. When on, asks for each video, including batch downloads.'
+  saved: Download preferences saved.
+theme:
+  amber: Amber
+  apply: Apply color
+  blue: X blue
+  custom: Custom RGB color
+  description: Panels follow X; extension pages follow your system appearance.
+  green: Green
+  grok: Grok · Default
+  indigo: Indigo
+  invalid: Enter three RGB values between 0 and 255.
+  lime: Lime
+  ocean: Ocean
+  orange: Orange
+  presets: Built-in color themes
+  preview: Preview
+  purple: Purple
+  readFailed: Could not read the theme. You can choose and save it again.
+  red: Red
+  rgbHelp: 'Use rgb(29, 155, 240) or 29, 155, 240. Each channel must be an integer from 0 to 255.'
+  rose: Rose
+  saved: Theme saved.
+  teal: Teal
+  title: Appearance
+video:
+  hlsShort: HLS only · unsupported
+  hlsUnsupported: This video is only available as HLS segments. Merging them is not supported yet.
+  number: Video $1
+  post: Post
+welcome:
+  description: X Video Downloader is installed. Reload any open X pages to get started.
+  example: Download preview
+  installed: Installed
+  title: Your videos. Saved locally.

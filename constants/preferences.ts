@@ -43,12 +43,16 @@ export const QUALITY_OPTIONS: Array<{
   /**
    * Translation key used to display the quality option.
    */
-  label: 'qualityHighest' | 'quality1080' | 'quality720' | 'qualitySmallest'
+  label:
+    | 'quality.highest'
+    | 'quality.prefer1080'
+    | 'quality.prefer720'
+    | 'quality.smallest'
 }> = [
-  { label: 'qualityHighest', value: 'highest' },
-  { label: 'quality1080', value: '1080p' },
-  { label: 'quality720', value: '720p' },
-  { label: 'qualitySmallest', value: 'smallest' },
+  { label: 'quality.highest', value: 'highest' },
+  { label: 'quality.prefer1080', value: '1080p' },
+  { label: 'quality.prefer720', value: '720p' },
+  { label: 'quality.smallest', value: 'smallest' },
 ]
 
 /**

@@ -102,11 +102,11 @@ async function handleClear(event: MouseEvent) {
         :for="searchId"
         class="sr-only"
       >
-        {{ i18n.t('searchDownloads') }}
+        {{ i18n.t('history.search') }}
       </Label>
       <Input
         v-model="query"
-        :placeholder="i18n.t('historySearchPlaceholder')"
+        :placeholder="i18n.t('history.searchPlaceholder')"
         :id="searchId"
         name="download-search"
         autocomplete="off"
@@ -117,14 +117,16 @@ async function handleClear(event: MouseEvent) {
         :for="authorId"
         class="sr-only"
       >
-        {{ i18n.t('filterAuthor') }}
+        {{ i18n.t('history.filterAuthor') }}
       </Label>
       <Select v-model="authorFilter">
         <SelectTrigger :id="authorId">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">{{ i18n.t('allAuthors') }}</SelectItem>
+          <SelectItem value="all">{{
+            i18n.t('history.allAuthors')
+          }}</SelectItem>
           <SelectItem
             v-if="author && !authors.includes(author)"
             :value="`author:${author}`"
@@ -143,13 +145,13 @@ async function handleClear(event: MouseEvent) {
     </div>
     <div class="flex flex-wrap items-center justify-between gap-2">
       <p class="text-xs text-muted-foreground">
-        {{ i18n.t('historyCount', [filtered.length]) }}
+        {{ i18n.t('history.count', [filtered.length]) }}
       </p>
       <DialogConfirm
         @confirm="handleClear"
         v-model:open="clearOpen"
-        :title="i18n.t('clearFinished')"
-        :description="i18n.t('historyClearHelp')"
+        :title="i18n.t('history.clearFinished')"
+        :description="i18n.t('history.clearHelp')"
         :disabled="isActionPending"
         :error="requestError"
       >
@@ -159,7 +161,9 @@ async function handleClear(event: MouseEvent) {
             variant="ghost"
             size="sm"
             class="text-xs text-muted-foreground"
-            ><UiIcon name="trash" />{{ i18n.t('clearFinished') }}</Button
+            ><UiIcon name="trash" />{{
+              i18n.t('history.clearFinished')
+            }}</Button
           >
         </template>
       </DialogConfirm>
@@ -188,7 +192,7 @@ async function handleClear(event: MouseEvent) {
     />
     <EmptyState
       v-if="!filtered.length && !progressError"
-      :title="i18n.t(downloads.length ? 'historyNoMatches' : 'historyEmpty')"
+      :title="i18n.t(downloads.length ? 'history.noMatches' : 'history.empty')"
     />
   </section>
 </template>

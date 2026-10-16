@@ -70,7 +70,7 @@ const overlayTarget = useOverlayTarget()
             ><Button
               :disabled
               variant="outline"
-              >{{ i18n.t('cancel') }}</Button
+              >{{ i18n.t('common.cancel') }}</Button
             ></AlertDialogCancel
           >
           <Button

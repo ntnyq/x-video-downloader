@@ -59,8 +59,8 @@ defineExpose({
     @lostpointercapture="onPointerCancel"
     @dragstart.prevent
     ref="buttonRef"
-    :aria-label="isOpen ? i18n.t('closePanel') : i18n.t('downloadVideos')"
-    :title="isOpen ? i18n.t('closePanel') : i18n.t('downloadVideos')"
+    :aria-label="isOpen ? i18n.t('panel.close') : i18n.t('download.videos')"
+    :title="isOpen ? i18n.t('panel.close') : i18n.t('download.videos')"
     :aria-expanded="isOpen"
     :aria-controls="panelId"
     :style="buttonStyle"

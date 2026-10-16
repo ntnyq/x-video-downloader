@@ -76,10 +76,10 @@ async function openSettings() {
     })
     const { ok } = isRecord(response) ? response : { ok: false }
     if (ok !== true) {
-      settingsError.value = i18n.t('actionFailed')
+      settingsError.value = i18n.t('errors.actionFailed')
     }
   } catch {
-    settingsError.value = i18n.t('actionFailed')
+    settingsError.value = i18n.t('errors.actionFailed')
   }
 }
 
@@ -102,7 +102,7 @@ watch(
     ref="surfaceRef"
     :style="themeStyle"
     :data-xvd-theme="pageTheme"
-    :aria-label="i18n.t('extensionName')"
+    :aria-label="i18n.t('extension.name')"
     class="pointer-events-none fixed inset-0 z-2147483647 text-foreground font-sans"
   >
     <FloatingDownloadLauncher
@@ -113,20 +113,20 @@ watch(
     >
       <section
         v-if="isOpen"
-        :aria-label="i18n.t('panelOptions')"
+        :aria-label="i18n.t('panel.options')"
         :id="panelId"
         class="animate-in fade-in zoom-in-95 duration-150 motion-reduce:animate-none xvd-panel-shadow max-h-[inherit] w-full flex flex-col overflow-hidden overscroll-contain border border-border rounded-2xl bg-background"
       >
-        <SurfaceHeader :title="i18n.t('extensionName')">
+        <SurfaceHeader :title="i18n.t('extension.name')">
           <IconButton
             @click="openSettings"
-            :label="i18n.t('settings')"
+            :label="i18n.t('common.settings')"
             icon="settings"
           />
           <IconButton
             @click="emit('close')"
             ref="closeButtonRef"
-            :label="i18n.t('closePanel')"
+            :label="i18n.t('panel.close')"
             icon="close"
           />
         </SurfaceHeader>

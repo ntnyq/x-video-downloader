@@ -14,7 +14,7 @@ const { themeStyle } = useTheme()
     class="min-h-screen bg-background text-foreground font-sans"
   >
     <SurfaceHeader
-      :title="i18n.t('extensionName')"
+      :title="i18n.t('extension.name')"
       class="border-b border-border px-5 py-4 sm:px-8"
     >
       <Button
@@ -24,7 +24,7 @@ const { themeStyle } = useTheme()
         size="sm"
       >
         <UiIcon name="settings" />
-        {{ i18n.t('settings') }}
+        {{ i18n.t('common.settings') }}
       </Button>
     </SurfaceHeader>
     <ReleaseHistory />

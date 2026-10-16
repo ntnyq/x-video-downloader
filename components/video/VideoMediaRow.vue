@@ -80,7 +80,7 @@ function handleCheck(value: boolean | 'indeterminate') {
         v-if="selectable"
         :model-value="checked"
         :disabled="disabled || !variant"
-        :aria-label="i18n.t('selectVideo', [index])"
+        :aria-label="i18n.t('selection.video', [index])"
       />
       <div
         class="flex h-10 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground"
@@ -95,10 +95,10 @@ function handleCheck(value: boolean | 'indeterminate') {
           :for="variant ? selectId : undefined"
           class="text-xs font-medium"
         >
-          {{ i18n.t('videoNumber', [index]) }}
+          {{ i18n.t('video.number', [index]) }}
         </Label>
         <p class="mt-1 text-[11px] text-muted-foreground">
-          {{ variant ? 'MP4' : i18n.t('hlsShort') }}
+          {{ variant ? 'MP4' : i18n.t('video.hlsShort') }}
         </p>
       </div>
       <template v-if="variant">
@@ -108,14 +108,14 @@ function handleCheck(value: boolean | 'indeterminate') {
           :disabled
         >
           <SelectTrigger
-            :aria-label="i18n.t('videoQuality', [index])"
+            :aria-label="i18n.t('quality.video', [index])"
             :id="selectId"
             class="h-8 w-auto max-w-32 border-0 bg-transparent px-2 text-xs shadow-none"
           >
             <SelectValue>{{
               variant.width && variant.height
                 ? `${Math.min(variant.width, variant.height)}p`
-                : i18n.t('originalMp4')
+                : i18n.t('quality.originalMp4')
             }}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -123,9 +123,9 @@ function handleCheck(value: boolean | 'indeterminate') {
               v-for="(item, variantIndex) in media.variants"
               :key="item.url"
               :value="item.url"
-              >{{ formatVariant(item, i18n.t('originalMp4')) }}
+              >{{ formatVariant(item, i18n.t('quality.originalMp4')) }}
               {{
-                variantIndex === 0 ? i18n.t('highestSuffix') : ''
+                variantIndex === 0 ? i18n.t('quality.highestSuffix') : ''
               }}</SelectItem
             >
           </SelectContent>
@@ -134,13 +134,13 @@ function handleCheck(value: boolean | 'indeterminate') {
           @click="emit('download', $event)"
           v-if="!hideDownload"
           :disabled
-          :label="i18n.t('saveVideo', [index])"
+          :label="i18n.t('download.saveVideo', [index])"
           icon="download"
         />
       </template>
       <span
         v-else
-        :title="i18n.t('hlsUnsupported')"
+        :title="i18n.t('video.hlsUnsupported')"
         class="px-2 text-muted-foreground"
       >
         <UiIcon

@@ -56,15 +56,15 @@ export default defineConfig({
           }
         : { minimum_chrome_version: '111' }),
       default_locale: 'en',
-      description: '__MSG_extensionDescription__',
+      description: '__MSG_extension_description__',
       homepage_url: 'https://github.com/ntnyq/x-video-downloader',
       host_permissions: [],
-      name: '__MSG_extensionName__',
+      name: '__MSG_extension_name__',
       optional_host_permissions: [],
       permissions: ['storage', 'activeTab', 'downloads'],
       commands: {
         toggleExtension: {
-          description: '__MSG_togglePanel__',
+          description: '__MSG_panel_toggle__',
           suggested_key: {
             default: 'Alt+O',
           },

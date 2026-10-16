@@ -82,10 +82,10 @@ backfill.
    unrelated releases. Historical correction is limited to requested versions.
 4. Write matching keys in all five locale files. Translate the user benefit,
    preserve placeholders and human edits, and avoid implementation-only details.
-5. Use `changelogFeature` (✨), `changelogImprovement` (⚡), or `changelogFix` (🐛).
+5. Use `changelog.feature` (✨), `changelog.improvement` (⚡), or `changelog.fix` (🐛).
    The category labels already contain emoji; do not repeat it in each sentence.
-6. Use stable unique `changelogRelease…` keys. For new versions an unambiguous
-   token such as `changelogRelease0_0_4UpdateNotes` is suitable. Preserve existing
+6. Use stable unique `changelog.releases.<version>.*` keys. For new versions an unambiguous
+   token such as `changelog.releases.v0_0_4.updateNotes` is suitable. Preserve existing
    published keys.
 7. Remove only draft items incorporated in this release. Update `package.json`
    only within an authorized version-bump task. Otherwise keep notes for a

@@ -128,7 +128,7 @@ test('inline duplicates require explicit force and clear the prompt after accept
     { ...request, force: true },
   ])
   assert.equal(harness.state.duplicateRequest.value, undefined)
-  assert.equal(harness.state.message.value, 'downloadQueued')
+  assert.equal(harness.state.message.value, 'download.queued')
   assert.equal(harness.state.isPending.value, false)
 })
 
@@ -189,7 +189,7 @@ test('disposed inline controls ignore late replies and reject new download attem
     }
     assert.equal(await pending, false)
     assert.equal(harness.state.duplicateRequest.value, undefined)
-    assert.equal(harness.state.message.value, 'creatingSave')
+    assert.equal(harness.state.message.value, 'download.startingSave')
     assert.equal(harness.state.hasError.value, false)
     assert.equal(await harness.state.download(request), undefined)
     assert.equal(harness.calls.length, 1)

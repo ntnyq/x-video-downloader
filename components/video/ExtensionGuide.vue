@@ -33,19 +33,19 @@ provideOverlayTarget(overlayRef)
     class="min-h-screen bg-background text-foreground font-sans"
   >
     <SurfaceHeader
-      :title="i18n.t('extensionName')"
+      :title="i18n.t('extension.name')"
       class="border-b border-border px-5 py-4 sm:px-8"
     >
       <IconButton
         @click="browser.runtime.openOptionsPage()"
         v-if="welcome"
-        :label="i18n.t('settings')"
+        :label="i18n.t('common.settings')"
         icon="settings"
       />
       <a
         v-else
-        :aria-label="i18n.t('usageHelp')"
-        :title="i18n.t('usageHelp')"
+        :aria-label="i18n.t('guide.title')"
+        :title="i18n.t('guide.title')"
         href="/welcome.html"
         class="flex size-8 items-center justify-center rounded-md text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring"
         ><UiIcon name="help"
@@ -57,22 +57,22 @@ provideOverlayTarget(overlayRef)
       class="mx-auto max-w-146 px-5 py-8 sm:py-10"
     >
       <div class="flex items-center justify-between gap-3">
-        <h2 class="text-2xl font-semibold">{{ i18n.t('settings') }}</h2>
+        <h2 class="text-2xl font-semibold">{{ i18n.t('common.settings') }}</h2>
         <span class="flex items-center gap-1 text-[11px] text-muted-foreground"
           ><UiIcon
             name="check"
             class="size-3"
-          />{{ i18n.t('autoSavePreferences') }}</span
+          />{{ i18n.t('settings.autoSave') }}</span
         >
       </div>
       <DownloadSettings />
       <ThemeSettings />
       <SettingsSection
-        :title="i18n.t('changelogTitle')"
+        :title="i18n.t('changelog.title')"
         icon="history"
       >
         <p class="text-xs text-muted-foreground leading-relaxed">
-          {{ i18n.t('changelogDescription') }}
+          {{ i18n.t('changelog.description') }}
         </p>
         <Button
           as="a"
@@ -82,7 +82,7 @@ provideOverlayTarget(overlayRef)
           variant="outline"
           size="sm"
         >
-          {{ i18n.t('changelogView') }}
+          {{ i18n.t('changelog.view') }}
           <UiIcon name="external" />
         </Button>
       </SettingsSection>

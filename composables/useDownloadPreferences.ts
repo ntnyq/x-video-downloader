@@ -59,7 +59,7 @@ export const useDownloadPreferences = createSharedComposable(() => {
       isReady.value = true
     })
     .catch(() => {
-      preferenceError.value = i18n.t('preferencesReadFailed')
+      preferenceError.value = i18n.t('settings.readFailed')
     })
 
   onScopeDispose(() => {

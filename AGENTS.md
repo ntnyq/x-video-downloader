@@ -33,7 +33,7 @@ Use `node:test` and `node:assert/strict` in `tests/<feature>.test.ts`, with desc
 
 ## Commit & Pull Request Guidelines
 
-Follow the history's Conventional Commit prefixes: `feat:`, `fix:`, and `chore:`. Keep commits focused. PRs should describe behavior changes, link relevant issues, list validation performed, and include screenshots for UI changes.
+Write all Git commit messages in English, including the subject and body. Follow the history's Conventional Commit prefixes: `feat:`, `fix:`, and `chore:`. Keep commits focused. PRs should describe behavior changes, link relevant issues, list validation performed, and include screenshots for UI changes.
 
 ## Security Boundaries
 
