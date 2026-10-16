@@ -5,6 +5,23 @@ availableVideos: $1 件ダウンロード可能
 batchLimitExceeded: 1 回に選べる動画は $1 本までです。$2 本の選択は保持されています。
 cancel: キャンセル
 cancelVideo: 動画 $1 をキャンセル
+changelogCurrentVersion: 現在のバージョン
+changelogDescription: 各バージョンの新機能、改善点、不具合の修正を確認できます。
+changelogFeature: ✨ 新機能
+changelogFix: 🐛 修正
+changelogImprovement: ⚡ 改善
+changelogInstalledVersion: インストール済みバージョン：$1
+changelogRelease001Download: X の動画を MP4 で保存できます。画質の選択と、投稿内の動画の一括ダウンロードに対応しました。
+changelogRelease001Languages: 英語、簡体字中国語、繁体字中国語、日本語、韓国語に対応しました。
+changelogRelease001Preferences: ファイル名とカラーテーマをカスタマイズできます。標準ではブラウザーのダウンロードフォルダーに直接保存します。
+changelogRelease002Batch: 現在のページで複数の投稿から動画を選択して、一括ダウンロードできるようになりました。
+changelogRelease002Interface: shadcn-vue を使用して操作ボタンと設定画面を刷新しました。
+changelogRelease002Position: ページを再読み込みしても、フローティングダウンロードボタンの位置を保持するようになりました。
+changelogRelease002Queue: ダウンロードキューと履歴を保存できるようになりました。一時停止、再開、再試行、重複ダウンロードの通知に対応しました。
+changelogRelease003Interface: ダウンロードパネル、ツールバーのポップアップ、設定画面、ようこそ画面を再設計し、操作とレイアウトを統一しました。
+changelogRelease003QuickDownload: クイックダウンロード時にダウンロードパネルが意図せず開く問題を修正しました。
+changelogTitle: 更新履歴
+changelogView: 更新履歴を見る
 chooseSaveLocation: 保存場所を毎回確認
 clearFinished: 終了分を消去
 clearSelection: 選択を解除

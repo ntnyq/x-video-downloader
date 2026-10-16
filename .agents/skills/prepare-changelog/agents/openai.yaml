@@ -1,0 +1,4 @@
+interface:
+  display_name: '准备更新日志'
+  short_description: '提交前整理五语言变更草稿，并按历史提交生成插件正式更新日志'
+  default_prompt: '使用 $prepare-changelog 根据本次改动或指定提交范围准备 X Video Downloader 的五语言更新日志。'

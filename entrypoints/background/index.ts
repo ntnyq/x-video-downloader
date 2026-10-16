@@ -207,9 +207,30 @@ export default defineBackground(() => {
     }
   })
 
-  browser.runtime.onInstalled.addListener(({ reason }) => {
-    if (reason === 'install') {
-      browser.tabs.create({ url: browser.runtime.getURL('/welcome.html') })
-    }
-  })
+  browser.runtime.onInstalled.addListener(
+    async ({ reason, previousVersion }) => {
+      try {
+        if (reason === 'install') {
+          await browser.tabs.create({
+            url: browser.runtime.getURL('/welcome.html'),
+          })
+          return
+        }
+
+        if (
+          reason !== 'update'
+          || import.meta.env.DEV
+          || previousVersion === browser.runtime.getManifest().version
+        ) {
+          return
+        }
+
+        await browser.tabs.create({
+          url: browser.runtime.getURL('/changelog.html'),
+        })
+      } catch (error) {
+        log.warn('Could not open the extension introduction page', error)
+      }
+    },
+  )
 })

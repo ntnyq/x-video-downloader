@@ -1,0 +1,21 @@
+baseTag: v0.0.3
+changes:
+  - id: bundled-changelog
+    type: changelogFeature
+    messages:
+      en: View release notes after updates or from Settings, in five languages, with emoji labels for new features, improvements and fixes.
+      zh_CN: 更新后自动展示更新日志，也可从设置页查看，支持五种语言，并以 emoji 标记新功能、改进和修复。
+      zh_TW: 更新後自動顯示更新日誌，也可從設定頁查看，支援五種語言，並以 emoji 標示新功能、改進與修正。
+      ja: 更新後に更新履歴を表示し、設定画面からも確認できます。5言語に対応し、新機能・改善・修正を絵文字付きのラベルで表示します。
+      ko: 업데이트 후 변경 내역을 표시하며 설정에서도 확인할 수 있습니다. 5개 언어를 지원하고 새 기능, 개선 및 수정 사항을 이모지 라벨로 표시합니다.
+    paths:
+      - entrypoints/background/index.ts
+      - entrypoints/changelog/App.vue
+      - components/changelog/ReleaseHistory.vue
+      - components/video/ExtensionGuide.vue
+      - locales/en.yaml
+      - locales/zh_CN.yaml
+      - locales/zh_TW.yaml
+      - locales/ja.yaml
+      - locales/ko.yaml
+    commits: []

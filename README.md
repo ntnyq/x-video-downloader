@@ -14,6 +14,8 @@ Built with **WXT + Vue 3 + TypeScript + Tailwind CSS + shadcn-vue**. Supports En
 
 After installing or updating, **reload any open X pages**.
 
+Version updates open the bundled changelog in a new tab. You can also open it from **Settings → Changelog → View changelog**. Release notes follow your browser language and are available offline.
+
 <details>
 <summary>Build from source · Chrome / Edge and Firefox</summary>
 
@@ -171,6 +173,19 @@ Translations live in `locales/`: `en`, `zh_CN`, `zh_TW`, `ja`, and `ko`. The ext
 To add a language, copy `locales/en.yaml`, keeping all keys and placeholders such as `$1`. Do not translate filename template variables. Tests check translation keys, placeholders, document language declarations, and error message completeness. Browser error codes are preserved for troubleshooting.
 
 `assets/images/downloader.svg` is the icon source; WXT generates the required PNG sizes. General utilities use `@ntnyq/utils`, while domain-specific functions handle video source and download request validation.
+
+</details>
+
+<details>
+<summary>Maintaining release notes</summary>
+
+AI-assisted commits use the project-local [prepare-changelog skill](.agents/skills/prepare-changelog/SKILL.md), as required by `AGENTS.md`. User-facing changes accumulate in `docs/changelog/unreleased.yaml` with five translations and source evidence. Internal-only changes do not need an entry. This workflow is followed by the AI agent; a manual `git commit` does not invoke an AI service.
+
+You can also invoke `$prepare-changelog` explicitly to prepare notes from the current changes, a commit range, or a release tag. For example: “Use $prepare-changelog to generate release notes from v0.0.2 to v0.0.3.” Historical backfills preserve other releases; pending notes receive a version only during release preparation.
+
+Before publishing a version, prepend its release date and changes to `constants/changelog.ts` and add the referenced `changelogRelease…` messages to all five `locales/*.yaml` files. Use the same version as `package.json`, keep entries newest first, and describe user-visible changes. Tests check that the latest entry matches the package version and that every change is translated.
+
+The changelog is packaged with the extension and makes no release-note network requests. First installation opens the welcome page; version updates open `changelog.html`. WXT development updates, same-version reloads and browser-only updates do not open the changelog.
 
 </details>
 

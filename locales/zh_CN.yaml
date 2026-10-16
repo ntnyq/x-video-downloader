@@ -5,6 +5,23 @@ availableVideos: $1 个可下载
 batchLimitExceeded: 每批最多选择 $1 个视频，当前 $2 个选择均已保留。
 cancel: 取消
 cancelVideo: 取消视频 $1
+changelogCurrentVersion: 当前版本
+changelogDescription: 查看各版本的新功能、改进和问题修复。
+changelogFeature: ✨ 新功能
+changelogFix: 🐛 修复
+changelogImprovement: ⚡ 改进
+changelogInstalledVersion: 已安装版本：$1
+changelogRelease001Download: 将 X 视频保存为 MP4，支持选择画质和批量下载单条帖文中的视频。
+changelogRelease001Languages: 支持英语、简体中文、繁体中文、日语和韩语。
+changelogRelease001Preferences: 支持自定义文件名和颜色主题，默认直接保存到浏览器的下载文件夹。
+changelogRelease002Batch: 支持跨帖文选择并批量下载当前页面的视频。
+changelogRelease002Interface: 使用 shadcn-vue 更新控件和设置界面。
+changelogRelease002Position: 刷新页面后保留悬浮下载按钮的位置。
+changelogRelease002Queue: 新增持久化下载队列和历史记录，支持暂停、继续、重试和重复下载提醒。
+changelogRelease003Interface: 重新设计下载面板、工具栏弹窗、设置页和欢迎页，统一控件并优化布局。
+changelogRelease003QuickDownload: 修复快捷下载时意外打开下载面板的问题。
+changelogTitle: 更新日志
+changelogView: 查看更新日志
 chooseSaveLocation: 每次询问保存位置
 clearFinished: 清理已结束
 clearSelection: 清空选择

@@ -6,6 +6,7 @@ import { runInNewContext } from 'node:vm'
 import * as utils from '@ntnyq/utils'
 import { generateChromeMessages, parseMessagesFile } from '@wxt-dev/i18n/build'
 import ts from 'typescript'
+import { CHANGELOG_ENTRIES } from '../constants/changelog'
 import { formatBytes, validateFilenameTemplate } from '../utils/preferences'
 import { formatVariant } from '../utils/video'
 
@@ -56,6 +57,12 @@ for (const locale of LOCALES) {
       const message = messages[key]?.message
       assert.ok(message, `Missing ${locale}.${key}`)
       return message
+    }
+    for (const entry of CHANGELOG_ENTRIES) {
+      for (const change of entry.changes) {
+        assert.ok(t(change.type))
+        assert.ok(t(change.key))
+      }
     }
     const exports: {
       /**

@@ -5,6 +5,23 @@ availableVideos: $1 available
 batchLimitExceeded: Select at most $1 videos per batch. Your $2 selections are preserved.
 cancel: Cancel
 cancelVideo: Cancel video $1
+changelogCurrentVersion: Current version
+changelogDescription: New features, improvements and fixes in each release.
+changelogFeature: ✨ New
+changelogFix: 🐛 Fix
+changelogImprovement: ⚡ Improved
+changelogInstalledVersion: 'Installed version: $1'
+changelogRelease001Download: Download X videos as MP4 with quality selection and batch downloads from a post.
+changelogRelease001Languages: Available in English, Simplified Chinese, Traditional Chinese, Japanese and Korean.
+changelogRelease001Preferences: Customize filenames and color themes. Save directly to your browser’s download folder by default.
+changelogRelease002Batch: Select and download videos across multiple posts on the current page.
+changelogRelease002Interface: Updated controls and settings built with shadcn-vue.
+changelogRelease002Position: Remember the floating download button’s position after reloading the page.
+changelogRelease002Queue: Added a persistent download queue and history, with pause, resume, retry and duplicate reminders.
+changelogRelease003Interface: Redesigned the download panel, popup, settings and welcome page with consistent controls and clearer layouts.
+changelogRelease003QuickDownload: Quick downloads no longer open the download panel unexpectedly.
+changelogTitle: Changelog
+changelogView: View changelog
 chooseSaveLocation: Ask where to save
 clearFinished: Clear finished
 clearSelection: Clear selection

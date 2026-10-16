@@ -34,17 +34,27 @@ type Listener = (
   sender: Sender,
   respond: (value: unknown) => void,
 ) => unknown
+type InstalledDetails = {
+  reason: string
+  previousVersion?: string
+}
 
 /**
  * Runs the background entrypoint against in-memory browser and storage adapters.
  *
  * @param shouldFail - Whether native download attempts should simulate user cancellation.
+ * @param isDevelopment - Whether the background is running in WXT development mode.
  * @returns Recorded download options and a helper for sending runtime messages.
  * @throws When the entrypoint cannot be loaded or requests an unexpected dependency.
  */
-function createBackground(shouldFail = false) {
+function createBackground(shouldFail = false, isDevelopment = false) {
   const calls: unknown[] = []
+  const openedUrls: string[] = []
+  const warnings: unknown[][] = []
   let listener: Listener | undefined
+  let installedListener:
+    | ((details: InstalledDetails) => Promise<void>)
+    | undefined
   let changedListener: ((delta: { id: number }) => void) | undefined
   let erasedListener: ((id: number) => void) | undefined
   let nextId = 42
@@ -63,11 +73,16 @@ function createBackground(shouldFail = false) {
     runtime: {
       id: 'test',
       /**
-       * Returns the popup URL used by the sender-validation fixture.
+       * Resolves extension page URLs for navigation tests.
        *
-       * @returns The fixed test extension popup URL.
+       * @returns An absolute URL in the test extension.
        */
-      getURL: () => popupUrl,
+      getURL: (path: string) => `chrome-extension://test${path}`,
+      getManifest() {
+        return {
+          version: '0.0.3',
+        }
+      },
       /**
        * Records settings navigation or simulates a browser API failure.
        */
@@ -89,9 +104,19 @@ function createBackground(shouldFail = false) {
       },
       onInstalled: {
         /**
-         * Ignores installation listeners because installation is outside these message tests.
+         * Captures the listener for installation and update lifecycle tests.
          */
-        addListener() {},
+        addListener(callback: (details: InstalledDetails) => Promise<void>) {
+          installedListener = callback
+        },
+      },
+    },
+    tabs: {
+      async create({ url }: { url: string }) {
+        if (shouldFail) {
+          throw new Error('TAB_FAILED')
+        }
+        openedUrls.push(url)
       },
     },
     commands: {
@@ -178,12 +203,15 @@ function createBackground(shouldFail = false) {
     new URL('../entrypoints/background/index.ts', import.meta.url),
     'utf8',
   )
-  const compiled = ts.transpileModule(source, {
-    compilerOptions: {
-      module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2022,
+  const compiled = ts.transpileModule(
+    source.replaceAll('import.meta.env.DEV', () => String(isDevelopment)),
+    {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2022,
+      },
     },
-  }).outputText
+  ).outputText
   runInNewContext(compiled, {
     exports,
     Error,
@@ -204,7 +232,9 @@ function createBackground(shouldFail = false) {
           logger: {
             withTag() {
               return {
-                warn() {},
+                warn(...args: unknown[]) {
+                  warnings.push(args)
+                },
               }
             },
           },
@@ -280,12 +310,59 @@ function createBackground(shouldFail = false) {
   }
   return {
     calls,
+    openedUrls,
+    warnings,
+    installed: (details: InstalledDetails) => installedListener?.(details),
     send,
     items,
     changed: (id: number) => changedListener?.({ id }),
     erased: (id: number) => erasedListener?.(id),
   }
 }
+
+test('first installation opens the welcome page only', async () => {
+  const background = createBackground()
+  await background.installed({ reason: 'install' })
+  assert.deepEqual(background.openedUrls, [
+    'chrome-extension://test/welcome.html',
+  ])
+})
+
+test('version updates open the bundled changelog, including skipped releases', async () => {
+  for (const previousVersion of ['0.0.1', '0.0.2', undefined]) {
+    const background = createBackground()
+    await background.installed({ reason: 'update', previousVersion })
+    assert.deepEqual(background.openedUrls, [
+      'chrome-extension://test/changelog.html',
+    ])
+  }
+})
+
+test('same-version reloads, browser updates and development updates do not open release notes', async () => {
+  const background = createBackground()
+  await background.installed({ reason: 'update', previousVersion: '0.0.3' })
+  await background.installed({ reason: 'chrome_update' })
+  await background.installed({ reason: 'shared_module_update' })
+  assert.deepEqual(background.openedUrls, [])
+
+  const development = createBackground(false, true)
+  await development.installed({ reason: 'update', previousVersion: '0.0.2' })
+  assert.deepEqual(development.openedUrls, [])
+})
+
+test('failed introduction tabs are logged without rejecting the installation listener', async () => {
+  for (const reason of ['install', 'update']) {
+    const background = createBackground(true)
+    await background.installed({ reason, previousVersion: '0.0.2' })
+    assert.deepEqual(background.openedUrls, [])
+    assert.equal(background.warnings.length, 1)
+    assert.equal(
+      background.warnings[0]?.[0],
+      'Could not open the extension introduction page',
+    )
+    assert.equal(String(background.warnings[0]?.[1]), 'Error: TAB_FAILED')
+  }
+})
 
 test('background starts downloads with chosen quality, stable filename and saved preference', async () => {
   const background = createBackground()

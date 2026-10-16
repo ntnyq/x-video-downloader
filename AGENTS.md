@@ -39,13 +39,10 @@ Follow the history's Conventional Commit prefixes: `feat:`, `fix:`, and `chore:`
 
 Preserve sender and payload validation. Accept downloads only from HTTPS MP4 URLs on `video.twimg.com`. Capture existing page responses without collecting authentication tokens or bypassing access restrictions.
 
-## Agent Instructions
+## Release Notes Workflow
 
-Follow @/Users/ntnyq/.codex/RTK.md. Prefix shell commands with `rtk`, except `pnpm typecheck`. Use the user-managed pnpm and preserve PATH and Node.js:
-
-```sh
-rtk proxy env PATH="/Users/ntnyq/Library/pnpm/bin:$PATH" pnpm test
-PATH="/Users/ntnyq/Library/pnpm/bin:$PATH" pnpm typecheck
-```
-
-Apply that PATH prefix to every pnpm invocation. Never modify Codex's bundled pnpm or runtime cache.
+- Before an AI-assisted commit, read and apply [prepare-changelog](.agents/skills/prepare-changelog/SKILL.md). Also use it when preparing a release or generating notes from Git history.
+- Prepare notes for the intended commit scope, including partially staged changes. Skip changes without a user-facing effect.
+- Accumulate pending changes in `docs/changelog/unreleased.yaml` with all five translations. Keep unreleased behavior separate from published entries in `constants/changelog.ts`.
+- At release preparation, reconcile pending data with the release's commits, update the bundled entries and locale keys, and keep the latest entry aligned with `package.json`.
+- Preparing notes alone does not authorize a commit, version bump, tag, push, or publication. For an already-authorized commit, include its related notes and continue after validation.
