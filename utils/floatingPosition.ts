@@ -1,4 +1,4 @@
-import { clamp, isNumber } from '@ntnyq/utils'
+import { clamp, isNumber, isString } from '@ntnyq/utils'
 import {
   FLOATING_BUTTON_SIZE,
   FLOATING_EDGE_GAP,
@@ -28,6 +28,13 @@ export interface FloatingViewport {
 }
 
 /**
+ * Narrows an untrusted stored edge to one of the supported docking edges.
+ */
+function isFloatingEdge(value: unknown): value is FloatingEdge {
+  return isString(value) && ['left', 'right', 'top', 'bottom'].includes(value)
+}
+
+/**
  * Validates persisted launcher coordinates before using them in CSS.
  *
  * @param value - Untrusted extension storage value.
@@ -41,7 +48,7 @@ export function normalizeFloatingPlacement(
   }
   const { edge, x, y } = value
   if (
-    (edge !== 'left' && edge !== 'right' && edge !== 'top' && edge !== 'bottom')
+    !isFloatingEdge(edge)
     || !isNumber(x)
     || !Number.isFinite(x)
     || !isNumber(y)

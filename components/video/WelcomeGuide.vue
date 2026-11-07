@@ -2,6 +2,14 @@
 import { i18n } from '#i18n'
 import { Button } from '~/components/ui/button'
 import ExtensionHelp from './ExtensionHelp.vue'
+
+const { t } = i18n
+
+const GUIDE_STEP_LIST = [
+  'guide.stepOne',
+  'guide.stepTwo',
+  'guide.stepThree',
+] as const
 </script>
 
 <template>
@@ -12,13 +20,13 @@ import ExtensionHelp from './ExtensionHelp.vue'
           <UiIcon
             name="check"
             class="size-4"
-          />{{ i18n.t('welcome.installed') }}
+          />{{ t('welcome.installed') }}
         </p>
         <h2 class="max-w-96 text-4xl font-semibold leading-tight sm:text-5xl">
-          {{ i18n.t('welcome.title') }}
+          {{ t('welcome.title') }}
         </h2>
         <p class="mt-6 max-w-80 text-sm text-muted-foreground leading-relaxed">
-          {{ i18n.t('welcome.description') }}
+          {{ t('welcome.description') }}
         </p>
         <Button
           as="a"
@@ -26,7 +34,7 @@ import ExtensionHelp from './ExtensionHelp.vue'
           target="_blank"
           rel="noreferrer"
           class="mt-7"
-          >{{ i18n.t('common.openX') }}<UiIcon name="external"
+          >{{ t('common.openX') }}<UiIcon name="external"
         /></Button>
         <p
           class="mt-6 flex items-start gap-2 text-xs text-muted-foreground leading-relaxed"
@@ -34,11 +42,11 @@ import ExtensionHelp from './ExtensionHelp.vue'
           <UiIcon
             name="keyboard"
             class="size-4"
-          />{{ i18n.t('guide.shortcutHelp') }}
+          />{{ t('guide.shortcutHelp') }}
         </p>
       </div>
       <div
-        :aria-label="i18n.t('welcome.example')"
+        :aria-label="t('welcome.example')"
         class="rounded-2xl border border-border p-5"
       >
         <div class="mb-4 flex items-center gap-3">
@@ -47,9 +55,7 @@ import ExtensionHelp from './ExtensionHelp.vue'
           >
             X
           </div>
-          <span class="text-sm font-semibold">{{
-            i18n.t('welcome.example')
-          }}</span>
+          <span class="text-sm font-semibold">{{ t('welcome.example') }}</span>
         </div>
         <div
           class="flex aspect-video items-center justify-center rounded-lg bg-secondary text-muted-foreground"
@@ -68,7 +74,7 @@ import ExtensionHelp from './ExtensionHelp.vue'
             ><UiIcon
               name="download"
               class="size-4"
-            />{{ i18n.t('download.videos') }}</span
+            />{{ t('download.videos') }}</span
           >
         </div>
         <div class="mt-5 flex items-center gap-3 border-t border-border pt-4">
@@ -79,7 +85,7 @@ import ExtensionHelp from './ExtensionHelp.vue'
               <UiIcon
                 name="check"
                 class="size-3"
-              />{{ i18n.t('download.state.complete') }}
+              />{{ t('download.state.complete') }}
             </p>
           </div>
         </div>
@@ -87,11 +93,7 @@ import ExtensionHelp from './ExtensionHelp.vue'
     </div>
     <ol class="mt-14 grid gap-6 border-y border-border py-7 md:grid-cols-3">
       <li
-        v-for="(key, index) in [
-          'guide.stepOne',
-          'guide.stepTwo',
-          'guide.stepThree',
-        ] as const"
+        v-for="(key, index) in GUIDE_STEP_LIST"
         :key
         class="flex gap-3 text-xs leading-relaxed"
       >
@@ -99,7 +101,7 @@ import ExtensionHelp from './ExtensionHelp.vue'
           class="flex size-7 shrink-0 items-center justify-center rounded-full border border-border bg-secondary"
           >{{ index + 1 }}</span
         >
-        <p>{{ i18n.t(key) }}</p>
+        <p>{{ t(key) }}</p>
       </li>
     </ol>
     <ExtensionHelp />

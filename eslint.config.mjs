@@ -7,9 +7,18 @@ export default defineESLintConfig(
     oxfmt: true,
     prettier: false,
     svgo: true,
+    specials: {
+      shadcnVue: {
+        overrides: {
+          'vue/no-props-shadow': 'off',
+        },
+      },
+    },
     vue: {
       vuePerfectionist: {
-        overrides: {},
+        overrides: {
+          'vue-perfectionist/prefer-define-model': 'off',
+        },
       },
     },
   },

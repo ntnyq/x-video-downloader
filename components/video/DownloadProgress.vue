@@ -8,6 +8,7 @@ import { DOWNLOAD_STATE_LABELS } from '~/constants/download'
 import { isTerminalDownload } from '~/utils/downloadHistory'
 import { formatBytes } from '~/utils/preferences'
 import type { DownloadStatus } from '~/types/download'
+import type { IconName } from '~/types/icon'
 
 interface Props {
   /**
@@ -55,6 +56,24 @@ function percentage(item: DownloadStatus) {
   }
   return Math.min(100, Math.floor((item.bytesReceived / item.totalBytes) * 100))
 }
+
+/**
+ * Selects the status icon for a download, including queued and paused work.
+ */
+function getStateIcon(state: DownloadStatus['state']): IconName {
+  switch (state) {
+    case 'complete':
+      return 'check'
+    case 'interrupted':
+      return 'alert'
+    case 'paused':
+      return 'pause'
+    case 'queued':
+      return 'clock'
+    default:
+      return 'download'
+  }
+}
 </script>
 
 <template>
@@ -73,17 +92,7 @@ function percentage(item: DownloadStatus) {
           class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground"
         >
           <UiIcon
-            :name="
-              item.state === 'complete'
-                ? 'check'
-                : item.state === 'interrupted'
-                  ? 'alert'
-                  : item.state === 'paused'
-                    ? 'pause'
-                    : item.state === 'queued'
-                      ? 'clock'
-                      : 'download'
-            "
+            :name="getStateIcon(item.state)"
             class="size-4"
           />
         </div>

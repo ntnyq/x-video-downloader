@@ -32,7 +32,7 @@ const emit = defineEmits<{
 defineSlots<{
   trigger: () => VNode[]
 }>()
-const open = defineModel<boolean>('open', { default: false })
+const open = defineModel<boolean>('open', { required: true })
 const overlayTarget = useOverlayTarget()
 </script>
 
