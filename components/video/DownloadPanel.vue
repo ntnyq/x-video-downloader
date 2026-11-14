@@ -27,6 +27,7 @@ const emit = defineEmits<{
    */
   showAll: []
 }>()
+
 const visiblePosts = computed(() =>
   props.snapshot.posts.filter(
     post => !props.selectedPostId || post.id === props.selectedPostId,

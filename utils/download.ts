@@ -32,8 +32,10 @@ export function normalizeDownloadRequest(
   ) {
     return
   }
+
   const url = normalizeMediaUrl(value['url'])
   const mediaIndex = value['mediaIndex']
+
   if (
     !url
     || !isNumber(mediaIndex)
@@ -43,6 +45,7 @@ export function normalizeDownloadRequest(
   ) {
     return
   }
+
   return {
     type: 'download-video',
     postId: value['postId'],
@@ -70,17 +73,22 @@ export function normalizeBatchRequest(
   ) {
     return
   }
+
   const requests = value['requests'].map(normalizeDownloadRequest)
+
   if (requests.some(request => !request)) {
     return
   }
+
   const valid = filterFalsy(requests)
+
   if (
     uniqueBy(valid, request => `${request.postId}:${request.mediaIndex}`).length
     !== valid.length
   ) {
     return
   }
+
   return valid
 }
 

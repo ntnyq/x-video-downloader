@@ -31,6 +31,7 @@ test('accepts queued identities, unknown sizes, legacy dates and all supported s
   ]) {
     assert.equal(isDownloadStatus({ ...download, state }), true, state)
   }
+
   assert.equal(
     isDownloadStatus({
       ...download,
@@ -75,6 +76,7 @@ test('history clearing keeps queued, transferring and paused tasks', () => {
   for (const state of ['queued', 'in_progress', 'paused'] as const) {
     assert.equal(isTerminalDownload({ ...download, state }), false, state)
   }
+
   for (const state of [
     'complete',
     'interrupted',
@@ -104,6 +106,7 @@ test('searches filenames, authors and post IDs without mutating or reordering hi
     },
   ]
   const original = structuredClone(history)
+
   assert.deepEqual(
     filterDownloadHistory(history, '  DEMO  ').map(item => item.id),
     [42, 44],
@@ -127,6 +130,7 @@ test('combines text search with an exact case-insensitive author filter', () => 
     { ...download, id: 43, author: 'AliceOther' },
     { ...download, id: 44, author: undefined },
   ]
+
   assert.deepEqual(filterDownloadHistory(history, 'demo', '@aLiCe'), [download])
   assert.deepEqual(filterDownloadHistory(history, 'absent', 'Alice'), [])
   assert.deepEqual(filterDownloadHistory(history, '', 'Ali'), [])

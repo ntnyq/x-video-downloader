@@ -51,11 +51,13 @@ for (const locale of LOCALES) {
         substitutions,
         namedSubstitutions,
       }))
+
     assert.deepEqual(signatures(parsed), signatures(reference))
     const applicationMessages = parsed.filter(
       ({ key }) => !key[0]?.startsWith('@@'),
     )
     const messages = generateChromeMessages(parsed)
+
     assert.equal(
       Object.keys(messages).length,
       applicationMessages.length,
@@ -66,15 +68,18 @@ for (const locale of LOCALES) {
       'Group messages into namespaces',
     )
     assert.ok(manifestMessageKeys.length > 0)
+
     for (const key of manifestMessageKeys) {
       assert.ok(
         key && messages[key]?.message,
         `Missing manifest message ${locale}.${key}`,
       )
     }
+
     for (const [key, { message }] of Object.entries(messages)) {
       assert.ok(message.trim(), `${locale}.${key} is empty`)
     }
+
     /**
      * Reads a generated locale message and fails immediately when the key is absent.
      *
@@ -84,15 +89,19 @@ for (const locale of LOCALES) {
      */
     const t = (key: string) => {
       const message = messages[key.replaceAll('.', '_')]?.message
+
       assert.ok(message, `Missing ${locale}.${key}`)
+
       return message
     }
+
     for (const entry of CHANGELOG_ENTRIES) {
       for (const change of entry.changes) {
         assert.ok(t(change.type))
         assert.ok(t(change.key))
       }
     }
+
     for (const key of [
       ...Object.values(DOWNLOAD_STATE_LABELS),
       ...QUALITY_OPTIONS.map(option => option.label),
@@ -100,6 +109,7 @@ for (const locale of LOCALES) {
     ]) {
       assert.ok(t(key))
     }
+
     const exports: {
       /**
        * Error formatter exported by the transpiled localization module.
@@ -114,6 +124,7 @@ for (const locale of LOCALES) {
       localizeDocument?: () => void
     } = {}
     const document = { documentElement: { lang: '' }, title: '' }
+
     runInNewContext(source, {
       exports,
       document,
@@ -126,6 +137,7 @@ for (const locale of LOCALES) {
         if (id === '@ntnyq/utils') {
           return utils
         }
+
         return {
           i18n: { t },
         }
@@ -136,6 +148,7 @@ for (const locale of LOCALES) {
     exports.localizeDocument()
     assert.equal(document.documentElement.lang, t('extension.language'))
     assert.equal(document.title, t('extension.name'))
+
     for (const code of [
       'downloadFailed',
       'actionFailed',
@@ -151,6 +164,7 @@ for (const locale of LOCALES) {
     ]) {
       assert.equal(exports.localizeDownloadError(code), t(`errors.${code}`))
     }
+
     assert.equal(
       exports.localizeDownloadError(undefined),
       t('errors.downloadFailed'),
@@ -163,9 +177,11 @@ for (const locale of LOCALES) {
       exports.localizeDownloadError('NETWORK_FAILED'),
       'NETWORK_FAILED',
     )
+
     for (const input of ['', 'x'.repeat(161), '../video', '{unsupported}']) {
       assert.ok(t(validateFilenameTemplate(input)))
     }
+
     assert.equal(
       formatBytes(-1, t('common.unknownSize')),
       t('common.unknownSize'),

@@ -30,6 +30,7 @@ const saveError = shallowRef('')
 const savedTemplate = shallowRef(props.template)
 const inputRef = useTemplateRef('inputRef')
 const isDirty = computed(() => draft.value.trim() !== savedTemplate.value)
+
 useEventListener(window, 'beforeunload', event => {
   if (isDirty.value) {
     event.preventDefault()
@@ -51,13 +52,17 @@ const preview = computed(() =>
 async function save() {
   if (validationError.value) {
     inputRef.value?.$el?.focus()
+
     return
   }
+
   if (props.disabled || isSaving.value) {
     return
   }
+
   isSaving.value = true
   saveError.value = ''
+
   try {
     await filenameSetting.setValue(draft.value.trim())
     savedTemplate.value = draft.value.trim()
@@ -75,6 +80,7 @@ watch(
     if (!isDirty.value) {
       draft.value = value
     }
+
     savedTemplate.value = value
   },
 )

@@ -15,7 +15,9 @@ interface Props {
   /** Whether the selection exceeds the batch limit. */
   overLimit: boolean
 }
+
 defineProps<Props>()
+
 const emit = defineEmits<{
   download: [event: MouseEvent]
 }>()

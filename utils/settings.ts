@@ -10,6 +10,9 @@ import type { DownloadRecord, QualityPreference } from '~/types/download'
 export const saveAsSetting = storage.defineItem<boolean>('local:saveAs', {
   fallback: false,
 })
+export const newUiSetting = storage.defineItem<boolean>('local:useNewUi', {
+  fallback: false,
+})
 export const concurrencySetting = storage.defineItem<number>(
   'local:concurrency',
   {
@@ -36,16 +39,20 @@ export const downloadRecords = storage.defineItem<DownloadRecord[]>(
  * @throws When reading any setting from extension storage fails.
  */
 export async function getDownloadPreferences() {
-  const [saveAs, quality, filenameTemplate, concurrency] = await Promise.all([
-    saveAsSetting.getValue(),
-    qualitySetting.getValue(),
-    filenameSetting.getValue(),
-    concurrencySetting.getValue(),
-  ])
+  const [saveAs, quality, filenameTemplate, concurrency, useNewUi] =
+    await Promise.all([
+      saveAsSetting.getValue(),
+      qualitySetting.getValue(),
+      filenameSetting.getValue(),
+      concurrencySetting.getValue(),
+      newUiSetting.getValue(),
+    ])
+
   return normalizePreferences({
     saveAs,
     quality,
     filenameTemplate,
     concurrency,
+    useNewUi,
   })
 }

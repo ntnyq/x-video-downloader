@@ -8,7 +8,9 @@ defineProps<{
   /** Icon identifying the action. */
   icon: IconName
 }>()
+
 const buttonRef = useTemplateRef('buttonRef')
+
 defineExpose({
   /** Returns keyboard focus to the action. */
   focus() {

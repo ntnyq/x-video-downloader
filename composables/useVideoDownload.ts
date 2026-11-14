@@ -26,19 +26,24 @@ export function useVideoDownload(
     if (isPending.value || isDisposed) {
       return
     }
+
     const version = scopeVersion
+
     isPending.value = true
     hasError.value = false
     duplicateRequest.value = undefined
     message.value = i18n.t('download.startingSave')
+
     try {
       const result: unknown = await browser.runtime.sendMessage({
         ...request,
         force,
       })
+
       if (isDisposed || version !== scopeVersion) {
         return false
       }
+
       if (
         isRecord(result)
         && result['ok'] === false
@@ -46,8 +51,10 @@ export function useVideoDownload(
       ) {
         duplicateRequest.value = request
         message.value = ''
+
         return false
       }
+
       if (!isRecord(result) || result['ok'] !== true) {
         throw new Error(
           isRecord(result) && isString(result['error'])
@@ -55,15 +62,19 @@ export function useVideoDownload(
             : i18n.t('download.reload'),
         )
       }
+
       message.value = i18n.t('download.queued')
+
       return true
     } catch (error) {
       if (isDisposed || version !== scopeVersion) {
         return false
       }
+
       hasError.value = true
       message.value =
         error instanceof Error ? error.message : i18n.t('errors.downloadFailed')
+
       return false
     } finally {
       isPending.value = false

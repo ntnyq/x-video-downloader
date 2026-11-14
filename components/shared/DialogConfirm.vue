@@ -25,14 +25,19 @@ interface Props {
   /** Persistent failure feedback shown inside the modal. */
   error?: string
 }
+
 defineProps<Props>()
+
 const emit = defineEmits<{
   confirm: [event: MouseEvent]
 }>()
+
 defineSlots<{
   trigger: () => VNode[]
 }>()
+
 const open = defineModel<boolean>('open', { required: true })
+
 const overlayTarget = useOverlayTarget()
 </script>
 

@@ -25,14 +25,18 @@ export function useCurrentTabVideos() {
     if (isUndefined(tabId) || isRefreshing) {
       return
     }
+
     isRefreshing = true
+
     try {
       const result: unknown = await browser.tabs.sendMessage(tabId, {
         type: 'get-page-videos',
       })
+
       if (!isRecord(result) || !isArray(result['posts'])) {
         throw new Error('invalid-response')
       }
+
       snapshot.value = {
         posts: result['posts'].flatMap(item => normalizePost(item) ?? []),
         captureReady: result['captureReady'] === true,
@@ -54,10 +58,13 @@ export function useCurrentTabVideos() {
         active: true,
         currentWindow: true,
       })
+
       if (!isXUrl(tab?.url) || isUndefined(tab?.id)) {
         requestError.value = i18n.t('page.openPostFirst')
+
         return
       }
+
       tabId = tab.id
       await refresh()
     } catch {

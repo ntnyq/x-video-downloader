@@ -60,6 +60,7 @@ test('page batches include multiple posts while preserving media positions and m
     createSelection(),
   )
   const requests = createSelectedVideoRequests(rows)
+
   assert.deepEqual(
     requests.map(request => [request.postId, request.mediaIndex]),
     [
@@ -86,6 +87,7 @@ test('post and media selection changes affect one shared page selection without 
   )
   const restoredMedia = setVideoSelectionChecked(excludedPost, ['123:2'], true)
   const rows = createVideoSelectionRows(posts, 'highest', restoredMedia)
+
   assert.deepEqual(
     rows.filter(row => row.checked).map(row => row.key),
     ['123:2', '456:1', '456:2'],
@@ -103,6 +105,7 @@ test('clear and select all use visible row keys without losing hidden post selec
     visibleRows.map(row => row.key),
     false,
   )
+
   assert.equal(
     createSelectedVideoRequests(
       createVideoSelectionRows(posts, 'highest', cleared),
@@ -114,6 +117,7 @@ test('clear and select all use visible row keys without losing hidden post selec
     visibleRows.map(row => row.key),
     true,
   )
+
   assert.deepEqual(
     createSelectedVideoRequests(
       createVideoSelectionRows(posts, 'highest', selected),
@@ -135,6 +139,7 @@ test('manual quality is shared by page and single-media requests and is scoped t
     postId: '123',
     mediaIndex: 1,
   })
+
   assert.equal(pageRequests[0]?.url, manualUrl)
   assert.equal(singleRequest[0]?.url, manualUrl)
   assert.equal(rows[1]?.variant?.height, 1080)
@@ -156,6 +161,7 @@ test('single-media actions still download an unchecked video without selecting i
     'highest',
     selection,
   )
+
   assert.deepEqual(
     createSelectedVideoRequests(rows).map(request => request.postId),
     ['456'],
@@ -171,8 +177,10 @@ test('single-media actions still download an unchecked video without selecting i
 
 test('HLS-only media stays visible but never joins page or single-media requests', () => {
   const post = createPost('123')
+
   post.media.push({ id: 'hls-only', hasHls: true, variants: [] })
   const rows = createVideoSelectionRows([post], 'highest', createSelection())
+
   assert.equal(rows.length, 2)
   assert.equal(rows[1]?.checked, false)
   assert.equal(createSelectedVideoRequests(rows).length, 1)
@@ -192,6 +200,7 @@ test('changed or removed quality URLs fall back to the current saved preference'
     'smallest',
     selection,
   )
+
   assert.equal(rows[0]?.variant?.height, 360)
 })
 
@@ -200,6 +209,7 @@ test('page filtering never submits hidden posts even when their selection is rem
     ...createSelection(),
     selectedUrls: { '123:1': 'https://video.twimg.com/hidden.mp4' },
   })
+
   assert.deepEqual(
     createSelectedVideoRequests(rows).map(request => request.postId),
     ['456'],
@@ -214,6 +224,7 @@ test('over-limit selections remain intact and fail validation instead of silentl
   )
   const rows = createVideoSelectionRows(posts, 'highest', createSelection())
   const requests = createSelectedVideoRequests(rows)
+
   assert.equal(requests.length, MAX_DOWNLOAD_BATCH_SIZE + 1)
   assert.equal(
     rows.filter(row => row.checked).length,
@@ -231,6 +242,7 @@ test('over-limit selections remain intact and fail validation instead of silentl
   const accepted = createSelectedVideoRequests(
     createVideoSelectionRows(posts, 'highest', withinLimit),
   )
+
   assert.equal(accepted.length, MAX_DOWNLOAD_BATCH_SIZE)
   assert.equal(
     normalizeBatchRequest({ type: 'download-videos', requests: accepted })

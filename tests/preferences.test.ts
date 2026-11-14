@@ -24,6 +24,7 @@ function variant(size: string, bitrate = 0) {
     bitrate,
   }
 }
+
 const variants = normalizeVariants([
   variant('3840x2160', 8000000),
   variant('1920x1080', 4000000),
@@ -50,6 +51,21 @@ test('preserves explicit save-location choices for existing users', () => {
   assert.equal(normalizePreferences({ saveAs: false }).saveAs, false)
 })
 
+test('the new post UI is opt-in and only accepts an explicit boolean true', () => {
+  for (const input of [
+    undefined,
+    null,
+    {},
+    { useNewUi: false },
+    { useNewUi: 'true' },
+    { useNewUi: 1 },
+  ]) {
+    assert.equal(normalizePreferences(input).useNewUi, false)
+  }
+
+  assert.equal(normalizePreferences({ useNewUi: true }).useNewUi, true)
+})
+
 test('selects highest, capped and smallest versions deterministically', () => {
   assert.equal(selectPreferredVariant(variants, 'highest')?.height, 2160)
   assert.equal(selectPreferredVariant(variants, '1080p')?.height, 1080)
@@ -64,6 +80,7 @@ test('uses portrait short edge, lower fallback, and smallest when all exceed cap
     variant('720x1280'),
     variant('360x640'),
   ])
+
   assert.equal(selectPreferredVariant(portrait, '720p')?.width, 720)
   assert.equal(
     selectPreferredVariant(
@@ -97,6 +114,7 @@ test('smallest quality preserves tied order without changing the input variants'
     variant('1920x1080', 300000),
   ])
   const original = structuredClone(input)
+
   assert.equal(selectPreferredVariant(input, 'smallest')?.height, 1080)
   assert.deepEqual(input, original)
 })
@@ -112,6 +130,7 @@ test('formats binary byte boundaries and keeps the localized unknown label', () 
   ] as const) {
     assert.equal(formatBytes(bytes), expected)
   }
+
   for (const bytes of [-1, Number.NaN, Infinity]) {
     assert.equal(
       formatBytes(bytes, 'Unknown in this locale'),
@@ -132,12 +151,14 @@ test('validates templates and preserves safe fallbacks for missing metadata', ()
   ]) {
     assert.notEqual(validateFilenameTemplate(template), '', template)
   }
+
   const request = {
     type: 'download-video' as const,
     postId: '123',
     mediaIndex: 1,
     url: variant('1280x720').url,
   }
+
   assert.equal(
     buildFilename(request, DEFAULT_FILENAME_TEMPLATE),
     'unknown_undated_123_1_1280x720.mp4',
@@ -158,6 +179,7 @@ test('batch requests preserve unique cross-post media pairs and reject invalid r
     mediaIndex: 1,
     url: variant('1280x720').url,
   }
+
   assert.equal(
     normalizeBatchRequest({
       type: 'download-videos',
@@ -182,6 +204,7 @@ test('batch requests preserve unique cross-post media pairs and reject invalid r
     })?.length,
     100,
   )
+
   for (const requests of [
     Array.from({ length: 101 }, (_, index) => ({
       ...one,
@@ -216,6 +239,7 @@ test('keeps author and creation date when revisiting the nested legacy object', 
       },
     },
   })
+
   assert.equal(posts[0]?.author, 'ntnyq')
   assert.equal(posts[0]?.createdAt, '2026-10-02T12:00:00.000Z')
 })
@@ -244,6 +268,7 @@ test('reads author from user core even when legacy contains other fields', () =>
       },
     },
   })
+
   assert.equal(posts[0]?.author, 'ntnyq')
 })
 
@@ -260,6 +285,7 @@ test('concurrency defaults to three and only accepts integers from one to six', 
   ]) {
     assert.equal(normalizePreferences({ concurrency }).concurrency, 3)
   }
+
   for (const concurrency of [1, 2, 3, 4, 5, 6]) {
     assert.equal(normalizePreferences({ concurrency }).concurrency, concurrency)
   }

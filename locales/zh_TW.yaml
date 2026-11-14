@@ -40,6 +40,7 @@ download:
   duplicateNotice: 所選影片中有 $1 個已有完成的下載記錄，是否再次下載這些影片？
   highest: 下載最高畫質
   interruptedHelp: 下載中斷（$1）。可以重試；若網址已失效，請重新整理原貼文。
+  label: 下載
   notice: 進度與瀏覽器下載清單同步。僅下載你有權儲存的內容。
   now: 一鍵下載
   pageSelected: 下載所選影片（$1）
@@ -71,6 +72,7 @@ download:
     missing: 紀錄已移除
     paused: 已暫停
     queued: 等候中
+  toolbarHint: 按一下開啟下載面板；按兩下下載最高畫質
   useHighest: 改用最高畫質下載
   videoError: 影片 $1：$2
   videoProgress: 影片 $1 的下載進度
@@ -179,6 +181,9 @@ settings:
   confirmEachSave: 需逐一確認儲存位置。
   defaultQuality: 預設畫質
   downloads: 下載
+  legacyUiDeprecated: 舊版下載UI 即將棄用，建議開啟新版下載UI。
+  newUi: 新版下載UI
+  newUiHelp: 將下載圖示放入貼文操作列。按一下開啟下載面板，按兩下以最高畫質下載該貼文所有可下載的影片。
   qualityHelp: 用於快速與批次下載的預設選擇。優先選擇不超過目標的解析度；直式影片以短邊計算。「節省空間」優先選擇低位元率。
   readFailed: 無法讀取下載設定，請重新開啟頁面。
   rules: 下載規則

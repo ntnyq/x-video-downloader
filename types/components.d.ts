@@ -50,6 +50,7 @@ declare module 'vue' {
     TabsList: typeof import('./../components/ui/tabs/TabsList.vue')['default']
     TabsTrigger: typeof import('./../components/ui/tabs/TabsTrigger.vue')['default']
     ThemeSettings: typeof import('./../components/video/ThemeSettings.vue')['default']
+    ToolbarDownloadButton: typeof import('./../components/video/ToolbarDownloadButton.vue')['default']
     UiIcon: typeof import('./../components/UiIcon.vue')['default']
     VideoMediaRow: typeof import('./../components/video/VideoMediaRow.vue')['default']
     VideoPostCard: typeof import('./../components/video/VideoPostCard.vue')['default']

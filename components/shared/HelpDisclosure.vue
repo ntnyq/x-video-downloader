@@ -5,6 +5,7 @@ defineProps<{
   /** Label for the optional explanation. */
   title: string
 }>()
+
 defineSlots<{
   default: () => VNode[]
 }>()

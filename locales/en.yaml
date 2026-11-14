@@ -40,6 +40,7 @@ download:
   duplicateNotice: $1 selected videos have completed downloads. Download those videos again?
   highest: Download best quality
   interruptedHelp: 'Download interrupted ($1). Retry, or reload the original post if the link has expired.'
+  label: Download
   notice: Progress stays in sync with your browser. Only save content you have permission to download.
   now: Download now
   pageSelected: Download selected videos ($1)
@@ -71,6 +72,7 @@ download:
     missing: Record removed
     paused: Paused
     queued: Waiting
+  toolbarHint: Click to open downloads; double-click to download at best quality
   useHighest: Download at best quality instead
   videoError: 'Video $1: $2'
   videoProgress: Download progress for video $1
@@ -179,6 +181,9 @@ settings:
   confirmEachSave: Confirm each save location.
   defaultQuality: Default quality
   downloads: Downloads
+  legacyUiDeprecated: The legacy download UI will be deprecated soon. We recommend enabling the new download UI.
+  newUi: New download UI
+  newUiHelp: Show the download icon in the post action row. Click to open the download panel; double-click to download every available video at the highest quality.
   qualityHelp: Used for quick and batch downloads. Chooses the best resolution within the target; portrait videos use the shorter edge. “Save space” prefers a lower bitrate.
   readFailed: Could not read download settings. Open the page again.
   rules: Download rules

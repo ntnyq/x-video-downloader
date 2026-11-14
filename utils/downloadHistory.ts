@@ -54,6 +54,7 @@ export function filterDownloadHistory(
 ): DownloadStatus[] {
   const normalizedQuery = query.trim().toLowerCase()
   const normalizedAuthor = author.replace(/^@/, '').toLowerCase()
+
   return downloads.filter(download => {
     if (
       normalizedAuthor
@@ -61,6 +62,7 @@ export function filterDownloadHistory(
     ) {
       return false
     }
+
     return [download.filename, download.postId, download.author ?? '']
       .join(' ')
       .toLowerCase()

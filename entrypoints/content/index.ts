@@ -2,8 +2,10 @@ import '~/assets/tailwind.css'
 import { createApp, h, shallowRef } from 'vue'
 import { browser, defineContentScript } from '#imports'
 import InlineDownloadButton from '~/components/video/InlineDownloadButton.vue'
+import ToolbarDownloadButton from '~/components/video/ToolbarDownloadButton.vue'
 import { X_MATCHES } from '~/constants/video'
 import { logger } from '~/utils/logger'
+import { newUiSetting } from '~/utils/settings'
 import { isRecord } from '~/utils/video'
 import App from './App.vue'
 import { createPageVideos, getArticlePostId } from './pageVideos'
@@ -36,12 +38,18 @@ export default defineContentScript({
          */
         id: string
         /**
+         * Native action group, or article fallback, used when this control was mounted.
+         */
+        anchor: Element
+        /**
          * Unmounts the inline control and releases its shadow-UI resources.
          */
         remove: () => void
       }
     >()
     const pending = new Set<Element>()
+    let useNewUi = false
+    let uiVersion = 0
 
     /**
      * Opens the floating panel and requests fresh captured video data.
@@ -67,6 +75,7 @@ export default defineContentScript({
       if (sender.id !== browser.runtime.id || !isRecord(message)) {
         return
       }
+
       if (message['type'] === 'get-page-videos') {
         videos.scan()
         videos.requestReplay()
@@ -77,16 +86,20 @@ export default defineContentScript({
         } else {
           open()
         }
+
         respond({ ok: true })
       }
     }
+
     browser.runtime.onMessage.addListener(listener)
     ctx.onInvalidated(() => browser.runtime.onMessage.removeListener(listener))
 
     await waitForBody(ctx)
+
     if (ctx.isInvalid) {
       return
     }
+
     const ui = await createDisposableShadowRootUi(ctx, {
       name: 'x-video-downloader',
       position: 'inline',
@@ -131,7 +144,9 @@ export default defineContentScript({
             })
           },
         })
+
         app.mount(container)
+
         return app
       },
       /**
@@ -141,11 +156,61 @@ export default defineContentScript({
        */
       onRemove: app => app?.unmount(),
     })
+
     if (ctx.isInvalid) {
       ui.remove()
+
       return
     }
+
     ui.mount()
+
+    let hasUiSettingChanged = false
+    const stopUiSetting = newUiSetting.watch(value => {
+      hasUiSettingChanged = true
+      const nextUi = value === true
+
+      if (nextUi === useNewUi || ctx.isInvalid) {
+        return
+      }
+
+      useNewUi = nextUi
+      uiVersion++
+
+      for (const control of controls.values()) {
+        control.remove()
+      }
+
+      controls.clear()
+      videos.scan()
+    })
+
+    ctx.onInvalidated(stopUiSetting)
+
+    try {
+      const value = await newUiSetting.getValue()
+
+      if (!hasUiSettingChanged) {
+        useNewUi = value === true
+      }
+    } catch (error) {
+      log.warn('Could not read the post UI setting', error)
+    }
+
+    if (ctx.isInvalid) {
+      return
+    }
+
+    /**
+     * Finds the native post action row used as the download control's anchor.
+     */
+    function getActions(article: Element) {
+      return article
+        .querySelector(
+          '[data-testid="reply"], [data-testid="retweet"], [data-testid="like"]',
+        )
+        ?.closest('[role="group"]')
+    }
 
     /**
      * Creates at most one pending inline control for an article and verifies it before mounting.
@@ -159,20 +224,25 @@ export default defineContentScript({
       if (pending.has(article)) {
         return
       }
+
       pending.add(article)
+      const version = uiVersion
       let removeButton: (() => void) | undefined
+      let hasAnchorChanged = false
+
       try {
-        const actions = article
-          .querySelector(
-            '[data-testid="reply"], [data-testid="retweet"], [data-testid="like"]',
-          )
-          ?.closest('[role="group"]')
+        const actions = getActions(article)
+        const isToolbar = useNewUi && !!actions
         const button = await createDisposableShadowRootUi(ctx, {
           name: 'x-video-download-button',
           position: 'inline',
           anchor: actions ?? article,
-          append: actions ? 'after' : 'last',
-          isolateEvents: ['click', 'keydown', 'keyup', 'keypress'],
+          append: isToolbar ? 'last' : actions ? 'after' : 'last',
+          isolateEvents: ['click', 'dblclick', 'keydown', 'keyup', 'keypress'],
+          // WXT resets the host with `all: initial !important`; keep the icon a fixed flex item.
+          css: useNewUi
+            ? ':host { display: inline-flex !important; align-items: center !important; flex-shrink: 0 !important; } body { background: transparent; }'
+            : undefined,
           /**
            * Mounts an inline download button inside its localized shadow container.
            *
@@ -188,26 +258,31 @@ export default defineContentScript({
                * @returns The inline-button virtual node with its panel-opening handler.
                */
               render() {
-                return h(InlineDownloadButton, {
-                  post: videos.snapshot.value.posts.find(
-                    post => post.id === postId,
-                  ),
-                  /**
-                   * Opens the panel for this post when captured data exists, or shows all videos otherwise.
-                   */
-                  onOpen() {
-                    return open(
-                      videos.snapshot.value.posts.some(
-                        post => post.id === postId,
+                return h(
+                  useNewUi ? ToolbarDownloadButton : InlineDownloadButton,
+                  {
+                    post: videos.snapshot.value.posts.find(
+                      post => post.id === postId,
+                    ),
+                    /**
+                     * Opens the panel for this post when captured data exists, or shows all videos otherwise.
+                     */
+                    onOpen() {
+                      return open(
+                        videos.snapshot.value.posts.some(
+                          post => post.id === postId,
+                        )
+                          ? postId
+                          : undefined,
                       )
-                        ? postId
-                        : undefined,
-                    )
+                    },
                   },
-                })
+                )
               },
             })
+
             app.mount(container)
+
             return app
           },
           /**
@@ -217,22 +292,37 @@ export default defineContentScript({
            */
           onRemove: app => app?.unmount(),
         })
+
         removeButton = () => button.remove()
+        hasAnchorChanged = getActions(article) !== actions
+
         if (
           ctx.isInvalid
+          || version !== uiVersion
+          || hasAnchorChanged
           || !article.isConnected
           || getArticlePostId(article) !== postId
         ) {
           removeButton()
+
           return
         }
+
         button.mount()
-        controls.set(article, { id: postId, remove: removeButton })
+        controls.set(article, {
+          id: postId,
+          anchor: actions ?? article,
+          remove: removeButton,
+        })
       } catch (error) {
         removeButton?.()
         log.warn('Could not mount an inline button', error)
       } finally {
         pending.delete(article)
+
+        if ((version !== uiVersion || hasAnchorChanged) && !ctx.isInvalid) {
+          videos.scan()
+        }
       }
     }
 
@@ -241,20 +331,25 @@ export default defineContentScript({
         if (
           !article.isConnected
           || getArticlePostId(article) !== control.id
+          || control.anchor !== (getActions(article) ?? article)
           || !article.querySelector('x-video-download-button')
         ) {
           control.remove()
           controls.delete(article)
         }
       }
+
       for (const article of document.querySelectorAll('article')) {
         if (controls.has(article)) {
           continue
         }
+
         const postId = getArticlePostId(article)
+
         if (!postId) {
           continue
         }
+
         if (
           article.querySelector('video, [data-testid="videoPlayer"]')
           || videos.snapshot.value.posts.some(post => post.id === postId)
@@ -283,6 +378,7 @@ async function waitForBody(ctx: ContentScriptContext) {
   if (document.body) {
     return
   }
+
   await new Promise<void>(resolve => {
     ctx.addEventListener(document, 'DOMContentLoaded', () => resolve(), {
       once: true,

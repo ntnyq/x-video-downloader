@@ -17,6 +17,7 @@ interface Props {
    */
   class?: HTMLAttributes['class']
 }
+
 const props = defineProps<Props>()
 
 const emit = defineEmits<{

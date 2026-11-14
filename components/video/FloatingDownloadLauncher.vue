@@ -13,14 +13,17 @@ defineProps<{
    */
   panelId: string
 }>()
+
 const emit = defineEmits<{
   toggle: []
 }>()
+
 defineSlots<{
   default: () => VNode[]
 }>()
 
 const buttonRef = useTemplateRef('buttonRef')
+
 const {
   isDragging,
   buttonStyle,

@@ -9,10 +9,13 @@ import type { HTMLAttributes } from 'vue'
 const props = defineProps<
   CheckboxRootProps & { class?: HTMLAttributes['class'] }
 >()
+
 const emit = defineEmits<CheckboxRootEmits>()
+
 const forwarded = useForwardPropsEmits(
   computed(() => {
     const { class: _, ...rest } = props
+
     return rest
   }),
   emit,

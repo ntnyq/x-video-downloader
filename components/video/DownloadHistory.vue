@@ -29,6 +29,7 @@ const {
   action,
   clear,
 } = usePostDownloads()
+
 const clearOpen = shallowRef(false)
 const clearIds = shallowRef<number[]>([])
 const query = shallowRef('')
@@ -88,6 +89,7 @@ function handleRemove(id: number, event: MouseEvent) {
 async function handleClear(event: MouseEvent) {
   if (event.isTrusted) {
     await clear(clearIds.value)
+
     if (!requestError.value) {
       clearOpen.value = false
     }

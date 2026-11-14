@@ -136,12 +136,15 @@ function getDownloadState(item?: NativeDownload): DownloadStatus['state'] {
   if (!item) {
     return 'missing'
   }
+
   if (item.state === 'interrupted' && item.error === 'USER_CANCELED') {
     return 'cancelled'
   }
+
   if (item.state === 'in_progress' && item.paused) {
     return 'paused'
   }
+
   return item.state
 }
 
@@ -167,7 +170,9 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
    */
   function serialize<T>(operation: () => Promise<T>): Promise<T> {
     const result = operations.then(operation)
+
     operations = result.then(noop).catch(noop)
+
     return result
   }
 
@@ -181,8 +186,10 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
     if (records) {
       return records
     }
+
     const stored = await ports.readRecords()
     const seen = new Set<number>()
+
     records = isArray(stored)
       ? stored.flatMap(value => {
           if (
@@ -194,11 +201,15 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
           ) {
             return []
           }
+
           const request = normalizeDownloadRequest(value['request'])
+
           if (!request) {
             return []
           }
+
           const id = value['id']
+
           seen.add(id)
           nextQueueId = Math.min(nextQueueId, id - 1)
           const validStates: DownloadStatus['state'][] = [
@@ -214,6 +225,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
             validStates.find(state => state === value['state'])
             ?? (id >= 0 ? 'in_progress' : 'interrupted')
           const starting = value['starting'] === true
+
           return [
             {
               id,
@@ -260,6 +272,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
           ]
         })
       : []
+
     return records
   }
 
@@ -281,6 +294,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
    */
   async function reconcile(id?: number) {
     const owned = await load()
+
     for (const record of owned) {
       if (
         record.id < 0
@@ -288,14 +302,19 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
       ) {
         continue
       }
+
       const [item] = await ports.search(record.id)
+
       if (!item) {
         if (isActive(record)) {
           record.state = 'missing'
         }
+
         continue
       }
+
       const state = getDownloadState(item)
+
       record.state =
         record.state === 'queued' && state === 'paused' ? 'queued' : state
       record.bytesReceived = item.bytesReceived
@@ -323,14 +342,17 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
   function pruneHistory() {
     const owned = records ?? []
     const terminal = owned.filter(record => !isActive(record))
+
     if (terminal.length <= MAX_TERMINAL_RECORDS) {
       return false
     }
+
     records = differenceBy(
       owned,
       terminal.slice(0, -MAX_TERMINAL_RECORDS),
       record => record,
     )
+
     return true
   }
 
@@ -344,14 +366,18 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
     const owned = await load()
     const preferences = normalizePreferences(await ports.readPreferences())
     let active = owned.filter(record => record.state === 'in_progress').length
+
     for (const record of owned) {
       if (active >= preferences.concurrency) {
         break
       }
+
       if (record.state !== 'queued') {
         continue
       }
+
       record.starting = true
+
       try {
         await persist()
       } catch (error) {
@@ -359,6 +385,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
         log.warn('Could not persist download handoff', error)
         break
       }
+
       try {
         if (record.id >= 0) {
           await ports.resume(record.id)
@@ -370,6 +397,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
             saveAs: record.saveAs ?? false,
           })
         }
+
         record.state = 'in_progress'
         record.error = undefined
         active++
@@ -382,7 +410,9 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
               : 'interrupted'
         record.error = error instanceof Error ? error.message : 'downloadFailed'
       }
+
       record.starting = false
+
       try {
         await persist()
       } catch (error) {
@@ -392,6 +422,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
         break
       }
     }
+
     if (pruneHistory()) {
       try {
         await persist()
@@ -422,24 +453,28 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
           && record.request.mediaIndex === request.mediaIndex,
       )
       const active = matching.find(isActive)
+
       if (active) {
         return {
           request,
           record: active,
         }
       }
+
       if (!force && matching.some(record => record.state === 'complete')) {
         return {
           request,
           error: 'duplicateDownload',
         }
       }
+
       if (outstanding >= MAX_OUTSTANDING_DOWNLOADS) {
         return {
           request,
           error: 'queueFull',
         }
       }
+
       const id = nextQueueId--
       const record: DownloadRecord = {
         id,
@@ -452,21 +487,27 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
         bytesReceived: 0,
         totalBytes: -1,
       }
+
       owned.push(record)
       added.add(record)
       outstanding++
+
       return {
         request,
         record,
       }
     })
+
     try {
       await persist()
     } catch (error) {
       records = owned.filter(record => !added.has(record))
+
       throw error
     }
+
     await drain()
+
     return entries.map(({ request, record, error }) => ({
       postId: request.postId,
       mediaIndex: request.mediaIndex,
@@ -531,6 +572,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
       await reconcile()
       await persist()
       await drain()
+
       return (await load())
         .filter(record => !postId || record.request.postId === postId)
         .map(record => ({
@@ -566,12 +608,14 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
       const record = (await load()).find(
         record => record.id === id || record.queueId === id,
       )
+
       if (!record) {
         return {
           ok: false,
           error: 'foreignDownload',
         }
       }
+
       if (action === 'retry') {
         if (isActive(record) || record.state === 'complete') {
           return {
@@ -579,6 +623,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
             error: 'retryUnavailable',
           }
         }
+
         return (
           (await enqueue([record.request], false))[0]?.result ?? {
             ok: false,
@@ -586,21 +631,25 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
           }
         )
       }
+
       if (!isActive(record)) {
         return {
           ok: false,
           error: 'finishedDownload',
         }
       }
+
       if (action === 'pause') {
         if (record.state === 'paused') {
           return {
             ok: true,
           }
         }
+
         if (record.id >= 0 && record.state === 'in_progress') {
           await ports.pause(record.id)
         }
+
         record.state = 'paused'
       } else if (action === 'resume') {
         if (record.state !== 'paused') {
@@ -609,22 +658,27 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
             error: 'resumeUnavailable',
           }
         }
+
         record.state = 'queued'
       } else {
         if (record.id >= 0) {
           await ports.cancel(record.id)
         }
+
         record.state = 'cancelled'
         record.error = 'USER_CANCELED'
       }
+
       await persist()
       await drain()
+
       if (action === 'resume' && record.state === 'paused' && record.error) {
         return {
           ok: false,
           error: record.error,
         }
       }
+
       return {
         ok: true,
       }
@@ -649,13 +703,17 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
             && !selected.has(record.id)
             && (isUndefined(record.queueId) || !selected.has(record.queueId))),
       )
+
       records = retained
+
       try {
         await persist()
       } catch (error) {
         records = owned
+
         throw error
       }
+
       return owned.length - retained.length
     })
   }
@@ -669,9 +727,11 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
   function refresh(id?: number) {
     return serialize(async () => {
       const owned = await load()
+
       if (!isUndefined(id) && !owned.some(record => record.id === id)) {
         return
       }
+
       await reconcile(id)
       await persist()
       await drain()

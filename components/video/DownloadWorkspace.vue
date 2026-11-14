@@ -25,7 +25,9 @@ interface Props {
    */
   requestError?: string
 }
+
 const props = defineProps<Props>()
+
 const emit = defineEmits<{
   /**
    * Refreshes page video detection.
@@ -36,6 +38,7 @@ const emit = defineEmits<{
    */
   showAll: []
 }>()
+
 const mediaCount = computed(() =>
   props.snapshot.posts.reduce((count, post) => count + post.media.length, 0),
 )

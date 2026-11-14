@@ -36,6 +36,7 @@ export function usePageVideoSelection(
       const postRows = rows.value.filter(row => row.post.id === post.id)
       const downloadableCount = postRows.filter(row => row.variant).length
       const selectedCount = postRows.filter(row => row.checked).length
+
       return {
         post,
         rows: postRows,
@@ -80,6 +81,7 @@ export function usePageVideoSelection(
     ) {
       return
     }
+
     selection.value = {
       ...selection.value,
       selectedUrls: { ...selection.value.selectedUrls, [key]: url },
@@ -108,6 +110,7 @@ export function usePageVideoSelection(
         row => row.variant && (isUndefined(postId) || row.post.id === postId),
       )
       .map(row => row.key)
+
     selection.value = setVideoSelectionChecked(selection.value, keys, checked)
   }
 

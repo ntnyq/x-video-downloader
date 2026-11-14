@@ -66,6 +66,7 @@ const partiallySelected = computed(
 )
 const visibleDownloads = computed(() => {
   const postIds = new Set(props.posts.map(post => post.id))
+
   return downloads.value.filter(download => postIds.has(download.postId))
 })
 
@@ -79,10 +80,13 @@ function handleDownload(event: MouseEvent, scope?: VideoSelectionScope) {
   if (!event.isTrusted || isDisabled.value) {
     return
   }
+
   const selected = requests(scope)
+
   if (selected.length > MAX_DOWNLOAD_BATCH_SIZE) {
     return
   }
+
   start(selected)
 }
 

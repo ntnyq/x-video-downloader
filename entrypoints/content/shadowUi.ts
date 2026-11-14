@@ -33,13 +33,16 @@ export async function createDisposableShadowRootUi<TMounted>(
       if (property === 'onInvalidated') {
         return (callback: () => void) => {
           const stop = target.onInvalidated(callback)
+
           cleanups.add(stop)
+
           return () => {
             stop()
             cleanups.delete(stop)
           }
         }
       }
+
       return Reflect.get(target, property, receiver)
     },
   })
@@ -51,6 +54,7 @@ export async function createDisposableShadowRootUi<TMounted>(
     for (const stop of cleanups) {
       stop()
     }
+
     cleanups.clear()
   }
 
@@ -69,6 +73,7 @@ export async function createDisposableShadowRootUi<TMounted>(
     })
   } catch (error) {
     cleanup()
+
     throw error
   }
 }

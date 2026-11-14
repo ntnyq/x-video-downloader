@@ -40,6 +40,7 @@ download:
   duplicateNotice: 所选视频中有 $1 个已有完成的下载记录，是否再次下载这些视频？
   highest: 下载最高画质
   interruptedHelp: 下载中断（$1）。可以重试；地址失效时请刷新原帖。
+  label: 下载
   notice: 进度与浏览器下载列表同步。仅下载你有权保存的内容。
   now: 一键下载
   pageSelected: 下载所选视频（$1）
@@ -71,6 +72,7 @@ download:
     missing: 记录已移除
     paused: 已暂停
     queued: 等待中
+  toolbarHint: 单击打开下载面板；双击下载最高画质
   useHighest: 改用最高画质下载
   videoError: 视频 $1：$2
   videoProgress: 视频 $1 下载进度
@@ -179,6 +181,9 @@ settings:
   confirmEachSave: 需逐个确认保存位置。
   defaultQuality: 默认画质
   downloads: 下载
+  legacyUiDeprecated: 旧版下载UI 很快将废弃，建议开启新版下载UI。
+  newUi: 新版下载UI
+  newUiHelp: 将下载图标放入帖子操作栏。单击打开下载面板，双击以最高画质下载该帖所有可下载的视频。
   qualityHelp: 用于快速下载与批量下载的默认选择。优先选择不超过目标的清晰度；竖屏按短边计算。节省空间优先选低码率。
   readFailed: 无法读取下载设置，请重新打开页面。
   rules: 下载规则

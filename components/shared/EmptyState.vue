@@ -7,6 +7,7 @@ defineProps<{
   /** Next step, when the state needs explanation. */
   description?: string
 }>()
+
 defineSlots<{
   default?: () => VNode[]
 }>()

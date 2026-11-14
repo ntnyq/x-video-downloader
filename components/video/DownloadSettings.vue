@@ -18,6 +18,7 @@ import { logger } from '~/utils/logger'
 import { normalizeQuality } from '~/utils/preferences'
 import {
   concurrencySetting,
+  newUiSetting,
   qualitySetting,
   saveAsSetting,
 } from '~/utils/settings'
@@ -37,8 +38,10 @@ async function savePreference(save: () => Promise<void>) {
   if (!isReady.value || isSaving.value) {
     return
   }
+
   isSaving.value = true
   requestError.value = ''
+
   try {
     await save()
     toast.success(i18n.t('settings.saved'))
@@ -55,6 +58,13 @@ async function savePreference(save: () => Promise<void>) {
  */
 function updateSaveAs(value: boolean) {
   return savePreference(() => saveAsSetting.setValue(value))
+}
+
+/**
+ * Persists the opt-in action-row UI without changing existing users' layout.
+ */
+function updateNewUi(value: boolean) {
+  return savePreference(() => newUiSetting.setValue(value))
 }
 
 /**
@@ -77,6 +87,35 @@ function updateConcurrency(value: number) {
     :title="i18n.t('settings.downloads')"
     icon="download"
   >
+    <div class="flex items-start justify-between gap-4">
+      <div class="min-w-0 space-y-1.5">
+        <Label
+          for="new-post-ui"
+          class="text-sm"
+          >{{ i18n.t('settings.newUi') }}</Label
+        >
+        <p
+          id="new-post-ui-help"
+          class="text-xs leading-relaxed text-muted-foreground"
+        >
+          {{ i18n.t('settings.newUiHelp') }}
+        </p>
+        <p
+          id="new-post-ui-deprecation"
+          class="text-xs leading-relaxed text-muted-foreground"
+        >
+          {{ i18n.t('settings.legacyUiDeprecated') }}
+        </p>
+      </div>
+      <Switch
+        @update:model-value="updateNewUi"
+        :model-value="preferences.useNewUi"
+        :disabled="!isReady || isSaving"
+        id="new-post-ui"
+        aria-describedby="new-post-ui-help new-post-ui-deprecation"
+        class="mt-0.5 shrink-0"
+      />
+    </div>
     <div
       class="grid grid-cols-[minmax(0,1fr)_minmax(7rem,40%)] items-center gap-4"
     >

@@ -11,12 +11,19 @@ import type { DownloadRequest } from '~/types/video'
 export function usePostDownloads(
   postId?: MaybeRefOrGetter<string>,
   contextKey?: MaybeRefOrGetter<string>,
+  options: {
+    /**
+     * Whether to refresh progress on mount, context changes, and an interval.
+     */
+    autoRefresh?: boolean
+  } = {},
 ) {
   const downloads = shallowRef<DownloadStatus[]>([])
   const isPending = shallowRef(false)
   const isActionPending = shallowRef(false)
   const message = shallowRef('')
   const duplicateRequests = shallowRef<DownloadRequest[]>([])
+  const readonlyDuplicateRequests = readonly(duplicateRequests)
 
   const requestError = shallowRef('')
   const progressError = shallowRef('')
@@ -35,14 +42,17 @@ export function usePostDownloads(
     if (isRefreshing || isDisposed) {
       return
     }
+
     isRefreshing = true
     const id = toValue(postId)
     const version = scopeVersion
+
     try {
       const response: unknown = await browser.runtime.sendMessage({
         type: 'get-downloads',
         postId: id,
       })
+
       if (
         !isRecord(response)
         || response['ok'] !== true
@@ -50,6 +60,7 @@ export function usePostDownloads(
       ) {
         throw new Error(i18n.t('download.progressReadFailed'))
       }
+
       if (!isDisposed && version === scopeVersion && id === toValue(postId)) {
         // This channel is served only by our background; keep boundary checks
         // for required identity and state before rendering native API data.
@@ -78,7 +89,9 @@ export function usePostDownloads(
     if (!requests.length || isPending.value || isDisposed) {
       return
     }
+
     const version = scopeVersion
+
     isPending.value = true
     requestError.value = ''
     duplicateRequests.value = []
@@ -86,12 +99,14 @@ export function usePostDownloads(
       requests.length > 1
         ? i18n.t('download.startingBatch', [requests.length])
         : i18n.t('download.starting')
+
     try {
       const response: unknown = await browser.runtime.sendMessage({
         type: 'download-videos',
         requests,
         force,
       })
+
       if (
         !isRecord(response)
         || response['ok'] !== true
@@ -103,13 +118,16 @@ export function usePostDownloads(
             : i18n.t('errors.downloadFailed'),
         )
       }
+
       if (isDisposed || version !== scopeVersion) {
         return
       }
+
       const results = response['results'].filter(isRecord)
       const failures = results.filter(
         item => !isRecord(item['result']) || item['result']['ok'] !== true,
       )
+
       duplicateRequests.value = requests.filter(request =>
         failures.some(
           item =>
@@ -127,6 +145,7 @@ export function usePostDownloads(
           !isRecord(item['result'])
           || item['result']['error'] !== 'duplicateDownload',
       )
+
       if (errors.length) {
         requestError.value = errors
           .map(item =>
@@ -144,6 +163,7 @@ export function usePostDownloads(
       if (isDisposed || version !== scopeVersion) {
         return
       }
+
       requestError.value =
         error instanceof Error ? error.message : i18n.t('errors.downloadFailed')
       message.value = ''
@@ -168,15 +188,19 @@ export function usePostDownloads(
     if (isActionPending.value || isDisposed) {
       return
     }
+
     const version = scopeVersion
+
     isActionPending.value = true
     requestError.value = ''
+
     try {
       const response: unknown = await browser.runtime.sendMessage({
         type: 'download-action',
         downloadId,
         action,
       })
+
       if (!isRecord(response) || response['ok'] !== true) {
         throw new Error(
           isRecord(response) && isString(response['error'])
@@ -184,9 +208,11 @@ export function usePostDownloads(
             : i18n.t('errors.actionFailed'),
         )
       }
+
       if (isDisposed || version !== scopeVersion) {
         return
       }
+
       message.value =
         action === 'cancel'
           ? i18n.t('download.cancelled')
@@ -199,6 +225,7 @@ export function usePostDownloads(
       if (isDisposed || version !== scopeVersion) {
         return
       }
+
       requestError.value =
         error instanceof Error ? error.message : i18n.t('errors.actionFailed')
     } finally {
@@ -214,14 +241,18 @@ export function usePostDownloads(
     if (isActionPending.value || !ids.length || isDisposed) {
       return
     }
+
     const version = scopeVersion
+
     isActionPending.value = true
     requestError.value = ''
+
     try {
       const response: unknown = await browser.runtime.sendMessage({
         type: 'clear-downloads',
         ids,
       })
+
       if (!isRecord(response) || response['ok'] !== true) {
         throw new Error(
           localizeDownloadError(
@@ -229,6 +260,7 @@ export function usePostDownloads(
           ),
         )
       }
+
       if (!isDisposed && version === scopeVersion) {
         message.value = i18n.t('history.cleared')
       }
@@ -236,6 +268,7 @@ export function usePostDownloads(
       if (isDisposed || version !== scopeVersion) {
         return
       }
+
       requestError.value =
         error instanceof Error ? error.message : i18n.t('errors.actionFailed')
     } finally {
@@ -267,13 +300,19 @@ export function usePostDownloads(
       message.value = ''
       requestError.value = ''
       progressError.value = ''
-      refresh()
+
+      if (options.autoRefresh !== false) {
+        refresh()
+      }
     },
     { immediate: true },
   )
-  useIntervalFn(() => {
-    refresh()
-  }, DOWNLOAD_REFRESH_INTERVAL_MS)
+
+  if (options.autoRefresh !== false) {
+    useIntervalFn(() => {
+      refresh()
+    }, DOWNLOAD_REFRESH_INTERVAL_MS)
+  }
 
   onScopeDispose(() => {
     isDisposed = true
@@ -286,11 +325,12 @@ export function usePostDownloads(
     message,
     requestError,
     progressError,
+
     start,
     action,
     refresh,
     clear,
-    duplicateRequests: readonly(duplicateRequests),
+    duplicateRequests: readonlyDuplicateRequests,
     confirmDuplicates,
     dismissDuplicates,
   }

@@ -28,7 +28,9 @@ interface Props {
    */
   canRemove?: boolean
 }
+
 defineProps<Props>()
+
 const emit = defineEmits<{
   /**
    * Requests cancellation or retry with the download ID and originating click.
@@ -54,6 +56,7 @@ function percentage(item: DownloadStatus) {
   if (item.totalBytes <= 0) {
     return undefined
   }
+
   return Math.min(100, Math.floor((item.bytesReceived / item.totalBytes) * 100))
 }
 

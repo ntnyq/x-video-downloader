@@ -32,6 +32,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
 const emit = defineEmits<{
   /**
    * Updates a row's shared quality choice.

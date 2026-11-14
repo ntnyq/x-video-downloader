@@ -19,6 +19,7 @@ const props = defineProps<{
    */
   post?: VideoPost
 }>()
+
 const emit = defineEmits<{
   /**
    * Opens the floating panel to inspect or select the post videos.
@@ -39,14 +40,13 @@ const downloadable = computed(
         media.variants,
         preferences.value.quality,
       )
+
       return variant ? [{ variant, index: index + 1 }] : []
     }) ?? [],
 )
 const quickLabel = computed(() =>
   downloadable.value.length === 1
-    ? preferences.value.quality === 'highest'
-      ? i18n.t('download.highest')
-      : i18n.t('download.quick')
+    ? i18n.t('download.label')
     : downloadable.value.length > 1
       ? i18n.t('selection.videos')
       : i18n.t('page.detect'),
@@ -63,13 +63,18 @@ async function handleQuick(event: MouseEvent) {
   if (!event.isTrusted || isPending.value) {
     return
   }
+
   const item = downloadable.value[0]
+
   if (!props.post || downloadable.value.length !== 1 || !item) {
     emit('open')
+
     return
   }
+
   await download(createDownloadRequest(props.post, item.index, item.variant))
 }
+
 /**
  * Repeats the completed video only after a trusted confirmation click.
  */
@@ -93,22 +98,25 @@ watch(
     :data-xvd-theme="pageTheme"
     class="px-1 py-2 text-foreground font-sans"
   >
-    <div class="flex flex-wrap items-center gap-2">
+    <div class="inline-flex max-w-full items-stretch gap-0.5 align-middle">
       <Button
         @click.stop.prevent="handleQuick"
         :disabled="!isReady || isPending"
-        variant="outline"
+        variant="ghost"
+        size="sm"
         type="button"
-        class="text-sm"
+        class="h-auto min-h-8 min-w-0 shrink rounded-full py-1.5 text-left text-[13px] font-normal whitespace-normal text-muted-foreground hover:bg-[#1d9bf0]/10 hover:text-[#1d9bf0] dark:hover:bg-[#1d9bf0]/10"
       >
-        <UiIcon name="download" />{{
-          isPending ? i18n.t('download.starting') : quickLabel
-        }}
+        <UiIcon
+          name="download"
+          class="size-4"
+        />{{ isPending ? i18n.t('download.starting') : quickLabel }}
       </Button>
       <IconButton
         @click.stop.prevent="emit('open')"
         :label="i18n.t('panel.qualityAndProgress')"
         icon="chevronDown"
+        class="h-auto rounded-full hover:bg-[#1d9bf0]/10 hover:text-[#1d9bf0] dark:hover:bg-[#1d9bf0]/10"
       />
     </div>
     <DuplicateDownloadNotice

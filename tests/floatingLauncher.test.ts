@@ -31,6 +31,7 @@ function createLauncher(
   const warnings: unknown[][] = []
   const scope = vue.effectScope()
   const exports: { useFloatingLauncher?: typeof useFloatingLauncher } = {}
+
   runInNewContext(
     ts.transpileModule(
       readFileSync(
@@ -58,9 +59,11 @@ function createLauncher(
         if (id === '../constants/floatingPosition') {
           return floatingConstants
         }
+
         if (id === '@ntnyq/utils') {
           return utils
         }
+
         if (id === '../utils/logger') {
           return {
             logger: {
@@ -72,15 +75,19 @@ function createLauncher(
             },
           }
         }
+
         if (id === 'vue') {
           return vue
         }
+
         if (id === '@vueuse/core') {
           return vueuse
         }
+
         if (id === '../utils/floatingPosition') {
           return floatingPosition
         }
+
         if (id === '../utils/floatingLauncherSetting') {
           return {
             floatingLauncherSetting: {
@@ -92,6 +99,7 @@ function createLauncher(
             },
           }
         }
+
         throw new Error(id)
       },
     },
@@ -111,11 +119,13 @@ function createLauncher(
     hasPointerCapture: () => false,
   } as unknown as HTMLButtonElement)
   const state = scope.run(() => factory(button))
+
   assert.ok(state)
   getRect = () => ({
     left: Number(state.buttonStyle.value.left.slice(0, -2)),
     top: Number(state.buttonStyle.value.top.slice(0, -2)),
   })
+
   return {
     state,
     scope,
@@ -141,6 +151,7 @@ function pointer(x: number, y: number): PointerEvent {
     clientY: y,
     preventDefault() {},
   }
+
   return event as PointerEvent
 }
 
@@ -167,6 +178,7 @@ test('dragged placements survive remounts on all four edges', async () => {
         saved = value
       },
     )
+
     await flush()
     launcher.state.onPointerDown(pointer(948, 736))
     launcher.state.onPointerMove(pointer(x, y))
@@ -177,6 +189,7 @@ test('dragged placements survive remounts on all four edges', async () => {
     launcher.scope.stop()
 
     const reloaded = createLauncher(async () => saved)
+
     await flush()
     assert.equal(reloaded.state.buttonStyle.value.left, `${x}px`)
     assert.equal(reloaded.state.buttonStyle.value.top, `${y}px`)
@@ -191,6 +204,7 @@ test('restoration uses the current viewport and preserves the saved edge after r
     x: 900,
     y: 748,
   }))
+
   t.after(() => launcher.scope.stop())
   launcher.window.innerWidth = 320
   launcher.window.innerHeight = 240
@@ -213,6 +227,7 @@ test('missing or malformed stored placements keep the default and clicks do not 
     { edge: 'right', x: '8', y: 20 },
   ]) {
     const launcher = createLauncher(async () => saved)
+
     await flush()
     assert.equal(launcher.state.buttonStyle.value.left, '948px')
     assert.equal(launcher.state.buttonStyle.value.top, '736px')
@@ -233,12 +248,14 @@ test('a late storage read cannot overwrite a new drag or a disposed launcher', a
           resolveRead = resolve
         }),
     )
+
     if (dispose) {
       launcher.scope.stop()
     } else {
       launcher.state.onPointerDown(pointer(948, 736))
       launcher.state.onPointerUp(pointer(8, 300))
     }
+
     resolveRead({ edge: 'top', x: 400, y: 8 })
     await flush()
     assert.equal(
@@ -265,6 +282,7 @@ test('failed storage reads and writes leave dragging usable and later writes can
       }
     },
   )
+
   t.after(() => launcher.scope.stop())
   await flush()
   launcher.state.onPointerDown(pointer(948, 736))

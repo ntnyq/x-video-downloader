@@ -42,6 +42,7 @@ export default defineContentScript({
     function isPostResponse(input: string) {
       try {
         const url = new URL(input, location.href)
+
         return (
           isXUrl(url.href)
           && /\/(?:i\/api|1\.1|2)\//.test(url.pathname)
@@ -61,12 +62,15 @@ export default defineContentScript({
       for (const post of extractVideoPosts(payload)) {
         posts.delete(post.id)
         posts.set(post.id, post)
+
         if (posts.size > MAX_CACHED_POSTS) {
           const oldestId = posts.keys().next().value
+
           if (oldestId) {
             posts.delete(oldestId)
           }
         }
+
         window.postMessage(
           { channel: VIDEO_CHANNEL, type: 'post', post },
           location.origin,
@@ -75,6 +79,7 @@ export default defineContentScript({
     }
 
     const originalFetch = window.fetch
+
     /**
      * Observes eligible JSON responses without replacing the native fetch promise.
      *
@@ -86,6 +91,7 @@ export default defineContentScript({
       const promise = Reflect.apply(originalFetch, this, args)
       const input = args[0]
       const url = input instanceof Request ? input.url : String(input)
+
       if (isPostResponse(url)) {
         promise
           .then(async response => {
@@ -95,17 +101,20 @@ export default defineContentScript({
             ) {
               return
             }
+
             publish(await response.clone().json())
           })
           .catch(() => {
             // Best-effort capture must never alter the page's requests.
           })
       }
+
       return promise
     }
 
     const originalOpen = XMLHttpRequest.prototype.open
     const originalSend = XMLHttpRequest.prototype.send
+
     /**
      * Records the request URL while preserving the native XHR receiver and arguments.
      *
@@ -125,15 +134,20 @@ export default defineContentScript({
     ) {
       const previous = xhrRequests.get(this)
       const request: XhrRequest = { url: String(url) }
+
       // Native open can synchronously dispatch readystatechange, whose handler
       // may call send before open returns.
       xhrRequests.set(this, request)
+
       try {
         const result = Reflect.apply(originalOpen, this, [method, url, ...rest])
+
         previous?.cleanup?.()
+
         return result
       } catch (error) {
         request.cleanup?.()
+
         if (xhrRequests.get(this) === request) {
           if (previous) {
             xhrRequests.set(this, previous)
@@ -141,6 +155,7 @@ export default defineContentScript({
             xhrRequests.delete(this)
           }
         }
+
         throw error
       }
     }
@@ -152,6 +167,7 @@ export default defineContentScript({
      */
     XMLHttpRequest.prototype.send = function (...args) {
       const request = xhrRequests.get(this)
+
       if (!request || !isPostResponse(request.url) || request.cleanup) {
         // A second send may throw while the original request is still pending.
         // Preserve that request's observer and the native exception.
@@ -164,6 +180,7 @@ export default defineContentScript({
       const cleanup = () => {
         this.removeEventListener('load', onLoad)
         this.removeEventListener('loadend', cleanup)
+
         if (request.cleanup === cleanup) {
           request.cleanup = undefined
         }
@@ -174,13 +191,16 @@ export default defineContentScript({
        */
       function onLoad(this: XMLHttpRequest) {
         cleanup()
+
         if (xhrRequests.get(this) !== request) {
           return
         }
+
         try {
           if (this.status < 200 || this.status >= 300) {
             return
           }
+
           if (this.responseType === 'json') {
             publish(this.response)
           } else if (
@@ -188,6 +208,7 @@ export default defineContentScript({
             && this.getResponseHeader('content-type')?.includes('json')
           ) {
             const result = safeParse(this.responseText)
+
             if (result.success) {
               publish(result.value)
             }
@@ -200,15 +221,18 @@ export default defineContentScript({
       request.cleanup = cleanup
       this.addEventListener('load', onLoad, { once: true })
       this.addEventListener('loadend', cleanup, { once: true })
+
       try {
         return Reflect.apply(originalSend, this, args)
       } catch (error) {
         cleanup()
+
         throw error
       }
     }
 
     let lastReplay = 0
+
     window.addEventListener('message', (event: MessageEvent<unknown>) => {
       if (
         event.source !== window
@@ -220,11 +244,13 @@ export default defineContentScript({
       ) {
         return
       }
+
       lastReplay = Date.now()
       window.postMessage(
         { channel: VIDEO_CHANNEL, type: 'capture-ready' },
         location.origin,
       )
+
       for (const post of posts.values()) {
         window.postMessage(
           { channel: VIDEO_CHANNEL, type: 'post', post },

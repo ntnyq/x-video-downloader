@@ -12,6 +12,7 @@ defineProps<{
    */
   disabled: boolean
 }>()
+
 const emit = defineEmits<{
   /**
    * Confirms repeating only the previously completed videos.

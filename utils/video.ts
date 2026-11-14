@@ -41,8 +41,10 @@ export function isXUrl(value: unknown): value is string {
   if (!isString(value)) {
     return false
   }
+
   try {
     const url = new URL(value)
+
     return (
       url.protocol === 'https:'
       && /^(?:[\w-]+\.)*(?:x|twitter)\.com$/.test(url.hostname)
@@ -65,6 +67,7 @@ export function getPostId(value: unknown): string | undefined {
   if (!isXUrl(value)) {
     return
   }
+
   return new URL(value).pathname.match(
     /\/(?:status|statuses)\/(\d{1,25})(?:\/|$)/,
   )?.[1]
@@ -84,8 +87,10 @@ export function normalizeMediaUrl(
   if (!isString(value) || value.length > MAX_MEDIA_URL_LENGTH) {
     return
   }
+
   try {
     const url = new URL(value)
+
     if (
       url.protocol !== 'https:'
       || url.hostname !== 'video.twimg.com'
@@ -96,7 +101,9 @@ export function normalizeMediaUrl(
     ) {
       return
     }
+
     url.hash = ''
+
     return url.href
   } catch {}
 }
@@ -112,18 +119,24 @@ export function normalizeVariants(value: unknown): VideoVariant[] {
   if (!isArray(value)) {
     return []
   }
+
   const variants = new Map<string, VideoVariant>()
+
   for (const item of value.slice(0, MAX_VIDEO_VARIANTS)) {
     if (!isRecord(item)) {
       continue
     }
+
     const url = normalizeMediaUrl(item['url'])
+
     if (!url) {
       continue
     }
+
     const size = new URL(url).pathname.match(/\/(\d{2,5})x(\d{2,5})\//)
     const rawBitrate = item['bitrate'] ?? item['bit_rate']
     const bitrate = isNumber(rawBitrate) ? rawBitrate : 0
+
     variants.set(url, {
       url,
       bitrate: Number.isFinite(bitrate) && bitrate > 0 ? bitrate : 0,
@@ -131,6 +144,7 @@ export function normalizeVariants(value: unknown): VideoVariant[] {
       height: Number(size?.[2] ?? 0),
     })
   }
+
   return orderBy(
     [...variants.values()],
     [variant => variant.width * variant.height, 'bitrate'],
@@ -148,16 +162,21 @@ export function normalizePost(value: unknown): VideoPost | undefined {
   if (!isRecord(value) || !isPostId(value['id']) || !isArray(value['media'])) {
     return
   }
+
   const media: VideoMedia[] = []
+
   for (const item of value['media'].slice(0, MAX_POST_MEDIA)) {
     if (!isRecord(item)) {
       continue
     }
+
     const variants = normalizeVariants(item['variants'])
     const hasHls = item['hasHls'] === true
+
     if (!variants.length && !hasHls) {
       continue
     }
+
     media.push({
       id: isString(item['id'])
         ? item['id'].slice(0, MAX_MEDIA_ID_LENGTH)
@@ -166,9 +185,11 @@ export function normalizePost(value: unknown): VideoPost | undefined {
       hasHls,
     })
   }
+
   if (!media.length) {
     return
   }
+
   return {
     ...normalizePostMetadata(value),
     id: value['id'],
@@ -197,6 +218,7 @@ export function normalizePostMetadata(value: Record<string, unknown>): {
 } {
   const author = value['author']
   const createdAt = value['createdAt']
+
   return {
     ...(isString(author) && /^\w{1,30}$/.test(author) ? { author } : {}),
     ...(isString(createdAt)
@@ -219,18 +241,23 @@ export function extractVideoPosts(payload: unknown): VideoPost[] {
   const pending = [payload]
   const visited = new WeakSet<object>()
   let budget = MAX_RESPONSE_NODES
+
   while (pending.length && budget-- > 0) {
     const node = pending.pop()
+
     if (!node || typeof node !== 'object' || visited.has(node)) {
       continue
     }
+
     visited.add(node)
+
     if (isRecord(node)) {
       const legacy = isRecord(node['legacy']) ? node['legacy'] : node
       const entities = isRecord(legacy['extended_entities'])
         ? legacy['extended_entities']
         : legacy['entities']
       const items = isRecord(entities) ? entities['media'] : undefined
+
       if (isArray(items)) {
         const core = node['core']
         const userResults = isRecord(core) ? core['user_results'] : undefined
@@ -248,8 +275,10 @@ export function extractVideoPosts(payload: unknown): VideoPost[] {
             if (item['type'] !== 'video' && item['type'] !== 'animated_gif') {
               return []
             }
+
             const info = item['video_info']
             const variants = isRecord(info) ? info['variants'] : undefined
+
             return [
               {
                 id: item['id_str'] ?? item['media_key'],
@@ -265,8 +294,10 @@ export function extractVideoPosts(payload: unknown): VideoPost[] {
             ]
           }),
         })
+
         if (post) {
           const previous = posts.get(post.id)
+
           posts.set(post.id, {
             ...post,
             author: post.author ?? previous?.author,
@@ -275,12 +306,14 @@ export function extractVideoPosts(payload: unknown): VideoPost[] {
         }
       }
     }
+
     for (const child of Object.values(node)) {
       if (child && typeof child === 'object') {
         pending.push(child)
       }
     }
   }
+
   return [...posts.values()]
 }
 
@@ -299,6 +332,7 @@ export function formatVariant(
     variant.width && variant.height
       ? `${variant.width} × ${variant.height}`
       : originalLabel
+
   return variant.bitrate
     ? `${size} · ${(variant.bitrate / 1_000_000).toFixed(2)} Mbps`
     : size

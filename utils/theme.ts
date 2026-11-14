@@ -16,18 +16,23 @@ export function parseThemeColor(value: unknown): string | undefined {
   if (!isString(value)) {
     return undefined
   }
+
   const input = value.trim()
   const body = /^rgb\((.*)\)$/i.exec(input)?.[1] ?? input
   const match =
     /^(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})$/.exec(body.trim())
     ?? /^(\d{1,3})\s+(\d{1,3})\s+(\d{1,3})$/.exec(body.trim())
+
   if (!match) {
     return undefined
   }
+
   const channels = match.slice(1).map(Number)
+
   if (channels.some(channel => channel > MAX_RGB_CHANNEL)) {
     return undefined
   }
+
   return `rgb(${channels.join(', ')})`
 }
 
@@ -57,6 +62,7 @@ export function getThemeForeground(color: string): string {
       .match(/\d+/g)
       ?.map(value => {
         const channel = Number(value) / MAX_RGB_CHANNEL
+
         return channel <= 0.04045
           ? channel / 12.92
           : ((channel + 0.055) / 1.055) ** 2.4
@@ -65,6 +71,7 @@ export function getThemeForeground(color: string): string {
     (channels[0] ?? 0) * 0.2126
     + (channels[1] ?? 0) * 0.7152
     + (channels[2] ?? 0) * 0.0722
+
   return (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05)
     ? '#000000'
     : '#ffffff'
@@ -78,11 +85,14 @@ export function getThemeForeground(color: string): string {
  */
 export function getThemeStyle(value: unknown): Record<string, string> {
   const theme = normalizeTheme(value)
+
   if (theme === DEFAULT_THEME) {
     return {}
   }
+
   const color =
     THEME_PRESETS.find(preset => preset.id === theme)?.color ?? theme
+
   return {
     '--xvd-theme-accent': color,
     '--xvd-theme-on-accent': getThemeForeground(color),

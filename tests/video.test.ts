@@ -53,6 +53,7 @@ test('keeps large snowflake IDs as strings and supports video routes', () => {
     '2105974296740811141',
   )
   assert.equal(getPostId('https://mobile.twitter.com/a/status/123'), '123')
+
   for (const url of [
     'https://x.com.evil.test/a/status/123',
     'https://x.com/a/status/123abc',
@@ -64,6 +65,7 @@ test('keeps large snowflake IDs as strings and supports video routes', () => {
 
 test('only accepts HTTPS MP4 media from the exact video host', () => {
   assert.equal(normalizeMediaUrl(`${URL_HD}#fragment`), URL_HD)
+
   for (const url of [
     'blob:https://x.com/id',
     URL_HLS,
@@ -85,6 +87,7 @@ test('deduplicates, excludes HLS and sorts MP4s by pixels then bitrate', () => {
     { url: URL_HLS },
     null,
   ])
+
   assert.equal(variants.length, 2)
   assert.equal(variants[0]?.url, URL_HD)
   assert.equal(variants[0]?.width, 1280)
@@ -100,6 +103,7 @@ test('keeps latest duplicate metadata and stable ordering for equal qualities', 
   ]
   const original = structuredClone(input)
   const variants = normalizeVariants(input)
+
   assert.deepEqual(
     variants.map(variant => variant.url),
     [URL_HD, otherHd, URL_SD],
@@ -117,6 +121,7 @@ test('record boundaries reject arrays and callable objects with valid-looking fi
     id: '123',
     media: [{ variants: [{ url: URL_HD }] }],
   })
+
   for (const value of [null, [], callable]) {
     assert.equal(isRecord(value), false)
     assert.equal(normalizePost(value), undefined)
@@ -127,6 +132,7 @@ test('record boundaries reject arrays and callable objects with valid-looking fi
 test('extracts timeline, quote, retweet, GIF and multiple media independently', () => {
   const own = tweet('2105974296740811141')
   const quote = tweet('2105974296740811142', 'animated_gif')
+
   own.legacy.extended_entities.media.push({
     ...own.legacy.extended_entities.media[0]!,
     id_str: '222',
@@ -135,6 +141,7 @@ test('extracts timeline, quote, retweet, GIF and multiple media independently', 
     timeline: [{ result: { ...own, quoted_status_result: { result: quote } } }],
     retweet: { result: tweet('2105974296740811143') },
   })
+
   assert.equal(posts.length, 3)
   assert.equal(posts.find(post => post.id === own.rest_id)?.media.length, 2)
   assert.equal(posts.find(post => post.id === quote.rest_id)?.media.length, 1)
@@ -149,6 +156,7 @@ test('keeps HLS-only posts visible with no fake MP4', () => {
     id: '123',
     media: [{ id: '1', variants: [{ url: URL_HLS }], hasHls: true }],
   })
+
   assert.equal(post?.media[0]?.hasHls, true)
   assert.deepEqual(post?.media[0]?.variants, [])
 })
@@ -167,6 +175,7 @@ test('rejects malformed records and ignores images and numeric IDs', () => {
 
 test('handles cyclic and malformed response payloads without hanging', () => {
   const cyclic: Record<string, unknown> = { child: tweet('123') }
+
   cyclic['self'] = cyclic
   assert.equal(extractVideoPosts(cyclic).length, 1)
   assert.deepEqual(
@@ -182,10 +191,13 @@ test('validates download filenames and media positions at the background boundar
     mediaIndex: 2,
     url: URL_HD,
   }
+
   assert.deepEqual(normalizeDownloadRequest(valid), valid)
+
   for (const mediaIndex of [0, 17, 1.5, '1', null]) {
     assert.equal(normalizeDownloadRequest({ ...valid, mediaIndex }), undefined)
   }
+
   assert.equal(
     normalizeDownloadRequest({ ...valid, postId: '../test' }),
     undefined,
@@ -195,6 +207,7 @@ test('validates download filenames and media positions at the background boundar
 
 test('accepts only this extension popup or an X content script', () => {
   const popup = 'chrome-extension://extension-id/popup.html'
+
   assert.equal(
     isAllowedSender({ id: 'extension-id', url: popup }, 'extension-id', popup),
     true,

@@ -40,6 +40,7 @@ download:
   duplicateNotice: 선택한 동영상 중 $1개는 이미 다운로드했습니다. 다시 다운로드할까요?
   highest: 최고 화질로 다운로드
   interruptedHelp: '다운로드가 중단되었습니다 ($1). 다시 시도하거나, 링크가 만료되었다면 원래 게시물을 새로고침하세요.'
+  label: 다운로드
   notice: 진행 상황은 브라우저 다운로드 목록과 동기화됩니다. 저장할 권한이 있는 콘텐츠만 다운로드하세요.
   now: 바로 다운로드
   pageSelected: 선택한 동영상 다운로드 ($1)
@@ -71,6 +72,7 @@ download:
     missing: 기록이 삭제됨
     paused: 일시 중지됨
     queued: 대기 중
+  toolbarHint: 클릭하여 다운로드 패널 열기; 두 번 클릭하여 최고 화질 다운로드
   useHighest: 최고 화질로 다운로드
   videoError: '동영상 $1: $2'
   videoProgress: 동영상 $1 다운로드 진행 상황
@@ -179,6 +181,9 @@ settings:
   confirmEachSave: 저장 위치를 하나씩 확인하세요.
   defaultQuality: 기본 화질
   downloads: 다운로드
+  legacyUiDeprecated: 기존 다운로드 UI는 곧 지원이 중단됩니다. 새 다운로드 UI 사용을 권장합니다.
+  newUi: 새 다운로드 UI
+  newUiHelp: 게시물 작업 표시줄에 다운로드 아이콘을 표시합니다. 클릭하면 다운로드 패널을 열고, 두 번 클릭하면 다운로드 가능한 모든 동영상을 최고 화질로 다운로드합니다.
   qualityHelp: '빠른 다운로드와 일괄 다운로드에 적용됩니다. 목표 이하의 가장 높은 해상도를 선택하며, 세로 동영상은 짧은 변을 기준으로 합니다. “용량 절약”은 낮은 비트레이트를 우선합니다.'
   readFailed: 다운로드 설정을 읽을 수 없습니다. 페이지를 다시 여세요.
   rules: 다운로드 규칙

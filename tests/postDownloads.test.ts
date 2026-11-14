@@ -44,6 +44,7 @@ function createDownloads(
   respond: (message: Record<string, unknown>) => unknown,
   postId?: vue.MaybeRefOrGetter<string>,
   contextKey?: vue.MaybeRefOrGetter<string>,
+  options?: Parameters<typeof usePostDownloads>[2],
 ) {
   const calls: Record<string, unknown>[] = []
   const intervals = new Set<() => void>()
@@ -76,10 +77,12 @@ function createDownloads(
        */
       sendMessage(message: Record<string, unknown>) {
         calls.push(structuredClone(message))
+
         return respond(message)
       },
     },
   }
+
   runInNewContext(compiled, {
     ...vue,
     exports,
@@ -114,36 +117,45 @@ function createDownloads(
       if (id === '~/constants/download') {
         return downloadConstants
       }
+
       if (id === '@ntnyq/utils') {
         return utils
       }
+
       if (id === '#imports') {
         return {
           ...vue,
           browser,
         }
       }
+
       if (id === '~/utils/downloadHistory') {
         return downloadHistory
       }
+
       if (id === '~/utils/video') {
         return video
       }
+
       if (id === '~/utils/i18n') {
         return {
           localizeDownloadError: (error: unknown) => `error:${String(error)}`,
         }
       }
+
       if (id === 'vue') {
         return vue
       }
+
       throw new Error(id)
     },
   })
   assert.ok(exports.usePostDownloads)
   const factory = exports.usePostDownloads
-  const state = scope.run(() => factory(postId, contextKey))
+  const state = scope.run(() => factory(postId, contextKey, options))
+
   assert.ok(state)
+
   return {
     state,
     calls,
@@ -164,6 +176,28 @@ function createDownloads(
   }
 }
 
+test('toolbar downloads do not start per-post progress polling', async t => {
+  const postId = vue.shallowRef('123')
+  const harness = createDownloads(
+    () => ({
+      ok: true,
+      downloads: [],
+    }),
+    postId,
+    undefined,
+    { autoRefresh: false },
+  )
+
+  t.after(() => harness.stop())
+  await setImmediate()
+  harness.poll()
+  postId.value = '456'
+  await vue.nextTick()
+  assert.equal(harness.calls.length, 0)
+  await harness.state.refresh()
+  assert.equal(harness.calls.length, 1)
+})
+
 test('global history includes multiple posts while post views reject unrelated and invalid records', async t => {
   const response = {
     ok: true,
@@ -175,6 +209,7 @@ test('global history includes multiple posts while post views reject unrelated a
   }
   const global = createDownloads(() => response)
   const post = createDownloads(() => response, '123')
+
   t.after(() => global.stop())
   t.after(() => post.stop())
   await setImmediate()
@@ -200,6 +235,7 @@ test('duplicate confirmation resubmits only matching post-media pairs and preser
         downloads: [],
       }
     }
+
     return {
       ok: true,
       results:
@@ -230,6 +266,7 @@ test('duplicate confirmation resubmits only matching post-media pairs and preser
             ],
     }
   })
+
   t.after(() => harness.stop())
   await setImmediate()
   await harness.state.start([request, duplicate, failed])
@@ -243,6 +280,7 @@ test('duplicate confirmation resubmits only matching post-media pairs and preser
   const batches = harness.calls.filter(
     item => item['type'] === 'download-videos',
   )
+
   assert.equal(batches.length, 2)
   assert.deepEqual(batches[1]?.['requests'], [duplicate])
   assert.equal(batches[1]?.['force'], true)
@@ -265,6 +303,7 @@ test('dismissing duplicate confirmation never starts another download', async t 
           ],
         },
   )
+
   t.after(() => harness.stop())
   await setImmediate()
   await harness.state.start([request])
@@ -286,11 +325,14 @@ test('pause and resume send owned actions and refresh the resulting transfer sta
         downloads: [{ ...download, state }],
       }
     }
+
     state = message['action'] === 'pause' ? 'paused' : 'in_progress'
+
     return {
       ok: true,
     }
   })
+
   t.after(() => harness.stop())
   await setImmediate()
   await harness.state.action(42, 'pause')
@@ -320,12 +362,14 @@ test('history clearing sends only terminal IDs selected by the active filters', 
       ? { ok: true, downloads: history }
       : { ok: true },
   )
+
   t.after(() => harness.stop())
   await setImmediate()
   const ids = downloadHistory
     .filterDownloadHistory(harness.state.downloads.value, '', 'Alice')
     .filter(downloadHistory.isTerminalDownload)
     .map(item => item.id)
+
   await harness.state.clear(ids)
   assert.deepEqual(
     harness.calls.find(item => item['type'] === 'clear-downloads'),
@@ -349,9 +393,11 @@ test('pending actions block conflicting clear requests and surface browser failu
       ? { ok: true, downloads: [download] }
       : action.promise,
   )
+
   t.after(() => harness.stop())
   await setImmediate()
   const pending = harness.state.action(42, 'pause')
+
   assert.equal(harness.state.isActionPending.value, true)
   await harness.state.clear([42])
   await harness.state.action(42, 'resume')
@@ -380,6 +426,7 @@ test('late refreshes cannot replace the selected post after navigation', async t
         : { ok: true, downloads: [nextDownload] },
     postId,
   )
+
   t.after(() => harness.stop())
   postId.value = '456'
   await vue.nextTick()
@@ -398,6 +445,7 @@ test('a failed refresh for a previous post does not show an error for the curren
   const initial = Promise.withResolvers<unknown>()
   const postId = vue.shallowRef('123')
   const harness = createDownloads(() => initial.promise, postId)
+
   t.after(() => harness.stop())
   postId.value = '456'
   await vue.nextTick()
@@ -410,12 +458,15 @@ test('disposed scopes ignore late progress responses and stop polling', async ()
   for (const shouldReject of [false, true]) {
     const response = Promise.withResolvers<unknown>()
     const harness = createDownloads(() => response.promise)
+
     harness.stop()
+
     if (shouldReject) {
       response.reject(new Error('Closed tab'))
     } else {
       response.resolve({ ok: true, downloads: [download] })
     }
+
     await setImmediate()
     harness.poll()
     assert.equal(harness.state.downloads.value.length, 0)
@@ -435,11 +486,14 @@ test('a pending batch cannot show old duplicates or errors after the selected po
           : batch.promise,
       postId,
     )
+
     t.after(() => harness.stop())
     await setImmediate()
     const pending = harness.state.start([request])
+
     postId.value = '456'
     await vue.nextTick()
+
     if (shouldReject) {
       batch.reject(new Error('Old post request failed'))
     } else {
@@ -454,6 +508,7 @@ test('a pending batch cannot show old duplicates or errors after the selected po
         ],
       })
     }
+
     await pending
     assert.equal(harness.state.duplicateRequests.value.length, 0)
     assert.equal(harness.state.requestError.value, '')
@@ -473,16 +528,20 @@ test('late actions do not show success or failure on a newly selected post', asy
           : action.promise,
       postId,
     )
+
     t.after(() => harness.stop())
     await setImmediate()
     const pending = harness.state.action(42, 'pause')
+
     postId.value = '456'
     await vue.nextTick()
+
     if (shouldReject) {
       action.reject(new Error('Old post pause failed'))
     } else {
       action.resolve({ ok: true })
     }
+
     await pending
     assert.equal(harness.state.message.value, '')
     assert.equal(harness.state.requestError.value, '')
@@ -497,11 +556,14 @@ test('finishing a batch after disposal does not repopulate prompts or start anot
       ? { ok: true, downloads: [] }
       : batch.promise,
   )
+
   await setImmediate()
   const pending = harness.state.start([request])
+
   harness.stop()
   const messageAtDisposal = harness.state.message.value
   const callsAtDisposal = harness.calls.length
+
   batch.resolve({
     ok: true,
     results: [
@@ -529,9 +591,11 @@ test('changing the visible cross-post context invalidates a pending duplicate re
     undefined,
     contextKey,
   )
+
   t.after(() => harness.stop())
   await setImmediate()
   const pending = harness.state.start([request])
+
   contextKey.value = '789'
   await vue.nextTick()
   batch.resolve({
@@ -559,9 +623,11 @@ test('returning to the same post cannot revive a response from an earlier visit'
         : batch.promise,
     postId,
   )
+
   t.after(() => harness.stop())
   await setImmediate()
   const pending = harness.state.start([request])
+
   postId.value = '456'
   await vue.nextTick()
   postId.value = '123'
@@ -592,9 +658,11 @@ test('rescanning the same visible post IDs preserves pending replies and duplica
     undefined,
     () => snapshot.value.posts.map(post => post.id).join(','),
   )
+
   t.after(() => harness.stop())
   await setImmediate()
   const pending = harness.state.start([request])
+
   snapshot.value = { posts: [{ id: '123' }] }
   await vue.nextTick()
   assert.equal(harness.state.message.value, 'download.starting:')

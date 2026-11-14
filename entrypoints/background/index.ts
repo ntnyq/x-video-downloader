@@ -93,6 +93,7 @@ export default defineBackground(() => {
       ) {
         return
       }
+
       if (
         !isAllowedSender(
           sender,
@@ -104,8 +105,10 @@ export default defineBackground(() => {
           ok: false,
           error: 'invalidSender',
         })
+
         return
       }
+
       /**
        * Validates a trusted sender's message payload and dispatches the requested operation.
        *
@@ -116,28 +119,35 @@ export default defineBackground(() => {
         if (!isRecord(message)) {
           return
         }
+
         const downloadAction = (
           ['cancel', 'pause', 'resume', 'retry'] as const
         ).find(action => action === message['action'])
+
         if ('force' in message && !isBoolean(message['force'])) {
           return {
             ok: false,
             error: 'invalidRequest',
           }
         }
+
         if (message['type'] === 'open-settings') {
           await browser.runtime.openOptionsPage()
+
           return {
             ok: true,
           }
         }
+
         if (message['type'] === 'download-video') {
           const request = normalizeDownloadRequest(message)
+
           if (request) {
             return manager.start(request, message['force'] === true)
           }
         } else if (message['type'] === 'download-videos') {
           const requests = normalizeBatchRequest(message)
+
           if (requests) {
             return {
               ok: true,
@@ -172,11 +182,13 @@ export default defineBackground(() => {
         ) {
           return manager.action(message['downloadId'], downloadAction)
         }
+
         return {
           ok: false,
           error: 'invalidRequest',
         }
       }
+
       handleMessage()
         .then(sendResponse)
         .catch(error =>
@@ -185,6 +197,7 @@ export default defineBackground(() => {
             error: error instanceof Error ? error.message : 'actionFailed',
           }),
         )
+
       return true
     },
   )
@@ -193,13 +206,16 @@ export default defineBackground(() => {
     if (command !== 'toggleExtension') {
       return
     }
+
     const [tab] = await browser.tabs.query({
       active: true,
       currentWindow: true,
     })
+
     if (isUndefined(tab?.id) || !isXUrl(tab.url)) {
       return
     }
+
     try {
       await browser.tabs.sendMessage(tab.id, { type: 'toggle-panel' })
     } catch {
@@ -214,6 +230,7 @@ export default defineBackground(() => {
           await browser.tabs.create({
             url: browser.runtime.getURL('/welcome.html'),
           })
+
           return
         }
 

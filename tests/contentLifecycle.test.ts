@@ -36,6 +36,7 @@ function createContext() {
      */
     onInvalidated(callback: () => void) {
       invalidationCallbacks.add(callback)
+
       return () => invalidationCallbacks.delete(callback)
     },
     /**
@@ -50,10 +51,13 @@ function createContext() {
      */
     setTimeout(callback: () => void) {
       const id = setTimer(callback)
+
       ctx.onInvalidated(() => timers.delete(id))
+
       return id
     },
   }
+
   /**
    * Queues a callback in the controllable timer map.
    *
@@ -62,9 +66,12 @@ function createContext() {
    */
   function setTimer(callback: () => void) {
     const id = ++nextTimer
+
     timers.set(id, callback)
+
     return id
   }
+
   /**
    * Executes and removes each timer that was pending at the start of the flush.
    */
@@ -74,15 +81,18 @@ function createContext() {
       callback()
     }
   }
+
   /**
    * Marks the simulated context invalid and invokes its registered cleanup callbacks.
    */
   function invalidate() {
     ctx.isInvalid = true
+
     for (const callback of invalidationCallbacks) {
       callback()
     }
   }
+
   return {
     ctx,
     invalidationCallbacks,
@@ -140,6 +150,7 @@ test('repeated scans keep cleanup bounded and cancel pending work on invalidatio
       scan: () => void
     }
   } = {}
+
   runInNewContext(compile('../entrypoints/content/pageVideos.ts'), {
     exports,
     window: {
@@ -197,31 +208,38 @@ test('repeated scans keep cleanup bounded and cancel pending work on invalidatio
       if (id === '@ntnyq/utils') {
         return utils
       }
+
       if (id === 'vue') {
         return {
           shallowRef,
         }
       }
+
       if (id === '~/constants/video') {
         return constants
       }
+
       if (id === '~/utils/video') {
         return video
       }
+
       throw new Error(id)
     },
   })
   assert.ok(exports.createPageVideos)
   const videos = exports.createPageVideos(harness.ctx)
+
   videos.observe(() => scans++)
   assert.equal(harness.timers.size, 0, 'initial scan cancels the replay timer')
   const initialCallbacks = harness.invalidationCallbacks.size
+
   for (let index = 0; index < 100; index++) {
     mutationCallback()
     mutationCallback()
     assert.equal(harness.timers.size, 1)
     harness.flushTimers()
   }
+
   assert.equal(scans, 101)
   assert.equal(harness.invalidationCallbacks.size, initialCallbacks)
 
@@ -243,6 +261,7 @@ test('removed shadow UIs release callbacks while live UIs still invalidate', asy
   const harness = createContext()
   let removals = 0
   let shouldFail = false
+
   interface UiOptions {
     /**
      * Optional teardown callback invoked when a mock shadow UI is removed.
@@ -267,6 +286,7 @@ test('removed shadow UIs release callbacks while live UIs still invalidate', asy
       remove: () => void
     }>
   } = {}
+
   runInNewContext(compile('../entrypoints/content/shadowUi.ts'), {
     exports,
     /**
@@ -280,6 +300,7 @@ test('removed shadow UIs release callbacks while live UIs still invalidate', asy
       if (id !== 'wxt/utils/content-script-ui/shadow-root') {
         throw new Error(id)
       }
+
       return {
         /**
          * Simulates WXT invalidation registration and optional UI-creation failure.
@@ -295,10 +316,13 @@ test('removed shadow UIs release callbacks while live UIs still invalidate', asy
            * Invokes the mock UI removal hook when the UI is removed or its context invalidates.
            */
           const remove = () => options.onRemove?.()
+
           ctx.onInvalidated(remove)
+
           if (shouldFail) {
             throw new Error('UI creation failed')
           }
+
           return {
             remove,
           }
@@ -323,12 +347,15 @@ test('removed shadow UIs release callbacks while live UIs still invalidate', asy
        */
       onRemove: () => removals++,
     })
+
   for (let index = 0; index < 100; index++) {
     const ui = await createUi()
+
     assert.equal(harness.invalidationCallbacks.size, 1)
     ui.remove()
     assert.equal(harness.invalidationCallbacks.size, 0)
   }
+
   assert.equal(removals, 100)
 
   shouldFail = true

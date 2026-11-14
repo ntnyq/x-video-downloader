@@ -5,6 +5,7 @@ defineProps<{
   /** Name of the extension or surface. */
   title: string
 }>()
+
 defineSlots<{
   default?: () => VNode[]
 }>()

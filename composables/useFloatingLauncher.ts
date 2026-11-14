@@ -61,9 +61,11 @@ export function useFloatingLauncher(
     .getValue()
     .then(value => {
       const saved = normalizeFloatingPlacement(value)
+
       if (!saved || hasInteracted || isDisposed) {
         return
       }
+
       edge.value = saved.edge
       position.value = dockFloatingPosition(saved, viewport.value, saved.edge)
     })
@@ -91,7 +93,9 @@ export function useFloatingLauncher(
     if (!event.isPrimary || event.button !== 0 || gesture || !button.value) {
       return
     }
+
     const rect = button.value.getBoundingClientRect()
+
     hasInteracted = true
     gesture = {
       pointerId: event.pointerId,
@@ -111,11 +115,14 @@ export function useFloatingLauncher(
     if (!gesture || event.pointerId !== gesture.pointerId) {
       return
     }
+
     const x = event.clientX - gesture.start.x
     const y = event.clientY - gesture.start.y
+
     if (!isDragging.value && Math.hypot(x, y) < FLOATING_DRAG_THRESHOLD) {
       return
     }
+
     event.preventDefault()
     isDragging.value = true
     suppressClick = true
@@ -133,10 +140,13 @@ export function useFloatingLauncher(
    */
   function finishGesture() {
     const pointerId = gesture?.pointerId
+
     gesture = undefined
+
     if (!isUndefined(pointerId) && button.value?.hasPointerCapture(pointerId)) {
       button.value.releasePointerCapture(pointerId)
     }
+
     if (isDragging.value) {
       edge.value = getNearestFloatingEdge(position.value, viewport.value)
       position.value = dockFloatingPosition(
@@ -145,12 +155,14 @@ export function useFloatingLauncher(
         edge.value,
       )
       const saved = { ...position.value, edge: edge.value }
+
       pendingSave = pendingSave
         .then(() => floatingLauncherSetting.setValue(saved))
         .catch(error => {
           log.warn('Could not save launcher position', error)
         })
     }
+
     isDragging.value = false
   }
 
@@ -163,6 +175,7 @@ export function useFloatingLauncher(
     if (event.pointerId !== gesture?.pointerId) {
       return
     }
+
     onPointerMove(event)
     finishGesture()
   }

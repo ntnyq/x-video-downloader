@@ -19,6 +19,10 @@ export interface DownloadPreferences {
    * Whether the browser should prompt for a save location for each video.
    */
   saveAs: boolean
+  /**
+   * Whether post downloads use an icon in X's native action row.
+   */
+  useNewUi: boolean
 }
 
 export interface DownloadRecord {

@@ -4,6 +4,7 @@ import {
   concurrencySetting,
   filenameSetting,
   getDownloadPreferences,
+  newUiSetting,
   qualitySetting,
   saveAsSetting,
 } from '~/utils/settings'
@@ -16,6 +17,13 @@ export const useDownloadPreferences = createSharedComposable(() => {
   const changed = new Set<string>()
 
   const stops = [
+    newUiSetting.watch(useNewUi => {
+      changed.add('useNewUi')
+      preferences.value = normalizePreferences({
+        ...preferences.value,
+        useNewUi,
+      })
+    }),
     concurrencySetting.watch(concurrency => {
       changed.add('concurrency')
       preferences.value = normalizePreferences({
@@ -42,9 +50,13 @@ export const useDownloadPreferences = createSharedComposable(() => {
       })
     }),
   ]
+
   getDownloadPreferences()
     .then(value => {
       preferences.value = {
+        useNewUi: changed.has('useNewUi')
+          ? preferences.value.useNewUi
+          : value.useNewUi,
         concurrency: changed.has('concurrency')
           ? preferences.value.concurrency
           : value.concurrency,

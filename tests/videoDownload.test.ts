@@ -47,10 +47,12 @@ function createInlineDownload(
        */
       sendMessage(message: Record<string, unknown>) {
         calls.push(structuredClone(message))
+
         return respond(message)
       },
     },
   }
+
   runInNewContext(
     ts.transpileModule(
       readFileSync(
@@ -80,23 +82,28 @@ function createInlineDownload(
         if (id === '@ntnyq/utils') {
           return utils
         }
+
         if (id === '#imports') {
           return {
             ...vue,
             browser,
           }
         }
+
         if (id === 'vue') {
           return vue
         }
+
         if (id === '~/utils/video') {
           return video
         }
+
         if (id === '~/utils/i18n') {
           return {
             localizeDownloadError: (error: unknown) => `error:${String(error)}`,
           }
         }
+
         throw new Error(id)
       },
     },
@@ -104,7 +111,9 @@ function createInlineDownload(
   assert.ok(exports.useVideoDownload)
   const factory = exports.useVideoDownload
   const state = scope.run(() => factory(contextKey))
+
   assert.ok(state)
+
   return {
     state,
     calls,
@@ -117,6 +126,7 @@ test('inline duplicates require explicit force and clear the prompt after accept
   const harness = createInlineDownload(message =>
     message['force'] ? { ok: true, downloadId: 42 } : duplicateResult,
   )
+
   t.after(() => harness.scope.stop())
   assert.equal(await harness.state.download(request), false)
   assert.deepEqual(harness.state.duplicateRequest.value, request)
@@ -135,8 +145,10 @@ test('inline duplicates require explicit force and clear the prompt after accept
 test('inline pending clicks share one request and expose native errors', async t => {
   const response = Promise.withResolvers<unknown>()
   const harness = createInlineDownload(() => response.promise)
+
   t.after(() => harness.scope.stop())
   const pending = harness.state.download(request)
+
   assert.equal(await harness.state.download(request), undefined)
   response.resolve({ ok: false, error: 'NETWORK_FAILED' })
   assert.equal(await pending, false)
@@ -154,17 +166,21 @@ test('old inline replies cannot reopen the panel or restore prompts after post c
   ]) {
     const response = Promise.withResolvers<unknown>()
     const harness = createInlineDownload(() => response.promise)
+
     t.after(() => harness.scope.stop())
     const pending = harness.state.download(request)
+
     harness.contextKey.value = '456'
     await vue.nextTick()
     harness.contextKey.value = '123'
     await vue.nextTick()
+
     if (result instanceof Error) {
       response.reject(result)
     } else {
       response.resolve(result)
     }
+
     assert.equal(await pending, false)
     assert.equal(harness.state.duplicateRequest.value, undefined)
     assert.equal(harness.state.message.value, '')
@@ -181,12 +197,15 @@ test('disposed inline controls ignore late replies and reject new download attem
     const response = Promise.withResolvers<unknown>()
     const harness = createInlineDownload(() => response.promise)
     const pending = harness.state.download(request)
+
     harness.scope.stop()
+
     if (result instanceof Error) {
       response.reject(result)
     } else {
       response.resolve(result)
     }
+
     assert.equal(await pending, false)
     assert.equal(harness.state.duplicateRequest.value, undefined)
     assert.equal(harness.state.message.value, 'download.startingSave')

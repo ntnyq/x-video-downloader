@@ -6,9 +6,11 @@ import type { LabelProps } from 'reka-ui'
 import type { HTMLAttributes, VNode } from 'vue'
 
 const props = defineProps<LabelProps & { class?: HTMLAttributes['class'] }>()
+
 defineSlots<{
   default: () => VNode[]
 }>()
+
 const forwarded = useForwardProps(reactiveOmit(props, 'class'))
 </script>
 

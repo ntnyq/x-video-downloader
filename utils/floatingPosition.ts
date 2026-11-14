@@ -46,7 +46,9 @@ export function normalizeFloatingPlacement(
   if (!isRecord(value)) {
     return
   }
+
   const { edge, x, y } = value
+
   if (
     !isFloatingEdge(edge)
     || !isNumber(x)
@@ -56,6 +58,7 @@ export function normalizeFloatingPlacement(
   ) {
     return
   }
+
   return {
     edge,
     x,
@@ -82,6 +85,7 @@ export function clampFloatingPosition(
     0,
     viewport.height - FLOATING_BUTTON_SIZE - FLOATING_EDGE_GAP,
   )
+
   return {
     x: clamp(position.x, Math.min(FLOATING_EDGE_GAP, maxX), maxX),
     y: clamp(position.y, Math.min(FLOATING_EDGE_GAP, maxY), maxY),
@@ -128,6 +132,7 @@ export function getNearestFloatingEdge(
     ['top', y],
     ['bottom', viewport.height - y - FLOATING_BUTTON_SIZE],
   ]
+
   return distances.reduce((nearest, candidate) =>
     candidate[1] < nearest[1] ? candidate : nearest,
   )[0]
@@ -165,6 +170,7 @@ export function getFloatingPanelStyle(
       viewport.width - width - FLOATING_EDGE_GAP,
     ),
   )
+
   return {
     left: `${left}px`,
     width: `${width}px`,

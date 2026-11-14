@@ -44,6 +44,7 @@ interface Props {
 }
 
 defineProps<Props>()
+
 const emit = defineEmits<{
   /**
    * Reports the MP4 URL chosen in the quality selector.
@@ -62,6 +63,7 @@ const emit = defineEmits<{
 defineSlots<{
   default?: () => VNode[]
 }>()
+
 const selectId = useId()
 
 /**

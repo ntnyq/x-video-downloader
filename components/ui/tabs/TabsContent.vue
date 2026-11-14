@@ -8,13 +8,17 @@ import type { HTMLAttributes, VNode } from 'vue'
 const props = defineProps<
   TabsContentProps & { class?: HTMLAttributes['class'] }
 >()
+
 defineSlots<{
   default: () => VNode[]
 }>()
+
 const delegated = computed(() => {
   const { class: _, ...rest } = props
+
   return rest
 })
+
 const forwarded = useForwardProps(delegated)
 </script>
 

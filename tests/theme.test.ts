@@ -11,10 +11,12 @@ import {
 test('provides twelve distinct palettes and keeps Grok adaptive by default', () => {
   assert.equal(THEME_PRESETS.length, 12)
   assert.equal(new Set(THEME_PRESETS.map(preset => preset.color)).size, 12)
+
   for (const preset of THEME_PRESETS) {
     assert.equal(normalizeTheme(preset.id), preset.id)
     assert.equal(parseThemeColor(preset.color), preset.color)
   }
+
   for (const value of [undefined, null, {}, 'missing', 42]) {
     assert.equal(normalizeTheme(value), 'grok')
     assert.deepEqual(getThemeStyle(value), {})
@@ -31,6 +33,7 @@ test('accepts RGB input in comma and space syntax and canonicalizes stored color
     assert.equal(parseThemeColor(input), 'rgb(29, 155, 240)')
     assert.equal(normalizeTheme(input), 'rgb(29, 155, 240)')
   }
+
   assert.equal(parseThemeColor('0, 0, 0'), 'rgb(0, 0, 0)')
   assert.equal(parseThemeColor('255, 255, 255'), 'rgb(255, 255, 255)')
 })
@@ -67,8 +70,10 @@ test('chooses readable button text for bright and dark custom colors', () => {
   ]) {
     assert.equal(getThemeForeground(color), '#000000')
   }
+
   for (const color of ['0,0,0', '15,20,25', '79,70,229', '147,51,234']) {
     assert.equal(getThemeForeground(color), '#ffffff')
   }
+
   assert.deepEqual(getThemeStyle('blue'), getThemeStyle('29,155,240'))
 })

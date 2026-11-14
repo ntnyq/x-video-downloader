@@ -15,6 +15,7 @@ const request = {
   url: 'https://video.twimg.com/ext_tw_video/1/pu/vid/1280x720/sample.mp4',
 }
 const popupUrl = 'chrome-extension://test/popup.html'
+
 type Sender = {
   /**
    * Extension identifier supplied to the simulated message listener.
@@ -90,6 +91,7 @@ function createBackground(shouldFail = false, isDevelopment = false) {
         if (shouldFail) {
           throw new Error('OPTIONS_FAILED')
         }
+
         calls.push('open-settings')
       },
       onMessage: {
@@ -116,6 +118,7 @@ function createBackground(shouldFail = false, isDevelopment = false) {
         if (shouldFail) {
           throw new Error('TAB_FAILED')
         }
+
         openedUrls.push(url)
       },
     },
@@ -140,12 +143,14 @@ function createBackground(shouldFail = false, isDevelopment = false) {
       },
       async pause(id: number) {
         const item = items.get(id)
+
         if (item) {
           item.paused = true
         }
       },
       async resume(id: number) {
         const item = items.get(id)
+
         if (item) {
           item.paused = false
         }
@@ -165,6 +170,7 @@ function createBackground(shouldFail = false, isDevelopment = false) {
        */
       async cancel(id: number) {
         const item = items.get(id)
+
         if (item) {
           item.state = 'interrupted'
           item.error = 'USER_CANCELED'
@@ -179,16 +185,20 @@ function createBackground(shouldFail = false, isDevelopment = false) {
        */
       async download(options: unknown) {
         calls.push(options)
+
         if (shouldFail) {
           throw new Error('USER_CANCELED')
         }
+
         const id = nextId++
+
         items.set(id, {
           id,
           state: 'in_progress',
           bytesReceived: 0,
           totalBytes: 100,
         })
+
         return id
       },
     },
@@ -212,6 +222,7 @@ function createBackground(shouldFail = false, isDevelopment = false) {
       },
     },
   ).outputText
+
   runInNewContext(compiled, {
     exports,
     Error,
@@ -227,6 +238,7 @@ function createBackground(shouldFail = false, isDevelopment = false) {
       if (id === '@ntnyq/utils') {
         return utils
       }
+
       if (id === '~/utils/logger') {
         return {
           logger: {
@@ -240,6 +252,7 @@ function createBackground(shouldFail = false, isDevelopment = false) {
           },
         }
       }
+
       if (id === '#imports') {
         return {
           browser,
@@ -252,12 +265,15 @@ function createBackground(shouldFail = false, isDevelopment = false) {
           defineBackground: (main: unknown) => main,
         }
       }
+
       if (id === '~/utils/download') {
         return download
       }
+
       if (id === '~/utils/video') {
         return video
       }
+
       if (id === '~/utils/settings') {
         return {
           /**
@@ -289,15 +305,18 @@ function createBackground(shouldFail = false, isDevelopment = false) {
           },
         }
       }
+
       if (id === './downloadManager') {
         return {
           createDownloadManager,
         }
       }
+
       throw new Error(id)
     },
   })
   exports.default?.()
+
   /**
    * Delivers a message to the captured runtime listener and waits for its response.
    *
@@ -308,6 +327,7 @@ function createBackground(shouldFail = false, isDevelopment = false) {
   function send(message: unknown, sender: Sender) {
     return new Promise<unknown>(resolve => listener?.(message, sender, resolve))
   }
+
   return {
     calls,
     openedUrls,
@@ -322,6 +342,7 @@ function createBackground(shouldFail = false, isDevelopment = false) {
 
 test('first installation opens the welcome page only', async () => {
   const background = createBackground()
+
   await background.installed({ reason: 'install' })
   assert.deepEqual(background.openedUrls, [
     'chrome-extension://test/welcome.html',
@@ -331,6 +352,7 @@ test('first installation opens the welcome page only', async () => {
 test('version updates open the bundled changelog, including skipped releases', async () => {
   for (const previousVersion of ['0.0.1', '0.0.2', undefined]) {
     const background = createBackground()
+
     await background.installed({ reason: 'update', previousVersion })
     assert.deepEqual(background.openedUrls, [
       'chrome-extension://test/changelog.html',
@@ -340,12 +362,14 @@ test('version updates open the bundled changelog, including skipped releases', a
 
 test('same-version reloads, browser updates and development updates do not open release notes', async () => {
   const background = createBackground()
+
   await background.installed({ reason: 'update', previousVersion: '0.0.3' })
   await background.installed({ reason: 'chrome_update' })
   await background.installed({ reason: 'shared_module_update' })
   assert.deepEqual(background.openedUrls, [])
 
   const development = createBackground(false, true)
+
   await development.installed({ reason: 'update', previousVersion: '0.0.2' })
   assert.deepEqual(development.openedUrls, [])
 })
@@ -353,6 +377,7 @@ test('same-version reloads, browser updates and development updates do not open 
 test('failed introduction tabs are logged without rejecting the installation listener', async () => {
   for (const reason of ['install', 'update']) {
     const background = createBackground(true)
+
     await background.installed({ reason, previousVersion: '0.0.2' })
     assert.deepEqual(background.openedUrls, [])
     assert.equal(background.warnings.length, 1)
@@ -367,6 +392,7 @@ test('failed introduction tabs are logged without rejecting the installation lis
 test('background starts downloads with chosen quality, stable filename and saved preference', async () => {
   const background = createBackground()
   const result = await background.send(request, { id: 'test', url: popupUrl })
+
   assert.equal(
     JSON.stringify(result),
     JSON.stringify({ ok: true, downloadId: 42 }),
@@ -389,6 +415,7 @@ test('background returns browser failures to the content script', async () => {
     url: 'https://x.com/home',
     tab: {},
   })
+
   assert.equal(
     JSON.stringify(result),
     JSON.stringify({ ok: false, error: 'USER_CANCELED' }),
@@ -397,6 +424,7 @@ test('background returns browser failures to the content script', async () => {
 
 test('background never starts a download for untrusted senders or URLs', async () => {
   const background = createBackground()
+
   await background.send(request, { id: 'other', url: popupUrl })
   await background.send(
     { ...request, url: 'https://example.com/video.mp4' },
@@ -413,18 +441,22 @@ test('opens settings for this extension on X while rejecting untrusted senders',
     url: 'https://x.com/home',
     tab: {},
   })
+
   assert.equal(JSON.stringify(result), JSON.stringify({ ok: true }))
   assert.deepEqual(background.calls, ['open-settings'])
+
   for (const sender of [
     { id: 'other', url: 'https://x.com/home', tab: {} },
     { id: 'test', url: 'https://example.com/', tab: {} },
   ]) {
     const rejected = await background.send(message, sender)
+
     assert.equal(
       JSON.stringify(rejected),
       JSON.stringify({ ok: false, error: 'invalidSender' }),
     )
   }
+
   assert.equal(background.calls.length, 1)
 })
 
@@ -434,6 +466,7 @@ test('reports a settings navigation failure to the requesting panel', async () =
     { type: 'open-settings' },
     { id: 'test', url: 'https://x.com/home', tab: {} },
   )
+
   assert.equal(
     JSON.stringify(result),
     JSON.stringify({ ok: false, error: 'OPTIONS_FAILED' }),
@@ -443,6 +476,7 @@ test('reports a settings navigation failure to the requesting panel', async () =
 test('background advances cross-post queues from native completion and erased events', async () => {
   const background = createBackground()
   const sender = { id: 'test', url: popupUrl }
+
   await background.send(
     {
       type: 'download-videos',
@@ -468,6 +502,7 @@ test('background advances cross-post queues from native completion and erased ev
 test('validates management payloads and repeat confirmation before native effects', async () => {
   const background = createBackground()
   const sender = { id: 'test', url: popupUrl }
+
   for (const message of [
     { ...request, force: 'yes' },
     { type: 'get-downloads', postId: 'invalid' },
@@ -482,6 +517,7 @@ test('validates management payloads and repeat confirmation before native effect
       JSON.stringify({ ok: false, error: 'invalidRequest' }),
     )
   }
+
   for (const message of [
     { type: 'get-downloads' },
     { type: 'clear-downloads' },
@@ -495,12 +531,14 @@ test('validates management payloads and repeat confirmation before native effect
       JSON.stringify({ ok: false, error: 'invalidSender' }),
     )
   }
+
   assert.equal(background.calls.length, 0)
 })
 
 test('confirms completed repeats explicitly and clears terminal records without deleting native history', async () => {
   const background = createBackground()
   const sender = { id: 'test', url: popupUrl }
+
   await background.send(request, sender)
   background.items.get(42)!.state = 'complete'
   assert.equal(

@@ -56,6 +56,7 @@ function createButton(value: VideoPost | undefined = post) {
       }
     }
   } = {}
+
   runInNewContext(
     ts.transpileModule(
       compileScript(descriptor, { id: 'inline-test' }).content,
@@ -73,14 +74,17 @@ function createButton(value: VideoPost | undefined = post) {
         if (id === 'vue') {
           return vue
         }
+
         if (id === '#i18n') {
           return {
             i18n: { t: (key: string) => key },
           }
         }
+
         if (id === '~/utils/preferences') {
           return preferences
         }
+
         if (id === '~/composables/useDownloadPreferences') {
           return {
             useDownloadPreferences() {
@@ -92,11 +96,13 @@ function createButton(value: VideoPost | undefined = post) {
             },
           }
         }
+
         if (id === '~/composables/usePageTheme') {
           return {
             usePageTheme: () => vue.shallowRef('light'),
           }
         }
+
         if (id === '~/composables/useTheme') {
           return {
             useTheme() {
@@ -106,6 +112,7 @@ function createButton(value: VideoPost | undefined = post) {
             },
           }
         }
+
         if (id === '~/composables/useVideoDownload') {
           return {
             useVideoDownload() {
@@ -116,20 +123,24 @@ function createButton(value: VideoPost | undefined = post) {
                 hasError: vue.shallowRef(false),
                 async download(request: DownloadRequest, force?: boolean) {
                   calls.push({ request, force })
+
                   return true
                 },
               }
             },
           }
         }
+
         if (id.endsWith('.vue') || id === '~/components/ui/button') {
           return {}
         }
+
         throw new Error(id)
       },
     },
   )
   const component = exports.default
+
   assert.ok(component)
   const state = scope.run(() =>
     component.setup(
@@ -137,7 +148,9 @@ function createButton(value: VideoPost | undefined = post) {
       { emit: event => events.push(event), expose() {} },
     ),
   )
+
   assert.ok(state)
+
   return {
     state,
     scope,
@@ -150,6 +163,7 @@ function createButton(value: VideoPost | undefined = post) {
 
 test('a successful quick download queues the video without opening the panel', async t => {
   const button = createButton()
+
   t.after(() => button.scope.stop())
   await button.state.handleQuick(trustedClick)
   assert.equal(button.calls.length, 1)
@@ -160,6 +174,7 @@ test('a successful quick download queues the video without opening the panel', a
 
 test('confirming a duplicate queues a forced download without opening the panel', async t => {
   const button = createButton()
+
   t.after(() => button.scope.stop())
   const request: DownloadRequest = {
     type: 'download-video',
@@ -167,6 +182,7 @@ test('confirming a duplicate queues a forced download without opening the panel'
     mediaIndex: 1,
     url: 'https://video.twimg.com/video.mp4',
   }
+
   button.duplicateRequest.value = request
   await button.state.confirmDuplicate(trustedClick)
   assert.deepEqual(button.calls, [{ request, force: true }])
@@ -178,6 +194,7 @@ test('quick download still opens selection when a post has multiple videos', asy
     ...post,
     media: [...post.media, ...post.media],
   })
+
   t.after(() => button.scope.stop())
   await button.state.handleQuick(trustedClick)
   assert.deepEqual(button.calls, [])
@@ -186,6 +203,7 @@ test('quick download still opens selection when a post has multiple videos', asy
 
 test('untrusted or pending quick-download clicks do not queue or open anything', async t => {
   const button = createButton()
+
   t.after(() => button.scope.stop())
   await button.state.handleQuick({ isTrusted: false } as MouseEvent)
   button.isPending.value = true

@@ -10,7 +10,9 @@ import DownloadWorkspace from './DownloadWorkspace.vue'
 
 const { snapshot, isLoading, requestError, refresh } = useCurrentTabVideos()
 const { themeStyle } = useTheme()
+
 const overlayRef = useTemplateRef('overlayRef')
+
 provideOverlayTarget(overlayRef)
 </script>
 

@@ -8,10 +8,12 @@ defineProps<{
   /** Section symbol. */
   icon: IconName
 }>()
+
 defineSlots<{
   default: () => VNode[]
   actions?: () => VNode[]
 }>()
+
 const headingId = useId()
 </script>
 

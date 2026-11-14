@@ -6,8 +6,10 @@ import type { LogObject } from 'consola/browser'
 test('scoped diagnostics retain original errors and suppress production debug output', () => {
   const logs: LogObject[] = []
   const scoped = logger.withTag('downloads')
+
   scoped.setReporters([{ log: entry => logs.push(entry) }])
   const error = new Error('Storage unavailable')
+
   scoped.debug('Development detail')
   scoped.info('Routine update')
   scoped.warn('Could not persist download state', error)

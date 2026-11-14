@@ -37,6 +37,7 @@ function createHarness(response: Response) {
   const messages: unknown[] = []
   const listeners: Array<(event: unknown) => void> = []
   const promise = Promise.resolve(response)
+
   class MockXhr extends EventTarget {
     status = 200
     responseType = 'json'
@@ -63,6 +64,7 @@ function createHarness(response: Response) {
       if (this.openError) {
         throw this.openError
       }
+
       this.openArgs = args
       this.dispatchEvent(new Event('readystatechange'))
     }
@@ -73,12 +75,14 @@ function createHarness(response: Response) {
       if (this.sendError) {
         throw this.sendError
       }
+
       if (this.autoComplete) {
         this.dispatchEvent(new Event('load'))
         this.dispatchEvent(new Event('loadend'))
       }
     }
   }
+
   const window = {
     /**
      * Returns the original promise so tests can check that capture preserves its identity.
@@ -125,6 +129,7 @@ function createHarness(response: Response) {
       target: ts.ScriptTarget.ES2022,
     },
   }).outputText
+
   runInNewContext(compiled, {
     exports,
     window,
@@ -145,6 +150,7 @@ function createHarness(response: Response) {
           safeParse,
         }
       }
+
       if (id === '#imports') {
         return {
           /**
@@ -156,16 +162,20 @@ function createHarness(response: Response) {
           defineContentScript: (definition: unknown) => definition,
         }
       }
+
       if (id === '~/constants/video') {
         return constants
       }
+
       if (id === '~/utils/video') {
         return video
       }
+
       throw new Error(id)
     },
   })
   exports.default?.main()
+
   return {
     window,
     messages,
@@ -179,6 +189,7 @@ test('boots independently, preserves fetch promise and leaves response readable'
   const response = Response.json(payload)
   const harness = createHarness(response)
   const fetch = harness.window.fetch as (url: string) => Promise<Response>
+
   assert.equal(
     fetch('https://x.com/i/api/graphql/hash/TweetDetail'),
     harness.promise,
@@ -201,6 +212,7 @@ test('boots independently, preserves fetch promise and leaves response readable'
 test('replays cached videos when the isolated script starts later', async () => {
   const harness = createHarness(Response.json(payload))
   const xhr = new harness.MockXhr()
+
   xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
   xhr.send()
   harness.messages.length = 0
@@ -223,6 +235,7 @@ test('replays cached videos when the isolated script starts later', async () => 
 
 test('captures text JSON while ignoring malformed and non-object XHR payloads', () => {
   const harness = createHarness(Response.json(payload))
+
   for (const responseText of [
     JSON.stringify(payload),
     '{broken',
@@ -230,21 +243,25 @@ test('captures text JSON while ignoring malformed and non-object XHR payloads', 
     '42',
   ]) {
     const xhr = new harness.MockXhr()
+
     xhr.responseType = 'text'
     xhr.responseText = responseText
     xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
     xhr.send()
     assert.equal(xhr.responseText, responseText)
   }
+
   const posts = harness.messages.filter(
     message => video.isRecord(message) && message['type'] === 'post',
   )
+
   assert.equal(posts.length, 1)
 })
 
 test('ignores unrelated requests, direct messages and cross-origin replay messages', async () => {
   const harness = createHarness(Response.json(payload))
   const fetch = harness.window.fetch as (url: string) => Promise<Response>
+
   await fetch('https://other.test/i/api/graphql/hash/TweetDetail')
   await fetch('https://x.com/i/api/1.1/dm/inbox_initial_state.json')
   await setImmediate()
@@ -261,6 +278,7 @@ for (const termination of ['abort', 'error', 'timeout']) {
   test(`releases observers after ${termination} and ignores an excluded response on XHR reuse`, () => {
     const harness = createHarness(Response.json(payload))
     const xhr = new harness.MockXhr()
+
     xhr.autoComplete = false
     xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
     xhr.send()
@@ -289,6 +307,7 @@ for (const termination of ['abort', 'error', 'timeout']) {
 test('reopening a pending XHR replaces its observer even without a terminal event', () => {
   const harness = createHarness(Response.json(payload))
   const xhr = new harness.MockXhr()
+
   xhr.autoComplete = false
   xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
   xhr.send()
@@ -300,10 +319,12 @@ test('reopening a pending XHR replaces its observer even without a terminal even
   assert.equal(harness.messages.length, 1)
 
   xhr.autoComplete = false
+
   for (let index = 0; index < 3; index++) {
     xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
     xhr.send()
   }
+
   xhr.dispatchEvent(new Event('load'))
   xhr.dispatchEvent(new Event('loadend'))
   assert.equal(harness.messages.length, 2, 'the replacement is captured once')
@@ -313,6 +334,7 @@ test('a synchronous send failure preserves its error and leaves no stale capture
   const harness = createHarness(Response.json(payload))
   const xhr = new harness.MockXhr()
   const error = new Error('send failed')
+
   xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
   xhr.sendError = error
   assert.throws(
@@ -334,10 +356,12 @@ test('a synchronous send failure preserves its error and leaves no stale capture
 test('a rejected second send preserves capture of the already pending request', () => {
   const harness = createHarness(Response.json(payload))
   const xhr = new harness.MockXhr()
+
   xhr.autoComplete = false
   xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
   xhr.send()
   const error = new Error('request already sent')
+
   xhr.sendError = error
   assert.throws(
     () => xhr.send(),
@@ -357,10 +381,12 @@ test('a rejected second send preserves capture of the already pending request', 
 test('a rejected open preserves the pending request identity and native error', () => {
   const harness = createHarness(Response.json(payload))
   const xhr = new harness.MockXhr()
+
   xhr.autoComplete = false
   xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
   xhr.send()
   const error = new Error('invalid URL')
+
   xhr.openError = error
   assert.throws(
     () => xhr.open('GET', 'invalid URL'),
@@ -374,6 +400,7 @@ test('a rejected open preserves the pending request identity and native error', 
 test('send inside the synchronous open event uses the new request eligibility', () => {
   const harness = createHarness(Response.json(payload))
   const xhr = new harness.MockXhr()
+
   xhr.addEventListener('readystatechange', () => xhr.send())
   xhr.open('GET', 'https://x.com/i/api/graphql/hash/TweetDetail')
   assert.equal(harness.messages.length, 2, 'the eligible response is captured')

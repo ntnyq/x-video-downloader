@@ -26,11 +26,15 @@ export const usePageTheme = createSharedComposable(() => {
       ?.match(/[\d.]+/g)
       ?.slice(0, 3)
       .map(Number)
+
     if (!channels || channels.length !== 3) {
       pageTheme.value = prefersDark.value ? 'dark' : 'light'
+
       return
     }
+
     const brightness = Math.max(...channels)
+
     pageTheme.value =
       brightness > PAGE_LIGHT_BRIGHTNESS_THRESHOLD
         ? 'light'

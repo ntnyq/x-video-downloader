@@ -28,6 +28,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
 const emit = defineEmits<{
   /**
    * Requests that the floating download panel be opened.
@@ -49,6 +50,7 @@ const emit = defineEmits<{
 
 const pageTheme = usePageTheme()
 const { themeStyle } = useTheme()
+
 const panelId = useId()
 const surfaceRef = useTemplateRef('surfaceRef')
 const closeButtonRef = useTemplateRef('closeButtonRef')
@@ -70,11 +72,13 @@ onClickOutside(surfaceRef, () => {
  */
 async function openSettings() {
   settingsError.value = ''
+
   try {
     const response: unknown = await browser.runtime.sendMessage({
       type: 'open-settings',
     })
     const { ok } = isRecord(response) ? response : { ok: false }
+
     if (ok !== true) {
       settingsError.value = i18n.t('errors.actionFailed')
     }
@@ -87,6 +91,7 @@ watch(
   () => props.isOpen,
   async value => {
     await nextTick()
+
     if (value) {
       closeButtonRef.value?.focus()
     } else {

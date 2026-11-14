@@ -39,6 +39,7 @@ test('dragging beyond the viewport keeps the entire button visible', () => {
 
 test('resizing retains the docked edge and clamps the other coordinate', () => {
   const narrow = { width: 320, height: 240 }
+
   assert.deepEqual(dockFloatingPosition({ x: 948, y: 500 }, narrow, 'right'), {
     x: 268,
     y: 188,
@@ -77,6 +78,7 @@ test('panels open below top-docked buttons and above bottom-docked buttons', () 
 
 test('panels stay on-screen at either side in narrow windows', () => {
   const narrow = { width: 320, height: 480 }
+
   for (const x of [8, 268]) {
     assert.deepEqual(getFloatingPanelStyle({ x, y: 200 }, narrow), {
       left: '8px',

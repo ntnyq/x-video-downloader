@@ -37,16 +37,19 @@ defineSlots<{
 }>()
 
 const overlayTarget = useOverlayTarget()
+
 const select = injectSelectRootContext()
 
 const delegatedProps = reactiveOmit(props, 'class')
 
 const forwarded = useForwardPropsEmits(delegatedProps, emit)
+
 /**
  * Handles Escape locally because WXT isolates key events inside the shadow root.
  */
 function handleEscape(event: KeyboardEvent) {
   emit('escapeKeyDown', event)
+
   if (!event.defaultPrevented) {
     select.onOpenChange(false)
   }

@@ -26,6 +26,7 @@ export const useTheme = createSharedComposable(() => {
       if (!isDisposed && !hasChanged) {
         theme.value = normalizeTheme(value)
       }
+
       isReady.value = true
     })
     .catch(() => {
@@ -43,15 +44,20 @@ export const useTheme = createSharedComposable(() => {
     if (!isReady.value || isSaving.value) {
       return false
     }
+
     isSaving.value = true
     themeError.value = ''
+
     try {
       const nextTheme = normalizeTheme(value)
+
       await themeSetting.setValue(nextTheme)
       theme.value = nextTheme
+
       return true
     } catch {
       themeError.value = i18n.t('settings.saveFailed')
+
       return false
     } finally {
       isSaving.value = false

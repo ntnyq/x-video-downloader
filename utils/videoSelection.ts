@@ -76,6 +76,7 @@ export function createVideoSelectionRows(
   selection: VideoSelectionState,
 ): VideoSelectionRow[] {
   const excludedKeys = new Set(selection.excludedKeys)
+
   return posts.flatMap(post =>
     post.media.map((media, offset) => {
       const index = offset + 1
@@ -84,6 +85,7 @@ export function createVideoSelectionRows(
         media.variants.find(
           variant => variant.url === selection.selectedUrls[key],
         ) ?? selectPreferredVariant(media.variants, quality)
+
       return {
         key,
         post,
@@ -133,6 +135,7 @@ export function createSelectedVideoRequests(
     if (!isUndefined(scope.postId) && row.post.id !== scope.postId) {
       return []
     }
+
     if (
       isUndefined(scope.mediaIndex)
         ? !row.checked
@@ -140,9 +143,11 @@ export function createSelectedVideoRequests(
     ) {
       return []
     }
+
     const variant = scope.highest
       ? selectPreferredVariant(row.media.variants, 'highest')
       : row.variant
+
     return variant ? [createDownloadRequest(row.post, row.index, variant)] : []
   })
 }

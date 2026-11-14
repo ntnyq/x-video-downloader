@@ -8,7 +8,9 @@ import type { HTMLAttributes } from 'vue'
 const props = defineProps<
   SwitchRootProps & { class?: HTMLAttributes['class'] }
 >()
+
 const emit = defineEmits<SwitchRootEmits>()
+
 const forwarded = useForwardPropsEmits(reactiveOmit(props, 'class'), emit)
 </script>
 
