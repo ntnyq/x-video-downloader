@@ -6,6 +6,24 @@ import type { ChangelogEntry } from '../types/changelog'
  */
 export const CHANGELOG_ENTRIES = [
   {
+    date: '2026-11-14',
+    version: '0.0.4',
+    changes: [
+      {
+        key: 'changelog.releases.v0_0_4.bundledChangelog',
+        type: 'changelog.feature',
+      },
+      {
+        key: 'changelog.releases.v0_0_4.postActionDownloadUi',
+        type: 'changelog.feature',
+      },
+      {
+        key: 'changelog.releases.v0_0_4.inlineDownloadStyle',
+        type: 'changelog.improvement',
+      },
+    ],
+  },
+  {
     date: '2026-10-12',
     version: '0.0.3',
     changes: [
