@@ -5,8 +5,12 @@ import { runInNewContext } from 'node:vm'
 import * as utils from '@ntnyq/utils'
 import ts from 'typescript'
 import { createDownloadManager } from '../entrypoints/background/downloadManager'
-import * as download from '../utils/download'
-import * as video from '../utils/video'
+import * as requests from '../utils/download/requests'
+import * as sender from '../utils/extension/sender'
+import { isRecord } from '../utils/isRecord'
+import * as broadcast from '../utils/replay/broadcast'
+import * as identity from '../utils/video/identity'
+import * as variants from '../utils/video/variants'
 
 const request = {
   type: 'download-video',
@@ -15,6 +19,15 @@ const request = {
   url: 'https://video.twimg.com/ext_tw_video/1/pu/vid/1280x720/sample.mp4',
 }
 const popupUrl = 'chrome-extension://test/popup.html'
+const replay = {
+  post: {
+    id: 'broadcast-replay123',
+    broadcastId: 'replay123',
+    text: '',
+    media: [],
+  },
+  playlist: 'https://video.twimg.com/replay/source.m3u8',
+}
 
 type Sender = {
   /**
@@ -39,6 +52,7 @@ type InstalledDetails = {
   reason: string
   previousVersion?: string
 }
+type DownloadDelta = { id: number; state?: { current: 'in_progress' } }
 
 /**
  * Runs the background entrypoint against in-memory browser and storage adapters.
@@ -56,13 +70,15 @@ function createBackground(shouldFail = false, isDevelopment = false) {
   let installedListener:
     | ((details: InstalledDetails) => Promise<void>)
     | undefined
-  let changedListener: ((delta: { id: number }) => void) | undefined
+  const changedListeners = new Set<(delta: DownloadDelta) => void>()
   let erasedListener: ((id: number) => void) | undefined
   let nextId = 42
   const items = new Map<
     number,
     {
       id: number
+      url: string
+      byExtensionId?: string
       state: 'in_progress' | 'complete' | 'interrupted'
       bytesReceived: number
       totalBytes: number
@@ -114,6 +130,23 @@ function createBackground(shouldFail = false, isDevelopment = false) {
       },
     },
     tabs: {
+      async query() {
+        return [{ id: 7, url: 'https://x.com/home' }]
+      },
+      async sendMessage(
+        tabId: number,
+        message: { type: string; broadcastId: string },
+        options: { frameId: number },
+      ) {
+        if (
+          tabId === 7
+          && message.type === 'get-captured-broadcast-replay'
+          && message.broadcastId === replay.post.broadcastId
+          && options.frameId === 0
+        ) {
+          return replay
+        }
+      },
       async create({ url }: { url: string }) {
         if (shouldFail) {
           throw new Error('TAB_FAILED')
@@ -132,8 +165,11 @@ function createBackground(shouldFail = false, isDevelopment = false) {
     },
     downloads: {
       onChanged: {
-        addListener(callback: (delta: { id: number }) => void) {
-          changedListener = callback
+        addListener(callback: (delta: DownloadDelta) => void) {
+          changedListeners.add(callback)
+        },
+        removeListener(callback: (delta: DownloadDelta) => void) {
+          changedListeners.delete(callback)
         },
       },
       onErased: {
@@ -180,10 +216,11 @@ function createBackground(shouldFail = false, isDevelopment = false) {
        * Records native download options and simulates browser acceptance or cancellation.
        *
        * @param options - Options passed to the mocked downloads API.
+       * @param options.url - Original URL reported by the native download item.
        * @returns The fixed browser download identifier 42.
        * @throws With USER_CANCELED when this harness is configured to reject downloads.
        */
-      async download(options: unknown) {
+      async download(options: { url: string }) {
         calls.push(options)
 
         if (shouldFail) {
@@ -194,6 +231,8 @@ function createBackground(shouldFail = false, isDevelopment = false) {
 
         items.set(id, {
           id,
+          url: options.url,
+          byExtensionId: browser.runtime.id,
           state: 'in_progress',
           bytesReceived: 0,
           totalBytes: 100,
@@ -266,15 +305,33 @@ function createBackground(shouldFail = false, isDevelopment = false) {
         }
       }
 
-      if (id === '~/utils/download') {
-        return download
+      if (id === '~/utils/download/requests') {
+        return requests
       }
 
-      if (id === '~/utils/video') {
-        return video
+      if (id === '~/utils/extension/sender') {
+        return sender
       }
 
-      if (id === '~/utils/settings') {
+      if (id === '~/utils/replay/broadcast') {
+        return broadcast
+      }
+
+      if (id === '~/utils/isRecord') {
+        return {
+          isRecord,
+        }
+      }
+
+      if (id === '~/utils/video/identity') {
+        return identity
+      }
+
+      if (id === '~/utils/video/variants') {
+        return variants
+      }
+
+      if (id === '~/utils/storage/downloadPreferences') {
         return {
           /**
            * Supplies deterministic filename and save-dialog preferences for assertions.
@@ -289,6 +346,11 @@ function createBackground(shouldFail = false, isDevelopment = false) {
             }
           },
           concurrencySetting: { watch() {} },
+        }
+      }
+
+      if (id === '~/utils/storage/downloadRecords') {
+        return {
           downloadRecords: {
             /**
              * Starts the fixture with no persisted download records.
@@ -325,7 +387,11 @@ function createBackground(shouldFail = false, isDevelopment = false) {
    * @returns A promise resolving with the listener's response payload.
    */
   function send(message: unknown, sender: Sender) {
-    return new Promise<unknown>(resolve => listener?.(message, sender, resolve))
+    return new Promise<unknown>(resolve => {
+      if (listener?.(message, sender, resolve) !== true) {
+        resolve(undefined)
+      }
+    })
   }
 
   return {
@@ -335,10 +401,131 @@ function createBackground(shouldFail = false, isDevelopment = false) {
     installed: (details: InstalledDetails) => installedListener?.(details),
     send,
     items,
-    changed: (id: number) => changedListener?.({ id }),
+    browser,
+    changed(id: number, state?: DownloadDelta['state']) {
+      for (const listener of changedListeners) {
+        listener({ id, state })
+      }
+    },
     erased: (id: number) => erasedListener?.(id),
   }
 }
+
+test('rejects controls when a stored native ID belongs to another browser download', async () => {
+  const background = createBackground()
+  const sender = { id: 'test', url: popupUrl }
+
+  await background.send(request, sender)
+
+  const item = background.items.get(42)!
+
+  delete item.byExtensionId
+  const result = await background.send(
+    { type: 'download-action', downloadId: 42, action: 'cancel' },
+    sender,
+  )
+
+  assert.equal(isRecord(result) && result['error'], 'finishedDownload')
+  assert.equal(item.state, 'in_progress')
+})
+
+test('waits for Firefox resume to start without waiting for transfer completion', async t => {
+  const background = createBackground()
+  const sender = { id: 'test', url: popupUrl }
+  const requested = Promise.withResolvers<void>()
+  const completed = Promise.withResolvers<void>()
+
+  await background.send(request, sender)
+
+  const item = background.items.get(42)!
+
+  item.paused = true
+  item.state = 'interrupted'
+  item.error = 'USER_CANCELED'
+  const resume = t.mock.method(background.browser.downloads, 'resume', () => {
+    requested.resolve()
+
+    return completed.promise
+  })
+
+  const response = background.send(
+    { type: 'download-action', downloadId: 42, action: 'resume' },
+    sender,
+  )
+
+  await Promise.race([requested.promise, response])
+  assert.equal(resume.mock.callCount(), 1)
+  item.state = 'in_progress'
+  item.paused = false
+  delete item.error
+  background.changed(42, { current: 'in_progress' })
+
+  try {
+    const result = await response
+
+    assert.equal(isRecord(result) && result['ok'], true)
+  } finally {
+    completed.resolve()
+  }
+})
+
+test('opens a replay task only for an ID captured on the source tab', async () => {
+  const background = createBackground()
+  const sender = { id: 'test', url: 'https://x.com/home', tab: { id: 7 } }
+  const kind = 'open-broadcast-replay-v1'
+
+  await background.send(
+    { type: kind, broadcastId: 'other', playlist: replay.playlist },
+    sender,
+  )
+  await background.send(
+    { type: kind, broadcastId: 'replay123' },
+    { ...sender, id: 'other' },
+  )
+  assert.deepEqual(background.openedUrls, [])
+
+  await background.send({ type: kind, broadcastId: 'replay123' }, sender)
+  assert.deepEqual(background.openedUrls, [
+    'chrome-extension://test/replay.html#7/replay123',
+  ])
+  assert.deepEqual(background.calls, [])
+})
+
+test('a popup hosted in a tab still opens the replay from the active X tab', async () => {
+  const background = createBackground()
+
+  await background.send(
+    { type: 'open-broadcast-replay-v1', broadcastId: 'replay123' },
+    { id: 'test', url: popupUrl, tab: { id: 8 } },
+  )
+
+  assert.deepEqual(background.openedUrls, [
+    'chrome-extension://test/replay.html#7/replay123',
+  ])
+})
+
+test('returns captured playlist data only to the matching extension task page', async () => {
+  const background = createBackground()
+  const type = 'get-broadcast-replay-v1'
+
+  const unauthorized = await background.send(
+    { type },
+    { id: 'test', url: popupUrl },
+  )
+
+  assert.equal(isRecord(unauthorized) && unauthorized['ok'], false)
+
+  const result = await background.send(
+    { type, broadcastId: 'other' },
+    {
+      id: 'test',
+      url: 'chrome-extension://test/replay.html#7/replay123',
+    },
+  )
+
+  assert.equal(isRecord(result) && result['ok'], true)
+  assert.deepEqual(isRecord(result) && result['replay'], replay)
+})
 
 test('first installation opens the welcome page only', async () => {
   const background = createBackground()
@@ -502,6 +689,11 @@ test('background advances cross-post queues from native completion and erased ev
 test('validates management payloads and repeat confirmation before native effects', async () => {
   const background = createBackground()
   const sender = { id: 'test', url: popupUrl }
+  const sparseIds = [42]
+  const sparseRequests = [request]
+
+  sparseIds.length = 2
+  sparseRequests.length = 2
 
   for (const message of [
     { ...request, force: 'yes' },
@@ -510,7 +702,9 @@ test('validates management payloads and repeat confirmation before native effect
     { type: 'download-action', downloadId: 42, action: 'erase' },
     { type: 'clear-downloads', ids: ['42'] },
     { type: 'clear-downloads', ids: [42.5] },
+    { type: 'clear-downloads', ids: sparseIds },
     { type: 'download-videos', requests: [request, request] },
+    { type: 'download-videos', requests: sparseRequests },
   ]) {
     assert.equal(
       JSON.stringify(await background.send(message, sender)),
@@ -532,6 +726,17 @@ test('validates management payloads and repeat confirmation before native effect
     )
   }
 
+  assert.equal(background.calls.length, 0)
+})
+
+test('ignores non-string message types without coercing them', async () => {
+  const background = createBackground()
+  const sender = { id: 'test', url: popupUrl }
+
+  assert.equal(
+    await background.send({ type: { toString: null, valueOf: null } }, sender),
+    undefined,
+  )
   assert.equal(background.calls.length, 0)
 })
 

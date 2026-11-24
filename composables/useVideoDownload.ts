@@ -1,7 +1,7 @@
 import { isString } from '@ntnyq/utils'
 import { browser } from '#imports'
 import { localizeDownloadError } from '~/utils/i18n'
-import { isRecord } from '~/utils/video'
+import { isRecord } from '~/utils/isRecord'
 import type { MaybeRefOrGetter } from 'vue'
 import type { DownloadRequest } from '~/types/video'
 

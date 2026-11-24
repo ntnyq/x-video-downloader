@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm'
 import * as utils from '@ntnyq/utils'
 import ts from 'typescript'
 import * as vue from 'vue'
-import * as video from '../utils/video'
+import { isRecord } from '../utils/isRecord'
 import type { useVideoDownload } from '../composables/useVideoDownload'
 import type { DownloadRequest } from '../types/video'
 
@@ -94,8 +94,10 @@ function createInlineDownload(
           return vue
         }
 
-        if (id === '~/utils/video') {
-          return video
+        if (id === '~/utils/isRecord') {
+          return {
+            isRecord,
+          }
         }
 
         if (id === '~/utils/i18n') {

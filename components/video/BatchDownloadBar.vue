@@ -4,15 +4,25 @@ import { Button } from '~/components/ui/button'
 import { MAX_DOWNLOAD_BATCH_SIZE } from '~/constants/download'
 
 interface Props {
-  /** Number of checked downloadable videos. */
+  /**
+   * Number of checked downloadable videos.
+   */
   count: number
-  /** Prevents an invalid or duplicate submission. */
+  /**
+   * Prevents an invalid or duplicate submission.
+   */
   disabled: boolean
-  /** Whether the request is being submitted. */
+  /**
+   * Whether the request is being submitted.
+   */
   pending: boolean
-  /** Whether each file needs a save dialog. */
+  /**
+   * Whether each file needs a save dialog.
+   */
   saveAs: boolean
-  /** Whether the selection exceeds the batch limit. */
+  /**
+   * Whether the selection exceeds the batch limit.
+   */
   overLimit: boolean
 }
 

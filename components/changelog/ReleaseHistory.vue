@@ -4,6 +4,7 @@ import { browser } from '#imports'
 import { CHANGELOG_ENTRIES } from '~/constants/changelog'
 
 const currentVersion = browser.runtime.getManifest().version
+
 const dateFormatter = new Intl.DateTimeFormat(i18n.t('extension.language'), {
   dateStyle: 'medium',
   timeZone: 'UTC',

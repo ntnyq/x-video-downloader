@@ -6,6 +6,7 @@
 import tailwindcss from '@tailwindcss/vite'
 import vueComponents from 'unplugin-vue-components/vite'
 import { defineConfig } from 'wxt'
+import { REPLAY_HOST_PERMISSIONS } from './constants/video'
 import { resolve } from './scripts/utils'
 
 export default defineConfig({
@@ -17,6 +18,7 @@ export default defineConfig({
   },
 
   imports: {
+    dirs: ['utils/**/*.ts'],
     addons: {
       vueTemplate: true,
     },
@@ -60,7 +62,7 @@ export default defineConfig({
       homepage_url: 'https://github.com/ntnyq/x-video-downloader',
       host_permissions: [],
       name: '__MSG_extension_name__',
-      optional_host_permissions: [],
+      optional_host_permissions: REPLAY_HOST_PERMISSIONS,
       permissions: ['storage', 'activeTab', 'downloads'],
       commands: {
         toggleExtension: {

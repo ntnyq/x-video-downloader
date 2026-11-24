@@ -146,6 +146,7 @@ page:
   emptyReload: X のページを再読み込みして拡張機能をプレーヤーに接続し、動画を再生してください。
   openPostFirst: まず動画を含む X のポストを開いてください。
   readFailed: 現在のタブを読み取れません。拡張機能を開き直してください。
+  reloadTab: X のタブを再読み込み
   scanning: このページを確認中…
   tab: ページの動画
   title: このページの動画
@@ -165,6 +166,34 @@ quality:
   prefer720: 720p を優先
   smallest: 容量を節約
   video: 動画 $1 の画質
+replay:
+  actualQuality: ダウンロード画質：$1
+  assembling: MP4 に変換中…
+  bitrate: $1 kbps
+  busy: 別のアーカイブをダウンロード中です。完了するまで待つか、そのダウンロードをキャンセルしてください。
+  cancelled: アーカイブのダウンロードをキャンセルしました。
+  complete: アーカイブを MP4 として保存しました。
+  download: アーカイブをダウンロード
+  failed: アーカイブを処理できませんでした。もう一度お試しください。
+  fetchFailed: アーカイブを取得できませんでした。X で再生し直してからお試しください。
+  fetching: セグメントをダウンロード中（$1 / $2）…
+  instructions: 画質を選び、求められた場合は $1 へのアクセスを許可してください。MP4 の保存が終わるまでこのタブを開いたままにしてください。
+  limit: アーカイブのプレイリストまたはセグメントが処理上限を超えています。
+  permissionDenied: アーカイブをダウンロードするには、video.twimg.com へのアクセスを許可してください。
+  preferResolution: $1 を優先
+  quality: 画質
+  renditionsFailed: 利用できるすべての画質で失敗しました。最後の画質ではセグメント $1 を処理できませんでした。
+  saveFailed: ブラウザーで MP4 を保存できませんでした。
+  saving: MP4 を保存中…
+  segmentFailed: この画質ではセグメント $1 を処理できませんでした。
+  sourceUnavailable: X でアーカイブを再生してから、ダウンロード画面を開き直してください。
+  stalled: MP4 への変換が長時間進んでいません。もう一度お試しください。
+  storage: ブラウザーで必要な一時保存領域を確保できませんでした。画質を下げるか、空き容量を増やしてください。
+  title: ライブ配信のアーカイブ
+  tryRendition: $1 で再試行
+  unfinished: アーカイブのプレイリストはまだ完成していません。
+  unsupported: このアーカイブの HLS 形式には対応していません。配信終了後の暗号化されていない H.264/AAC の fMP4 または MPEG-TS に対応しています。
+  validating: アーカイブを確認中…
 selection:
   all: 保存可能な動画をすべて選択（$1 / $2）
   available: $1 件ダウンロード可能

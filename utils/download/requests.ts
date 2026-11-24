@@ -5,16 +5,40 @@ import {
   isNumber,
   uniqueBy,
 } from '@ntnyq/utils'
-import { MAX_DOWNLOAD_BATCH_SIZE } from '../constants/download'
-import { MAX_POST_MEDIA } from '../constants/video'
-import {
-  isPostId,
-  isRecord,
-  isXUrl,
-  normalizeMediaUrl,
-  normalizePostMetadata,
-} from './video'
-import type { DownloadRequest } from '../types/video'
+import { MAX_DOWNLOAD_BATCH_SIZE } from '../../constants/download'
+import { MAX_POST_MEDIA } from '../../constants/video'
+import { isRecord } from '../isRecord'
+import { isPostId } from '../video/identity'
+import { normalizePostMetadata } from '../video/posts'
+import { normalizeMediaUrl } from '../video/variants'
+import type {
+  DownloadRequest,
+  VideoPost,
+  VideoVariant,
+} from '../../types/video'
+
+/**
+ * Builds a single-video request with the post metadata needed for filenames.
+ *
+ * @param post - Post that owns the selected video.
+ * @param mediaIndex - One-based position of the video within the post.
+ * @param variant - Selected normalized MP4 version.
+ * @returns The message payload for starting the selected download.
+ */
+export function createDownloadRequest(
+  post: VideoPost,
+  mediaIndex: number,
+  variant: VideoVariant,
+): DownloadRequest {
+  return {
+    type: 'download-video',
+    postId: post.id,
+    mediaIndex,
+    url: variant.url,
+    author: post.author,
+    createdAt: post.createdAt,
+  }
+}
 
 /**
  * Validates a single-video message before it reaches the download manager.
@@ -74,7 +98,7 @@ export function normalizeBatchRequest(
     return
   }
 
-  const requests = value['requests'].map(normalizeDownloadRequest)
+  const requests = Array.from(value['requests'], normalizeDownloadRequest)
 
   if (requests.some(request => !request)) {
     return
@@ -90,39 +114,4 @@ export function normalizeBatchRequest(
   }
 
   return valid
-}
-
-/**
- * Accepts messages only from this extension's popup or an X/Twitter content script.
- *
- * @param sender - Browser-supplied identity and page information for the message sender.
- * @param sender.id - Extension identifier supplied by the browser.
- * @param sender.url - URL of the sending popup or content-script page.
- * @param sender.tab - Optional tab metadata identifying a content-script sender.
- * @param extensionId - Identifier of the running extension.
- * @param popupUrl - Exact extension popup URL allowed to send requests.
- * @returns Whether the sender matches both the extension and an allowed surface.
- */
-export function isAllowedSender(
-  sender: {
-    /**
-     * Extension identifier reported by the browser for the message sender.
-     */
-    id?: string
-    /**
-     * URL of the sending popup or content-script page.
-     */
-    url?: string
-    /**
-     * Browser tab metadata indicating that the sender is a content script.
-     */
-    tab?: unknown
-  },
-  extensionId: string,
-  popupUrl: string,
-): boolean {
-  return (
-    sender.id === extensionId
-    && (sender.tab ? isXUrl(sender.url) : sender.url === popupUrl)
-  )
 }

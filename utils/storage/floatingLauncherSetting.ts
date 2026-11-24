@@ -1,5 +1,5 @@
 import { storage } from '#imports'
-import type { FloatingPlacement } from './floatingPosition'
+import type { FloatingPlacement } from '../ui/floatingPosition'
 
 /**
  * Remembers the launcher placement across page reloads and supported site origins.

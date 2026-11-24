@@ -1,22 +1,55 @@
-import { isArray, isBoolean, isNumber, isUndefined } from '@ntnyq/utils'
+import {
+  isArray,
+  isBoolean,
+  isNumber,
+  isString,
+  isUndefined,
+} from '@ntnyq/utils'
 import { browser, defineBackground } from '#imports'
 import {
-  isAllowedSender,
   normalizeBatchRequest,
   normalizeDownloadRequest,
-} from '~/utils/download'
+} from '~/utils/download/requests'
+import { isAllowedSender } from '~/utils/extension/sender'
+import { isRecord } from '~/utils/isRecord'
 import { logger } from '~/utils/logger'
+import { normalizeBroadcastReplay } from '~/utils/replay/broadcast'
 import {
   concurrencySetting,
-  downloadRecords,
   getDownloadPreferences,
-} from '~/utils/settings'
-import { isPostId, isRecord, isXUrl } from '~/utils/video'
+} from '~/utils/storage/downloadPreferences'
+import { downloadRecords } from '~/utils/storage/downloadRecords'
+import { isBroadcastId, isPostId, isXUrl } from '~/utils/video/identity'
+import { normalizeMediaUrl } from '~/utils/video/variants'
 import { createDownloadManager } from './downloadManager'
 
 const log = logger.withTag('background')
 
 export default defineBackground(() => {
+  async function resumeDownload(id: number) {
+    let onChanged:
+      | Parameters<typeof browser.downloads.onChanged.addListener>[0]
+      | undefined
+    const started = new Promise<void>(resolve => {
+      onChanged = delta => {
+        if (delta.id === id && delta.state?.current === 'in_progress') {
+          resolve()
+        }
+      }
+
+      browser.downloads.onChanged.addListener(onChanged)
+    })
+
+    try {
+      // Firefox may keep the resume promise pending until the transfer finishes.
+      await Promise.race([started, browser.downloads.resume(id)])
+    } finally {
+      if (onChanged) {
+        browser.downloads.onChanged.removeListener(onChanged)
+      }
+    }
+  }
+
   const manager = createDownloadManager({
     /**
      * Reads the stored download records through the extension storage adapter.
@@ -46,10 +79,17 @@ export default defineBackground(() => {
      * Looks up a native download for the manager's ownership checks.
      *
      * @param id - Browser download identifier to query.
-     * @returns Matching native download records.
+     * @param url - Original URL of the extension-owned transfer.
+     * @returns Matching native download records when ownership still matches.
      * @throws When the native search fails.
      */
-    search: id => browser.downloads.search({ id }),
+    async search(id, url) {
+      return (await browser.downloads.search({ id })).filter(
+        item =>
+          item.byExtensionId === browser.runtime.id
+          && normalizeMediaUrl(item.url) === url,
+      )
+    },
     /**
      * Forwards cancellation of an owned download to the browser.
      *
@@ -59,7 +99,7 @@ export default defineBackground(() => {
      */
     cancel: id => browser.downloads.cancel(id),
     pause: id => browser.downloads.pause(id),
-    resume: id => browser.downloads.resume(id),
+    resume: resumeDownload,
   })
 
   /**
@@ -78,29 +118,72 @@ export default defineBackground(() => {
   concurrencySetting.watch(() => refreshQueue())
   refreshQueue()
 
+  const popupUrl = browser.runtime.getURL('/popup.html')
+  const replayPageUrl = browser.runtime.getURL('/replay.html')
+
+  async function getCapturedReplay(tabId: number, broadcastId: string) {
+    const response: unknown = await browser.tabs.sendMessage(
+      tabId,
+      { type: 'get-captured-broadcast-replay', broadcastId },
+      { frameId: 0 },
+    )
+    const replay = normalizeBroadcastReplay(response)
+
+    if (replay?.post.broadcastId === broadcastId) {
+      return replay
+    }
+  }
+
   browser.runtime.onMessage.addListener(
     (message: unknown, sender, sendResponse) => {
+      if (!isRecord(message)) {
+        return
+      }
+
+      const type = message['type']
+
       if (
-        !isRecord(message)
+        !isString(type)
         || ![
+          'open-broadcast-replay-v1',
+          'get-broadcast-replay-v1',
           'download-video',
           'download-videos',
           'get-downloads',
           'download-action',
           'clear-downloads',
           'open-settings',
-        ].includes(String(message['type']))
+        ].includes(type)
       ) {
         return
       }
 
-      if (
-        !isAllowedSender(
-          sender,
-          browser.runtime.id,
-          browser.runtime.getURL('/popup.html'),
-        )
-      ) {
+      if (type === 'get-broadcast-replay-v1') {
+        const [url, route] = sender.url?.split('#', 2) ?? []
+        const [, tabId, broadcastId] =
+          route?.match(/^(\d{1,10})\/([\w-]+)$/) ?? []
+
+        if (
+          sender.id !== browser.runtime.id
+          || url !== replayPageUrl
+          || !tabId
+          || !isBroadcastId(broadcastId)
+        ) {
+          sendResponse({ ok: false, error: 'invalidSender' })
+
+          return
+        }
+
+        getCapturedReplay(Number(tabId), broadcastId)
+          .then(replay =>
+            sendResponse(replay ? { ok: true, replay } : { ok: false }),
+          )
+          .catch(() => sendResponse({ ok: false }))
+
+        return true
+      }
+
+      if (!isAllowedSender(sender, browser.runtime.id, popupUrl)) {
         sendResponse({
           ok: false,
           error: 'invalidSender',
@@ -112,14 +195,10 @@ export default defineBackground(() => {
       /**
        * Validates a trusted sender's message payload and dispatches the requested operation.
        *
-       * @returns The operation response, an invalid-request result, or undefined for a non-object payload.
+       * @returns The operation response or an invalid-request result.
        * @throws When a manager operation fails; the outer listener converts it to an error response.
        */
-      async function handleMessage() {
-        if (!isRecord(message)) {
-          return
-        }
-
+      async function handleMessage(message: Record<string, unknown>) {
         const downloadAction = (
           ['cancel', 'pause', 'resume', 'retry'] as const
         ).find(action => action === message['action'])
@@ -131,7 +210,7 @@ export default defineBackground(() => {
           }
         }
 
-        if (message['type'] === 'open-settings') {
+        if (type === 'open-settings') {
           await browser.runtime.openOptionsPage()
 
           return {
@@ -139,13 +218,56 @@ export default defineBackground(() => {
           }
         }
 
-        if (message['type'] === 'download-video') {
+        if (
+          type === 'open-broadcast-replay-v1'
+          && isBroadcastId(message['broadcastId'])
+        ) {
+          const broadcastId = message['broadcastId']
+          const isPopup = sender.url === popupUrl
+          const sourceTab = isPopup
+            ? (
+                await browser.tabs.query({ active: true, currentWindow: true })
+              )[0]
+            : sender.tab
+
+          if (
+            isUndefined(sourceTab?.id)
+            || !isXUrl(isPopup ? sourceTab.url : sender.url)
+          ) {
+            return {
+              ok: false,
+              error: 'invalidRequest',
+            }
+          }
+
+          const replay = await getCapturedReplay(
+            sourceTab.id,
+            broadcastId,
+          ).catch(() => undefined)
+
+          if (!replay) {
+            return {
+              ok: false,
+              error: 'invalidRequest',
+            }
+          }
+
+          await browser.tabs.create({
+            url: `${replayPageUrl}#${sourceTab.id}/${broadcastId}`,
+          })
+
+          return {
+            ok: true,
+          }
+        }
+
+        if (type === 'download-video') {
           const request = normalizeDownloadRequest(message)
 
           if (request) {
-            return manager.start(request, message['force'] === true)
+            return manager.enqueueDownload(request, message['force'] === true)
           }
-        } else if (message['type'] === 'download-videos') {
+        } else if (type === 'download-videos') {
           const requests = normalizeBatchRequest(message)
 
           if (requests) {
@@ -155,27 +277,32 @@ export default defineBackground(() => {
             }
           }
         } else if (
-          message['type'] === 'get-downloads'
+          type === 'get-downloads'
           && (isUndefined(message['postId']) || isPostId(message['postId']))
         ) {
           return {
             ok: true,
             downloads: await manager.list(message['postId']),
           }
-        } else if (
-          message['type'] === 'clear-downloads'
-          && (isUndefined(message['ids'])
-            || (isArray(message['ids'])
-              && message['ids'].every(
+        } else if (type === 'clear-downloads') {
+          const ids = isArray(message['ids'])
+            ? Array.from(message['ids'])
+            : message['ids']
+
+          if (
+            isUndefined(ids)
+            || (isArray(ids)
+              && ids.every(
                 (id): id is number => isNumber(id) && Number.isSafeInteger(id),
-              )))
-        ) {
-          return {
-            ok: true,
-            removed: await manager.clear(message['ids']),
+              ))
+          ) {
+            return {
+              ok: true,
+              removed: await manager.clear(ids),
+            }
           }
         } else if (
-          message['type'] === 'download-action'
+          type === 'download-action'
           && isNumber(message['downloadId'])
           && Number.isSafeInteger(message['downloadId'])
           && downloadAction
@@ -189,7 +316,7 @@ export default defineBackground(() => {
         }
       }
 
-      handleMessage()
+      handleMessage(message)
         .then(sendResponse)
         .catch(error =>
           sendResponse({

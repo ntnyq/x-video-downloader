@@ -17,7 +17,7 @@ import { usePostDownloads } from '~/composables/usePostDownloads'
 import {
   filterDownloadHistory,
   isTerminalDownload,
-} from '~/utils/downloadHistory'
+} from '~/utils/download/history'
 import DownloadProgress from './DownloadProgress.vue'
 
 const {
@@ -34,14 +34,13 @@ const clearOpen = shallowRef(false)
 const clearIds = shallowRef<number[]>([])
 const query = shallowRef('')
 const author = shallowRef('')
+
 const authorFilter = computed({
   get: () => (author.value ? `author:${author.value}` : 'all'),
   set(value: string) {
     author.value = value === 'all' ? '' : value.slice('author:'.length)
   },
 })
-const searchId = useId()
-const authorId = useId()
 const authors = computed(() =>
   orderBy(
     unique(filterFalsy(downloads.value.map(item => item.author))),
@@ -55,11 +54,8 @@ const terminalIds = computed(() =>
   filtered.value.filter(isTerminalDownload).map(item => item.id),
 )
 
-watch(clearOpen, value => {
-  if (value) {
-    clearIds.value = [...terminalIds.value]
-  }
-})
+const searchId = useId()
+const authorId = useId()
 
 /**
  * Applies an owned-download action from a trusted interaction.
@@ -95,6 +91,12 @@ async function handleClear(event: MouseEvent) {
     }
   }
 }
+
+watch(clearOpen, value => {
+  if (value) {
+    clearIds.value = [...terminalIds.value]
+  }
+})
 </script>
 
 <template>

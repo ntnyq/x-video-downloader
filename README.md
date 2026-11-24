@@ -39,6 +39,7 @@ Use `pnpm zip` or `pnpm zip:firefox` to create distributable archives in `dist/`
 ## ✨ Features
 
 - **Download where you browse** — use the button below a video post, the floating panel, or the toolbar popup. Press `Alt + O` to toggle the page panel.
+- **Save live replays** — use **Download replay** on a broadcast page or timeline card to save a supported replay as MP4.
 - **Choose your quality** — download the best available MP4, prefer 1080p or 720p, save space, or choose a quality for each video. GIFs stored as video are saved as MP4.
 - **Download in batches** — select videos across posts, with up to 100 videos per batch.
 - **Manage your queue** — run 1–6 transfers at once (default: 3), follow progress, and pause, resume, cancel, or retry downloads.
@@ -58,7 +59,7 @@ Files go to your browser's download folder by default. Enable **Choose a save lo
 <summary>Selection, queue, and history</summary>
 
 - **Page videos** shares selections across the page, post, and individual video checkboxes. Opening the panel from a post limits selection to that post until you choose **Show all**. Reduce selections above 100 before downloading.
-- Manual quality choices apply to both individual and batch downloads. Portrait resolution is measured by the shorter edge. HLS-only entries stay visible but cannot be selected.
+- Manual quality choices apply to both individual and batch downloads. Portrait resolution is measured by the shorter edge. Live replays use a dedicated download tab with its own quality selector.
 - Waiting tasks survive background restarts. Paused transfers release a queue slot; resuming waits for an available slot. Closing the panel does not stop downloads, and lowering concurrency leaves existing transfers running.
 - **History & queue** is also available from the popup on non-X tabs. Controls only affect downloads created by this extension.
 - **Clear finished records** removes records matching the current filters and their duplicate reminders. It keeps saved files, browser download history, and queued, active, or paused tasks. Individual finished records can also be removed.
@@ -92,19 +93,21 @@ These screenshots use mocked pages and browser APIs; they illustrate the interfa
 
 ## 🔒 Privacy and Permissions
 
-No API key, backend, or third-party video extraction service is required. Preferences and extension download records stay in local storage. Download requests accept only HTTPS MP4 URLs on `video.twimg.com`.
+No API key, backend, or third-party video extraction service is required. Preferences and extension download records stay in local storage. Direct downloads accept only HTTPS MP4 URLs from `video.twimg.com`. A replay task requests optional access to its media host, fetches HLS resources, and packages them locally.
 
 Read the [privacy policy](docs/PRIVACY.md) for details.
 
 <details>
 <summary>Permissions and how video detection works</summary>
 
-| Permission / Site scope                        | Purpose                                                              |
-| ---------------------------------------------- | -------------------------------------------------------------------- |
-| `downloads`                                    | Save selected MP4 files with the browser's download manager          |
-| `storage`                                      | Save preferences, filename templates, and extension download records |
-| `activeTab`                                    | Identify the current tab for the popup or keyboard shortcut          |
-| `https://*.x.com/*`, `https://*.twitter.com/*` | Detect videos and add download controls on X / Twitter               |
+| Permission / Site scope                            | Purpose                                                              |
+| -------------------------------------------------- | -------------------------------------------------------------------- |
+| `downloads`                                        | Save selected MP4 files with the browser's download manager          |
+| `storage`                                          | Save preferences, filename templates, and extension download records |
+| `activeTab`                                        | Identify the current tab for the popup or keyboard shortcut          |
+| `https://video.twimg.com/*` (optional)             | Fetch playlists and segments hosted on the X media CDN               |
+| `https://prod-fastly-p.video.pscp.tv/*` (optional) | Fetch playlists and segments hosted on the Periscope replay CDN      |
+| `https://*.x.com/*`, `https://*.twitter.com/*`     | Detect videos and add download controls on X / Twitter               |
 
 The capture script observes fetch / XHR responses already initiated by X and extracts video variants. It does not call X's private APIs or read or forward authentication tokens. Direct MP4 URLs exposed by the page's video player can also be used.
 
@@ -120,7 +123,7 @@ While a panel is open, progress is polled once per second. When the total size i
 
 **No videos found?** Play the video and choose **Scan again**. If it still does not appear, reload X: requests completed before installation cannot be captured.
 
-**HLS-only video?** Only direct MP4 downloads are supported. HLS segments and HLS-only live streams cannot be merged or downloaded.
+**Live replay?** On the X broadcast page, wait for the player to load, then open the download panel or popup and choose **Download replay**. If the replay is missing, reload the X page and try starting playback. Support covers completed, unencrypted H.264/AAC replays in fMP4 or MPEG-TS on `video.twimg.com` or `prod-fastly-p.video.pscp.tv`. The extension budgets temporary files using the storage quota reported by your browser. Keep the replay task tab open until the browser saves the MP4.
 
 <details>
 <summary>More limitations and recovery tips</summary>
@@ -131,7 +134,7 @@ While a panel is open, progress is polled once per second. When the total size i
 - Retry uses the original video URL. If it has expired, reload the original post and scan again.
 - A task marked **Paused** can be resumed or cancelled from the panel.
 - If the background stops during an uncertain native download handoff, the task fails with `START_INTERRUPTED`. Check the browser's download list before retrying to avoid a duplicate transfer.
-- See the [HLS feasibility notes](docs/hls-feasibility.md) for future implementation considerations.
+- See the [HLS feasibility notes](docs/hls-feasibility.md) for the original format and browser compatibility assessment.
 
 </details>
 

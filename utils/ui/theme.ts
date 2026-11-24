@@ -4,7 +4,7 @@ import {
   DEFAULT_THEME_COLOR,
   MAX_RGB_CHANNEL,
   THEME_PRESETS,
-} from '../constants/theme'
+} from '../../constants/theme'
 
 /**
  * Parses opaque RGB colors with integer channels, rejecting CSS expressions and alpha.

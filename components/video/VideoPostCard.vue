@@ -2,13 +2,14 @@
 import { i18n } from '#i18n'
 import { Checkbox } from '~/components/ui/checkbox'
 import DownloadProgress from './DownloadProgress.vue'
+import ReplayDownloadButton from './ReplayDownloadButton.vue'
 import VideoMediaRow from './VideoMediaRow.vue'
 import type { DownloadStatus } from '~/types/download'
 import type { VideoPost } from '~/types/video'
 import type {
   VideoSelectionRow,
   VideoSelectionScope,
-} from '~/utils/videoSelection'
+} from '~/utils/download/selection'
 
 interface Props {
   /**
@@ -23,11 +24,17 @@ interface Props {
    * Whether download and selection controls are temporarily unavailable.
    */
   disabled: boolean
-  /** Tasks associated with this post. */
+  /**
+   * Tasks associated with this post.
+   */
   downloads: DownloadStatus[]
-  /** Whether lifecycle actions are pending. */
+  /**
+   * Whether lifecycle actions are pending.
+   */
   actionDisabled: boolean
-  /** Whether the footer already offers the only video download. */
+  /**
+   * Whether the footer already offers the only video download.
+   */
   hideDownload?: boolean
 }
 
@@ -50,13 +57,23 @@ const emit = defineEmits<{
    * Requests selected post videos or one media position using shared quality choices.
    */
   download: [event: MouseEvent, scope: VideoSelectionScope]
-  /** Controls a task next to its source video. */
+  /**
+   * Controls a task next to its source video.
+   */
   action: [
     id: number,
     operation: 'cancel' | 'retry' | 'pause' | 'resume',
     event: MouseEvent,
   ]
 }>()
+
+const postLabel = computed(() => {
+  if (props.post.author) {
+    return `@${props.post.author}`
+  }
+
+  return i18n.t(props.post.broadcastId ? 'replay.title' : 'video.post')
+})
 
 const downloadableCount = computed(
   () => props.rows.filter(row => row.variant).length,
@@ -112,12 +129,16 @@ function handleAction(
         :aria-label="i18n.t('selection.post', [post.id])"
       />
       <a
-        :href="`https://x.com/i/status/${post.id}`"
+        :href="
+          post.broadcastId
+            ? `https://x.com/i/broadcasts/${post.broadcastId}`
+            : `https://x.com/i/status/${post.id}`
+        "
         target="_blank"
         rel="noreferrer"
         class="min-w-0 inline-flex items-center gap-2 truncate text-xs font-semibold focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 hover:text-foreground"
       >
-        {{ post.author ? `@${post.author}` : i18n.t('video.post')
+        {{ postLabel
         }}<UiIcon
           name="external"
           class="size-3"
@@ -130,7 +151,14 @@ function handleAction(
     >
       {{ post.text }}
     </p>
-    <div class="space-y-2">
+    <ReplayDownloadButton
+      v-if="post.broadcastId"
+      :broadcast-id="post.broadcastId"
+    />
+    <div
+      v-else
+      class="space-y-2"
+    >
       <VideoMediaRow
         @select="emit('select', row.key, $event)"
         @check="emit('check', row.key, $event)"

@@ -1,5 +1,5 @@
 import { storage } from '#imports'
-import { DEFAULT_THEME } from '../constants/theme'
+import { DEFAULT_THEME } from '../../constants/theme'
 
 /**
  * Shared accent preference for all extension surfaces, independent of download settings.

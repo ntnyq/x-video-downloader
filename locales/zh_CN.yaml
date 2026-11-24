@@ -146,6 +146,7 @@ page:
   emptyReload: 请刷新 X 页面，让插件连接视频播放器，然后播放视频。
   openPostFirst: 请先打开一个包含视频的 X 帖子。
   readFailed: 无法读取当前标签页，请重新打开插件。
+  reloadTab: 刷新 X 页面
   scanning: 正在检测当前页面…
   tab: 页面视频
   title: 当前页面的视频
@@ -165,6 +166,34 @@ quality:
   prefer720: 优先 720p
   smallest: 节省空间
   video: 视频 $1 画质
+replay:
+  actualQuality: 下载画质：$1
+  assembling: 正在封装 MP4…
+  bitrate: $1 kbps
+  busy: 已有回放正在下载。请等待它完成，或先取消该任务。
+  cancelled: 已取消下载回放。
+  complete: 已将回放保存为 MP4。
+  download: 下载回放
+  failed: 无法处理回放，请重试。
+  fetchFailed: 无法获取回放。请在 X 上重新播放以刷新来源。
+  fetching: 正在下载分片（$1 / $2）…
+  instructions: 选择画质，并在浏览器提示时允许访问 $1。请保持此标签页打开，直到 MP4 保存完成。
+  limit: 此回放的播放列表或分片超出处理限制。
+  permissionDenied: 请允许访问 video.twimg.com 以下载回放。
+  preferResolution: 优先 $1
+  quality: 画质
+  renditionsFailed: 所有可用画质均处理失败，最后一档在第 $1 个分片失败。
+  saveFailed: 浏览器无法保存 MP4。
+  saving: 正在保存 MP4…
+  segmentFailed: 当前画质的第 $1 个分片无法处理。
+  sourceUnavailable: 请先在 X 上播放回放，然后重新打开下载。
+  stalled: MP4 封装长时间没有进展，请重试。
+  storage: 浏览器无法提供足够的临时存储空间。请尝试降低画质或释放空间。
+  title: 直播回放
+  tryRendition: 改用 $1 重试
+  unfinished: 回放播放列表尚未完成。
+  unsupported: 此回放使用了暂不支持的 HLS 格式。支持已结束、未加密的 H.264/AAC fMP4 或 MPEG-TS 回放。
+  validating: 正在检查回放…
 selection:
   all: 全选可下载视频（$1 / $2）
   available: $1 个可下载

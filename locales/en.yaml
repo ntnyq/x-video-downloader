@@ -146,6 +146,7 @@ page:
   emptyReload: 'Reload X to connect the extension to the player, then play the video.'
   openPostFirst: Open an X post containing a video first.
   readFailed: Could not read the current tab. Open the extension again.
+  reloadTab: Reload X tab
   scanning: Scanning the current page…
   tab: Page videos
   title: Videos on this page
@@ -165,6 +166,34 @@ quality:
   prefer720: Prefer 720p
   smallest: Save space
   video: Quality for video $1
+replay:
+  actualQuality: 'Download quality: $1'
+  assembling: Packaging MP4…
+  bitrate: $1 kbps
+  busy: Another replay is already downloading. Wait for it to finish or cancel it first.
+  cancelled: Replay download canceled.
+  complete: Replay saved as MP4.
+  download: Download replay
+  failed: Could not prepare the replay. Try again.
+  fetchFailed: Could not fetch the replay. Play it again on X to refresh the source.
+  fetching: Downloading segments ($1 / $2)…
+  instructions: Choose a quality and allow access to $1 if prompted. Keep this tab open until the MP4 is saved.
+  limit: The replay playlist or one of its parts exceeds a technical limit.
+  permissionDenied: Allow access to video.twimg.com to download the replay.
+  preferResolution: Prefer $1
+  quality: Quality
+  renditionsFailed: All available qualities failed. Could not process segment $1 at the last quality.
+  saveFailed: The browser could not save the MP4.
+  saving: Saving MP4…
+  segmentFailed: Could not process segment $1 at this quality.
+  sourceUnavailable: 'Play the replay on X, then reopen this download.'
+  stalled: MP4 packaging stopped making progress. Try again.
+  storage: The browser could not provide enough temporary storage. Try a lower quality or free up space.
+  title: Live replay
+  tryRendition: Retry at $1
+  unfinished: The replay playlist is not complete yet.
+  unsupported: This replay uses an unsupported HLS format. Completed, unencrypted H.264/AAC replays in fMP4 or MPEG-TS are supported.
+  validating: Checking replay…
 selection:
   all: Select all available videos ($1 / $2)
   available: $1 available

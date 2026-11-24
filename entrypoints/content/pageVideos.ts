@@ -1,14 +1,22 @@
 import { filterFalsy, isUndefined, noop, unique } from '@ntnyq/utils'
 import { shallowRef } from 'vue'
 import { MAX_CACHED_POSTS, VIDEO_CHANNEL } from '~/constants/video'
+import { isRecord } from '~/utils/isRecord'
 import {
-  getPostId,
-  isRecord,
-  normalizePost,
-  normalizeVariants,
-} from '~/utils/video'
+  isFinishedBroadcast,
+  normalizeBroadcastReplay,
+} from '~/utils/replay/broadcast'
+import { normalizeReplayUrl } from '~/utils/replay/url'
+import {
+  extractBroadcastIdFromUrl,
+  extractPostIdFromUrl,
+  isBroadcastId,
+} from '~/utils/video/identity'
+import { normalizePost } from '~/utils/video/posts'
+import { normalizeVariants } from '~/utils/video/variants'
 import type { ContentScriptContext } from '#imports'
 import type { PageVideos, VideoPost } from '~/types/video'
+import type { BroadcastReplay } from '~/utils/replay/broadcast'
 
 /**
  * Resolves an article's own post ID from analytics, timestamp, or media permalinks.
@@ -22,8 +30,10 @@ export function getArticlePostId(article: Element): string | undefined {
     '[role="group"] a[href*="/analytics"]',
   )
 
-  if (analytics && getPostId(analytics.href)) {
-    return getPostId(analytics.href)
+  const analyticsId = extractPostIdFromUrl(analytics?.href)
+
+  if (analyticsId) {
+    return analyticsId
   }
 
   for (const time of article.querySelectorAll('time')) {
@@ -31,20 +41,65 @@ export function getArticlePostId(article: Element): string | undefined {
       continue
     }
 
-    const permalink = time.closest('a[href]')
+    const permalink = time.closest<HTMLAnchorElement>('a[href]')
+    const postId = extractPostIdFromUrl(permalink?.href)
 
-    if (permalink instanceof HTMLAnchorElement) {
-      return getPostId(permalink.href)
+    if (postId) {
+      return postId
     }
   }
 
   for (const link of article.querySelectorAll<HTMLAnchorElement>(
     'a[href*="/status/"]',
   )) {
-    if (/\/(?:photo|video)\/\d+$/.test(new URL(link.href).pathname)) {
-      return getPostId(link.href)
+    const postId = extractPostIdFromUrl(link.href)
+
+    if (postId && /\/(?:photo|video)\/\d+$/.test(new URL(link.href).pathname)) {
+      return postId
     }
   }
+}
+
+function getArticleBroadcastIds(article: Element) {
+  return filterFalsy(
+    [
+      ...article.querySelectorAll<HTMLAnchorElement>(
+        'a[href*="/i/broadcasts/"]',
+      ),
+    ].map(link => extractBroadcastIdFromUrl(link.href)),
+  )
+}
+
+/**
+ * Reads the HLS source X embeds in a standalone broadcast page before playback.
+ *
+ * @param broadcastId - Broadcast ID from the current page URL.
+ * @returns The replay when the embedded metadata matches the current broadcast.
+ */
+function getPageBroadcastReplay(broadcastId: string) {
+  const content = (selector: string) =>
+    document.head?.querySelector<HTMLMetaElement>(`meta[${selector}]`)?.content
+
+  if (
+    content('name="twitter:text:broadcast_id"') !== broadcastId
+    || !isFinishedBroadcast(content('name="twitter:string:broadcast_state"'))
+  ) {
+    return
+  }
+
+  return normalizeBroadcastReplay({
+    post: {
+      id: `broadcast-${broadcastId}`,
+      broadcastId,
+      media: [],
+      text: content('name="twitter:text:broadcast_title"'),
+      author: content('name="twitter:text:broadcaster_username"'),
+      createdAt: content('property="video:release_date"'),
+    },
+    playlist:
+      normalizeReplayUrl(content('property="og:video:secure_url"'), 'playlist')
+      ?? content('property="og:video:url"'),
+  })
 }
 
 /**
@@ -55,6 +110,7 @@ export function getArticlePostId(article: Element): string | undefined {
  * @returns The snapshot and operations for observing, scanning, and requesting captured posts.
  */
 export function createPageVideos(ctx: ContentScriptContext) {
+  const replays = new Map<string, BroadcastReplay>()
   const cache = new Map<string, VideoPost>()
   const snapshot = shallowRef<PageVideos>({ posts: [], captureReady: false })
   let scanTimer: number | undefined
@@ -79,6 +135,16 @@ export function createPageVideos(ctx: ContentScriptContext) {
    * @param post - Normalized captured post or a direct-DOM fallback post.
    */
   function remember(post: VideoPost) {
+    const previous = cache.get(post.id)
+
+    if (previous) {
+      post.media = post.media.length ? post.media : previous.media
+
+      if (previous.relatedBroadcastId) {
+        post.relatedBroadcastId ??= previous.relatedBroadcastId
+      }
+    }
+
     cache.delete(post.id)
     cache.set(post.id, post)
 
@@ -94,6 +160,8 @@ export function createPageVideos(ctx: ContentScriptContext) {
   /**
    * Rebuilds the visible-post snapshot from captured data and safe direct-video fallbacks.
    * Pending scans are cancelled and invalidated contexts perform no further DOM work.
+   *
+   * @returns The replay found in the current page metadata, if available.
    */
   function scan() {
     cancelScan()
@@ -103,7 +171,13 @@ export function createPageVideos(ctx: ContentScriptContext) {
     }
 
     const visibleIds = new Set<string>()
-    const currentPostId = getPostId(location.href)
+    const broadcastId = extractBroadcastIdFromUrl(location.href)
+    const currentPostId = broadcastId
+      ? `broadcast-${broadcastId}`
+      : extractPostIdFromUrl(location.href)
+    const pageReplay = broadcastId
+      ? getPageBroadcastReplay(broadcastId)
+      : undefined
 
     if (currentPostId) {
       visibleIds.add(currentPostId)
@@ -111,6 +185,10 @@ export function createPageVideos(ctx: ContentScriptContext) {
 
     for (const article of document.querySelectorAll('article')) {
       const postId = getArticlePostId(article)
+
+      for (const id of getArticleBroadcastIds(article)) {
+        visibleIds.add(`broadcast-${id}`)
+      }
 
       if (postId) {
         visibleIds.add(postId)
@@ -121,7 +199,7 @@ export function createPageVideos(ctx: ContentScriptContext) {
       for (const link of article.querySelectorAll<HTMLAnchorElement>(
         'a[href*="/status/"]',
       )) {
-        const linkedId = getPostId(link.href)
+        const linkedId = extractPostIdFromUrl(link.href)
 
         if (linkedId && cache.has(linkedId)) {
           visibleIds.add(linkedId)
@@ -142,7 +220,7 @@ export function createPageVideos(ctx: ContentScriptContext) {
             ...article.querySelectorAll<HTMLAnchorElement>(
               'a[href*="/status/"]',
             ),
-          ].map(link => getPostId(link.href)),
+          ].map(link => extractPostIdFromUrl(link.href)),
         ),
       )
 
@@ -175,17 +253,35 @@ export function createPageVideos(ctx: ContentScriptContext) {
       )
 
       if (media.length) {
-        remember({
+        const post = normalizePost({
           id: postId,
           text:
             article.querySelector('[data-testid="tweetText"]')?.textContent
             ?? '',
           media,
         })
+
+        if (post) {
+          remember(post)
+        }
       }
     }
 
-    const posts = [...visibleIds].flatMap(id => cache.get(id) ?? [])
+    for (const id of visibleIds) {
+      const relatedId = cache.get(id)?.relatedBroadcastId
+
+      if (relatedId) {
+        visibleIds.add(`broadcast-${relatedId}`)
+      }
+    }
+
+    const posts = [...visibleIds].flatMap(id => {
+      const post =
+        replays.get(id)?.post
+        ?? (pageReplay?.post.id === id ? pageReplay.post : cache.get(id))
+
+      return post && (post.media.length || post.broadcastId) ? [post] : []
+    })
     const next = {
       posts,
       currentPostId,
@@ -197,6 +293,8 @@ export function createPageVideos(ctx: ContentScriptContext) {
     }
 
     onScan()
+
+    return pageReplay
   }
 
   /**
@@ -213,6 +311,10 @@ export function createPageVideos(ctx: ContentScriptContext) {
    * Requests cached posts from the capture script and schedules a page scan.
    */
   function requestReplay() {
+    if (ctx.isInvalid) {
+      return
+    }
+
     window.postMessage(
       { channel: VIDEO_CHANNEL, type: 'ready' },
       location.origin,
@@ -238,8 +340,23 @@ export function createPageVideos(ctx: ContentScriptContext) {
     } else if (event.data['type'] === 'post') {
       const post = normalizePost(event.data['post'])
 
-      if (post) {
+      if (post && !post.broadcastId) {
         remember(post)
+        scheduleScan()
+      }
+    } else if (event.data['type'] === 'broadcast-replay') {
+      const replay = normalizeBroadcastReplay(event.data['replay'])
+
+      if (replay) {
+        replays.delete(replay.post.id)
+        replays.set(replay.post.id, replay)
+
+        const oldest = replays.keys().next().value
+
+        if (replays.size > MAX_CACHED_POSTS && oldest) {
+          replays.delete(oldest)
+        }
+
         scheduleScan()
       }
     }
@@ -266,12 +383,57 @@ export function createPageVideos(ctx: ContentScriptContext) {
       attributes: true,
       attributeFilter: ['src', 'href', 'poster'],
     })
+
+    if (document.head) {
+      observer.observe(document.head, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['content'],
+      })
+    }
+
     ctx.onInvalidated(() => observer.disconnect())
     scan()
   }
 
+  function getArticleVideoId(article: Element) {
+    const postId = getArticlePostId(article)
+
+    if (postId && cache.get(postId)?.media.length) {
+      return postId
+    }
+
+    const linked = postId ? cache.get(postId)?.relatedBroadcastId : undefined
+    const candidates = linked
+      ? [linked, ...getArticleBroadcastIds(article)]
+      : getArticleBroadcastIds(article)
+    const replay = candidates
+      .map(id => `broadcast-${id}`)
+      .find(id => replays.has(id))
+
+    return replay ?? postId
+  }
+
+  function getReplay(broadcastId: unknown) {
+    if (isBroadcastId(broadcastId)) {
+      const pageReplay = scan()
+
+      const id = `broadcast-${broadcastId}`
+
+      if (snapshot.value.posts.some(post => post.id === id)) {
+        return (
+          replays.get(id)
+          ?? (pageReplay?.post.id === id ? pageReplay : undefined)
+        )
+      }
+    }
+  }
+
   return {
     snapshot,
+    getArticleVideoId,
+    getReplay,
     observe,
     scan,
     requestReplay,

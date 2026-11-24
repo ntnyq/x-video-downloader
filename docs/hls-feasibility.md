@@ -1,6 +1,6 @@
 # HLS download feasibility
 
-Assessment date: 2026-10-05. Status: evaluation complete; HLS downloading is not implemented.
+Assessment date: 2026-10-05. This document records the original evaluation. The [README](../README.md) describes the implemented replay support.
 
 ## Decision
 
@@ -11,8 +11,8 @@ The proposed work below is a future implementation design. It does not change th
 ## Current implementation boundary
 
 - `entrypoints/capture.content.ts` observes JSON responses from page-initiated X/Twitter fetch and XHR requests. It excludes direct-message endpoints and forwards normalized post metadata. It does not initiate authenticated API requests.
-- `utils/video.ts` recognizes a validated `.m3u8` variant only to set `VideoMedia.hasHls`. The actual playlist URL is discarded. `VideoMedia.variants` contains MP4 URLs only.
-- `utils/download.ts` validates the runtime sender and each download request. `normalizeDownloadRequest()` calls `normalizeMediaUrl()` with its MP4 default, so an HLS URL cannot use the existing download message.
+- `extractVideoPosts()` in `utils/video/posts.ts` recognizes a validated `.m3u8` variant only to set `VideoMedia.hasHls`. The actual playlist URL is discarded. `VideoMedia.variants` contains MP4 URLs only.
+- `utils/extension/sender.ts` validates the runtime sender, and `utils/download/requests.ts` validates each download request. `normalizeDownloadRequest()` calls `normalizeMediaUrl()` with its MP4 default, so an HLS URL cannot use the existing download message.
 - `entrypoints/background/index.ts` delegates file transfer to `browser.downloads`. The native browser owns those transfers; the extension currently does not fetch or assemble media bytes.
 - `wxt.config.ts` declares `storage`, `activeTab`, and `downloads`, with no `video.twimg.com` fetch permission or offscreen document permission. The configured minimum versions are Chrome 111 and Firefox 140.
 

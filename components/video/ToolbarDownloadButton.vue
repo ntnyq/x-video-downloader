@@ -5,10 +5,8 @@ import IconButton from '~/components/shared/IconButton.vue'
 import { usePageTheme } from '~/composables/usePageTheme'
 import { usePostDownloads } from '~/composables/usePostDownloads'
 import { useTheme } from '~/composables/useTheme'
-import {
-  createDownloadRequest,
-  selectPreferredVariant,
-} from '~/utils/preferences'
+import { createDownloadRequest } from '~/utils/download/requests'
+import { selectPreferredVariant } from '~/utils/video/variants'
 import DuplicateDownloadNotice from './DuplicateDownloadNotice.vue'
 import type { VideoPost } from '~/types/video'
 
@@ -31,7 +29,7 @@ const { themeStyle } = useTheme()
 const {
   isPending,
   requestError,
-  start,
+  submitDownloadRequests,
   duplicateRequests,
   confirmDuplicates,
   dismissDuplicates,
@@ -91,7 +89,7 @@ async function handleDoubleClick(event: MouseEvent) {
     return
   }
 
-  await start(highestRequests.value)
+  await submitDownloadRequests(highestRequests.value)
 }
 
 /**

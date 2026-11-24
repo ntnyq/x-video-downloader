@@ -1,2 +1,63 @@
 baseTag: v0.0.4
-changes: []
+changes:
+  - id: live-replay-downloads
+    type: changelog.feature
+    messages:
+      en: Save supported X live replays as MP4 from broadcast pages or timeline cards, with a choice of video quality. Video and audio start in sync even when the replay supplies them in different formats.
+      zh_CN: 可从直播回放页或时间线卡片选择画质，将受支持的 X 直播回放保存为 MP4。即使回放的音视频轨道采用不同格式，保存后的音画也会同步开始。
+      zh_TW: 可從直播回放頁或時間軸卡片選擇畫質，將受支援的 X 直播回放儲存為 MP4。即使回放的音視訊軌道採用不同格式，儲存後的影音也會同步開始。
+      ja: 配信ページやタイムラインのカードから画質を選び、対応する X のライブ配信アーカイブを MP4 として保存できます。映像と音声が異なる形式で配信される場合も、保存した動画では再生開始位置が揃います。
+      ko: 방송 페이지나 타임라인 카드에서 화질을 선택해 지원되는 X 라이브 다시보기를 MP4로 저장할 수 있습니다. 영상과 오디오가 서로 다른 형식으로 제공되는 경우에도 저장한 파일에서 시작 시점이 일치합니다.
+    paths:
+      - components/video/ReplayDownloadButton.vue
+      - entrypoints/capture.content.ts
+      - entrypoints/content/pageVideos.ts
+      - entrypoints/replay/App.vue
+      - entrypoints/replay/downloadReplay.ts
+    commits: []
+  - id: download-queue-reliability
+    type: changelog.fix
+    messages:
+      en: Paused downloads resume correctly in Firefox, and reused browser download IDs no longer mix up queue actions or history. Failed repeat downloads can be retried from history.
+      zh_CN: 修复 Firefox 中暂停后的下载无法正常继续的问题。浏览器复用下载 ID 时，队列操作和历史记录仍能对应正确的下载。重复下载失败后可从历史记录重试。
+      zh_TW: 修正 Firefox 中暫停後的下載無法正常繼續的問題。瀏覽器重複使用下載 ID 時，佇列操作與歷史紀錄仍能對應正確的下載。重複下載失敗後可從歷史紀錄重試。
+      ja: Firefox で一時停止したダウンロードを正常に再開できます。ブラウザーがダウンロード ID を再利用しても、キューの操作や履歴が別のダウンロードと混同されません。再ダウンロードに失敗した場合は履歴から再試行できます。
+      ko: Firefox에서 일시 정지한 다운로드를 정상적으로 재개할 수 있습니다. 브라우저가 다운로드 ID를 재사용해도 대기열 작업과 기록은 올바른 다운로드에 연결됩니다. 다시 다운로드하는 중 실패한 경우 기록에서 재시도할 수 있습니다.
+    paths:
+      - entrypoints/background/downloadManager.ts
+      - entrypoints/background/index.ts
+    commits: []
+  - id: replay-quality-fallback
+    type: changelog.fix
+    messages:
+      en: Replay downloads choose another compatible quality when the playlist does not specify a usable audio track for the preferred quality.
+      zh_CN: 播放列表未为首选画质指定可用音轨时，下载回放会自动选择另一档兼容画质。
+      zh_TW: 播放清單未為首選畫質指定可用音軌時，下載回放會自動選擇另一檔相容畫質。
+      ja: プレイリストで優先画質に利用できる音声トラックが指定されていない場合、対応する別の画質でアーカイブをダウンロードします。
+      ko: 재생 목록에 선호하는 화질에 사용할 수 있는 오디오 트랙이 지정되지 않은 경우 호환되는 다른 화질로 다시보기를 다운로드합니다.
+    paths:
+      - utils/replay/playlist.ts
+    commits: []
+  - id: post-video-capture
+    type: changelog.fix
+    messages:
+      en: Video detection skips unrelated timestamps and malformed media links. Capture also excludes direct-message requests and responses redirected outside supported endpoints.
+      zh_CN: 视频检测会跳过无关的时间链接和格式错误的媒体链接。捕获范围还会排除私信请求以及重定向到受支持接口之外的响应。
+      zh_TW: 影片偵測會略過無關的時間連結與格式錯誤的媒體連結。擷取範圍也會排除私訊請求，以及重新導向至支援的端點之外的回應。
+      ja: 動画の検出時に、無関係な日時リンクと不正な形式のメディアリンクを無視します。ダイレクトメッセージのリクエストと、対応範囲外にリダイレクトされたレスポンスも取得対象から除外します。
+      ko: 동영상 감지 시 관련 없는 시간 링크와 형식이 잘못된 미디어 링크를 건너뜁니다. 다이렉트 메시지 요청과 지원 범위 밖으로 리디렉션된 응답도 수집 대상에서 제외합니다.
+    paths:
+      - entrypoints/capture.content.ts
+      - entrypoints/content/pageVideos.ts
+    commits: []
+  - id: narrow-popup-layout
+    type: changelog.fix
+    messages:
+      en: The download popup fits smaller browser viewports without overflowing.
+      zh_CN: 下载弹窗适应较小的浏览器视口，避免内容溢出。
+      zh_TW: 下載彈出視窗可配合較小的瀏覽器可視區域，避免內容溢出。
+      ja: ブラウザーの表示領域が小さい場合も、ダウンロードのポップアップが画面内に収まります。
+      ko: 브라우저의 표시 영역이 작아도 다운로드 팝업이 화면 밖으로 넘치지 않습니다.
+    paths:
+      - components/video/PopupDownloader.vue
+    commits: []

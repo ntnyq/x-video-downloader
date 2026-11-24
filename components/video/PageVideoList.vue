@@ -11,14 +11,16 @@ import DuplicateDownloadNotice from './DuplicateDownloadNotice.vue'
 import VideoPostCard from './VideoPostCard.vue'
 import type { VNode } from 'vue'
 import type { VideoPost } from '~/types/video'
-import type { VideoSelectionScope } from '~/utils/videoSelection'
+import type { VideoSelectionScope } from '~/utils/download/selection'
 
 const props = defineProps<{
   /**
    * Currently visible posts whose videos may be selected for a shared batch.
    */
   posts: VideoPost[]
-  /** Hides redundant row actions for a single-video post. */
+  /**
+   * Hides redundant row actions for a single-video post.
+   */
   singlePost?: boolean
 }>()
 
@@ -51,12 +53,13 @@ const {
   duplicateRequests,
   confirmDuplicates,
   dismissDuplicates,
-  start,
+  submitDownloadRequests,
   action,
 } = usePostDownloads(undefined, () =>
   props.posts.map(post => post.id).join(','),
 )
 
+const hasPostMedia = computed(() => props.posts.some(post => post.media.length))
 const isDisabled = computed(() => !isReady.value || isPending.value)
 const isBatchDisabled = computed(
   () => isDisabled.value || !selectedCount.value || isOverLimit.value,
@@ -87,7 +90,7 @@ function handleDownload(event: MouseEvent, scope?: VideoSelectionScope) {
     return
   }
 
-  start(selected)
+  submitDownloadRequests(selected)
 }
 
 /**
@@ -133,7 +136,10 @@ function handleConfirmDuplicates(event: MouseEvent) {
     <div
       class="mx-4 flex shrink-0 items-center justify-between gap-2 border-b border-border py-2"
     >
-      <Label class="flex items-center gap-2 text-xs">
+      <Label
+        v-if="hasPostMedia"
+        class="flex items-center gap-2 text-xs"
+      >
         <Checkbox
           @update:model-value="handleSelectAll"
           :model-value="partiallySelected ? 'indeterminate' : allSelected"
@@ -141,8 +147,12 @@ function handleConfirmDuplicates(event: MouseEvent) {
         />
         {{ i18n.t('selection.page') }}
       </Label>
-      <div class="flex items-center gap-1 text-xs text-muted-foreground">
-        <span>{{ i18n.t('selection.available', [downloadableCount]) }}</span
+      <div
+        class="ml-auto flex items-center gap-1 text-xs text-muted-foreground"
+      >
+        <span v-if="hasPostMedia">{{
+          i18n.t('selection.available', [downloadableCount])
+        }}</span
         ><slot name="tools" />
       </div>
     </div>

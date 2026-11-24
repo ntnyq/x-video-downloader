@@ -2,7 +2,9 @@
 import type { VNode } from 'vue'
 
 defineProps<{
-  /** Label for the optional explanation. */
+  /**
+   * Label for the optional explanation.
+   */
   title: string
 }>()
 

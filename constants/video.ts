@@ -9,6 +9,21 @@ export const VIDEO_CHANNEL = 'x-video-downloader:v2'
 export const X_MATCHES = ['https://*.x.com/*', 'https://*.twitter.com/*']
 
 /**
+ * Exact HTTPS hosts allowed to serve replay playlists and segments.
+ */
+export const REPLAY_MEDIA_HOSTS = new Set([
+  'prod-fastly-p.video.pscp.tv',
+  'video.twimg.com',
+])
+
+/**
+ * Optional host permissions available to replay tasks.
+ */
+export const REPLAY_HOST_PERMISSIONS = [...REPLAY_MEDIA_HOSTS].map(
+  host => `https://${host}/*`,
+)
+
+/**
  * Maximum posts retained in each capture or page cache.
  */
 export const MAX_CACHED_POSTS = 250

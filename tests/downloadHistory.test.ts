@@ -4,7 +4,7 @@ import {
   filterDownloadHistory,
   isDownloadStatus,
   isTerminalDownload,
-} from '../utils/downloadHistory'
+} from '../utils/download/history'
 import type { DownloadStatus } from '../types/download'
 
 const download: DownloadStatus = {

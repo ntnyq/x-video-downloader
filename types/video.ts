@@ -49,10 +49,14 @@ export interface VideoPost {
    * Author screen name without the @ prefix, when available.
    */
   author?: string
+  /** Broadcast represented by this replay entry. */
+  broadcastId?: string
   /**
    * Post creation time normalized to an ISO 8601 string, when available.
    */
   createdAt?: string
+  /** Broadcast shared by a timeline card. */
+  relatedBroadcastId?: string
 }
 
 export interface PageVideos {

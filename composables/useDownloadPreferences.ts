@@ -1,5 +1,6 @@
 import { createSharedComposable } from '@vueuse/core'
-import { normalizePreferences } from '~/utils/preferences'
+import { normalizePreferences } from '~/utils/download/preferences'
+import { stopExtensionListener } from '~/utils/extension/context'
 import {
   concurrencySetting,
   filenameSetting,
@@ -7,7 +8,7 @@ import {
   newUiSetting,
   qualitySetting,
   saveAsSetting,
-} from '~/utils/settings'
+} from '~/utils/storage/downloadPreferences'
 
 export const useDownloadPreferences = createSharedComposable(() => {
   const preferences = shallowRef(normalizePreferences({}))
@@ -15,6 +16,7 @@ export const useDownloadPreferences = createSharedComposable(() => {
   const preferenceError = shallowRef('')
 
   const changed = new Set<string>()
+  let isDisposed = false
 
   const stops = [
     newUiSetting.watch(useNewUi => {
@@ -53,6 +55,10 @@ export const useDownloadPreferences = createSharedComposable(() => {
 
   getDownloadPreferences()
     .then(value => {
+      if (isDisposed) {
+        return
+      }
+
       preferences.value = {
         useNewUi: changed.has('useNewUi')
           ? preferences.value.useNewUi
@@ -71,11 +77,14 @@ export const useDownloadPreferences = createSharedComposable(() => {
       isReady.value = true
     })
     .catch(() => {
-      preferenceError.value = i18n.t('settings.readFailed')
+      if (!isDisposed) {
+        preferenceError.value = i18n.t('settings.readFailed')
+      }
     })
 
   onScopeDispose(() => {
-    stops.forEach(stop => stop())
+    isDisposed = true
+    stops.forEach(stopExtensionListener)
   })
 
   return {

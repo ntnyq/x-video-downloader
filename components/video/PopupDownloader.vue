@@ -8,7 +8,14 @@ import { provideOverlayTarget } from '~/composables/useOverlayTarget'
 import { useTheme } from '~/composables/useTheme'
 import DownloadWorkspace from './DownloadWorkspace.vue'
 
-const { snapshot, isLoading, requestError, refresh } = useCurrentTabVideos()
+const {
+  snapshot,
+  isLoading,
+  requestError,
+  isDisconnected,
+  refresh,
+  reloadTab,
+} = useCurrentTabVideos()
 const { themeStyle } = useTheme()
 
 const overlayRef = useTemplateRef('overlayRef')
@@ -17,10 +24,9 @@ provideOverlayTarget(overlayRef)
 </script>
 
 <template>
-  <!-- Keep width independent of the browser's auto-sized popup viewport. -->
   <main
     :style="themeStyle"
-    class="h-[600px] w-[360px] flex flex-col overflow-hidden bg-background text-foreground font-sans"
+    class="h-full max-h-dvh w-full max-w-[100vw] flex flex-col overflow-hidden bg-background text-foreground font-sans"
   >
     <SurfaceHeader :title="i18n.t('extension.name')">
       <IconButton
@@ -31,9 +37,11 @@ provideOverlayTarget(overlayRef)
     </SurfaceHeader>
     <DownloadWorkspace
       @refresh="refresh"
+      @reload-tab="reloadTab"
       :snapshot
       :is-loading
       :request-error
+      :can-reload-tab="isDisconnected"
     />
     <div ref="overlayRef" />
   </main>

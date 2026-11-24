@@ -5,6 +5,7 @@ import { setImmediate } from 'node:timers/promises'
 import { runInNewContext } from 'node:vm'
 import ts from 'typescript'
 import { shallowRef } from 'vue'
+import * as extensionContext from '../utils/extension/context'
 
 interface UiOptions {
   /**
@@ -45,7 +46,9 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
   const gate = Promise.withResolvers<void>()
   let deferred = deferFirstControl
   let actions = {}
+  let postId = '123'
   let scan = () => {}
+  let extensionId: string | undefined = 'test'
   let changeSetting = (_value: boolean) => {}
   const article = {
     isConnected: true,
@@ -119,7 +122,19 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
           return {
             defineContentScript: (definition: unknown) => definition,
             browser: {
-              runtime: { onMessage: { addListener() {}, removeListener() {} } },
+              runtime: {
+                get id() {
+                  return extensionId
+                },
+                onMessage: {
+                  addListener() {},
+                  removeListener() {
+                    if (!extensionId) {
+                      throw new Error('Extension context invalidated.')
+                    }
+                  },
+                },
+              },
             },
           }
         }
@@ -128,6 +143,10 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
           return {
             X_MATCHES: [],
           }
+        }
+
+        if (id === '~/utils/extension/context') {
+          return extensionContext
         }
 
         if (id === '~/utils/logger') {
@@ -142,13 +161,13 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
           }
         }
 
-        if (id === '~/utils/video') {
+        if (id === '~/utils/isRecord') {
           return {
             isRecord: () => false,
           }
         }
 
-        if (id === '~/utils/settings') {
+        if (id === '~/utils/storage/downloadPreferences') {
           return {
             newUiSetting: {
               getValue: async () => useNewUi,
@@ -156,6 +175,10 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
                 changeSetting = callback
 
                 return () => {
+                  if (!extensionId) {
+                    throw new Error('Extension context invalidated.')
+                  }
+
                   changeSetting = () => {}
                 }
               },
@@ -165,10 +188,10 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
 
         if (id === './pageVideos') {
           return {
-            getArticlePostId: () => '123',
             createPageVideos() {
               return {
                 snapshot: shallowRef({ posts: [] }),
+                getArticleVideoId: () => postId,
                 requestReplay() {},
                 scan: () => scan(),
                 observe(callback: () => void) {
@@ -214,6 +237,8 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
                 },
               }
 
+              ctx.onInvalidated(ui.remove)
+
               return ui
             },
           }
@@ -247,12 +272,20 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
     },
     changeUi: (value: boolean) => changeSetting(value),
     releaseControl: () => gate.resolve(),
+    replacePost(id: string) {
+      postId = id
+      scan()
+    },
     replaceActions() {
       actions = {}
       scan()
     },
-    stop() {
+    stop(extensionReloaded = false) {
       ctx.isInvalid = true
+
+      if (extensionReloaded) {
+        extensionId = undefined
+      }
 
       for (const callback of invalidation) {
         callback()
@@ -260,6 +293,14 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
     },
   }
 }
+
+test('reloading the extension detaches its old panel even after the runtime goes away', async () => {
+  const content = await createContent()
+
+  assert.doesNotThrow(() => content.stop(true))
+  assert.equal(content.created[0]?.removed, true)
+  assert.equal(content.attached.size, 0)
+})
 
 test('the legacy post control stays below the native action row by default', async t => {
   const content = await createContent()
@@ -318,5 +359,19 @@ test('an old pending mount is discarded when the UI setting changes', async t =>
   assert.equal(content.created[1]?.mounted, false)
   assert.equal(content.created[1]?.removed, true)
   assert.equal(content.created[2]?.options.append, 'last')
+  assert.equal(content.attached.size, 1)
+})
+
+test('mounts the new post control when a pending article is recycled', async t => {
+  const content = await createContent(false, true)
+
+  t.after(() => content.stop())
+  content.replacePost('456')
+  assert.equal(content.created.length, 2)
+  content.releaseControl()
+  await setImmediate()
+  assert.equal(content.created[1]?.mounted, false)
+  assert.equal(content.created[1]?.removed, true)
+  assert.equal(content.created[2]?.mounted, true)
   assert.equal(content.attached.size, 1)
 })

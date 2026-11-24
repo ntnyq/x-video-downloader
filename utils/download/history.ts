@@ -1,9 +1,13 @@
 import { isInteger, isNumber, isString, isUndefined } from '@ntnyq/utils'
-import { isPostId, isRecord } from './video'
-import type { DownloadStatus } from '../types/download'
+import { isRecord } from '../isRecord'
+import { isPostId } from '../video/identity'
+import type { DownloadStatus } from '../../types/download'
 
 /**
  * Validates progress received from the extension background before rendering it.
+ *
+ * @param value - Untrusted download status from a runtime response.
+ * @returns Whether the value has the required status fields and a supported state.
  */
 export function isDownloadStatus(value: unknown): value is DownloadStatus {
   return (
@@ -38,7 +42,10 @@ export function isDownloadStatus(value: unknown): value is DownloadStatus {
 }
 
 /**
- * Keeps queued, paused, and transferring tasks available when history is cleared.
+ * Identifies finished tasks eligible for removal from download history.
+ *
+ * @param download - Download status to check.
+ * @returns Whether the task has reached a terminal state.
  */
 export function isTerminalDownload(download: DownloadStatus): boolean {
   return !['queued', 'in_progress', 'paused'].includes(download.state)
@@ -46,6 +53,11 @@ export function isTerminalDownload(download: DownloadStatus): boolean {
 
 /**
  * Searches local download metadata and optionally matches an exact author.
+ *
+ * @param downloads - Download records to search.
+ * @param query - Case-insensitive search text for filenames, post IDs, and authors.
+ * @param author - Optional exact author filter with or without the @ prefix.
+ * @returns Matching records in their original order.
  */
 export function filterDownloadHistory(
   downloads: DownloadStatus[],

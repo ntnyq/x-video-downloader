@@ -194,7 +194,10 @@ function setup() {
 test('uses metadata, filename template and saved saveAs preference', async () => {
   const { manager, calls } = setup()
 
-  assert.deepEqual(await manager.start(request), { ok: true, downloadId: 1 })
+  assert.deepEqual(await manager.enqueueDownload(request), {
+    ok: true,
+    downloadId: 1,
+  })
   assert.equal(calls[0]?.filename, 'ntnyq_2026-10-02_123_1_1280x720.mp4')
   assert.equal(calls[0]?.saveAs, false)
 })
@@ -211,7 +214,7 @@ test('uses direct downloads by default and honors save-location choices for sing
       },
     })
 
-    assert.equal((await manager.start(request)).ok, true)
+    assert.equal((await manager.enqueueDownload(request)).ok, true)
     const results = await manager.batch(
       [2, 3].map(mediaIndex => ({
         ...request,
@@ -235,19 +238,19 @@ test('uses direct downloads by default and honors save-location choices for sing
 test('deduplicates overlapping clicks and already-running transfers', async () => {
   const { manager, calls } = setup()
   const results = await Promise.all([
-    manager.start(request),
-    manager.start(request),
+    manager.enqueueDownload(request),
+    manager.enqueueDownload(request),
   ])
 
   assert.deepEqual(results[0], results[1])
-  await manager.start(request)
+  await manager.enqueueDownload(request)
   assert.equal(calls.length, 1)
 })
 
 test('restores progress from owned records after a background restart', async () => {
   const { manager, ports, items } = setup()
 
-  await manager.start(request)
+  await manager.enqueueDownload(request)
   const reopened = createDownloadManager(ports)
 
   assert.equal((await reopened.list('123'))[0]?.bytesReceived, 25)
@@ -259,10 +262,60 @@ test('restores progress from owned records after a background restart', async ()
   assert.deepEqual(await reopened.list('999'), [])
 })
 
+test('keeps queue action IDs unique across a restart at the same clock time', async t => {
+  t.mock.method(Date, 'now', () => 1000)
+  const { manager, ports, items } = setup()
+  const singleSlot = {
+    ...ports,
+    async readPreferences() {
+      return {
+        concurrency: 1,
+      }
+    },
+  }
+
+  assert.equal((await manager.enqueueDownload(request)).ok, true)
+  const [first] = await ports.readRecords()
+  const reopened = createDownloadManager(singleSlot)
+  const second = await reopened.enqueueDownload({ ...request, postId: '456' })
+
+  assert.ok(second.ok && second.downloadId < 0)
+  assert.notEqual(second.downloadId, first?.queueId)
+  assert.deepEqual(await reopened.action(second.downloadId, 'cancel'), {
+    ok: true,
+  })
+  assert.equal(items.get(1)?.state, 'in_progress')
+  assert.equal((await reopened.list('456'))[0]?.state, 'cancelled')
+})
+
+test('keeps old history distinct when the browser reuses its native download ID', async () => {
+  const { manager, ports, items } = setup()
+
+  await ports.writeRecords([
+    {
+      id: 1,
+      queueId: -42,
+      filename: 'previous.mp4',
+      request,
+      state: 'complete',
+    },
+  ])
+  const next = { ...request, postId: '456' }
+
+  assert.deepEqual(await manager.enqueueDownload(next), {
+    ok: true,
+    downloadId: 1,
+  })
+  assert.equal((await manager.list('123'))[0]?.id, -42)
+  assert.deepEqual(await manager.action(1, 'cancel'), { ok: true })
+  assert.equal(items.get(1)?.state, 'interrupted')
+  assert.equal((await manager.list('123'))[0]?.state, 'complete')
+})
+
 test('reports renamed and uniquified native filenames without directory paths', async () => {
   const { manager, ports, items } = setup()
 
-  await manager.start(request)
+  await manager.enqueueDownload(request)
   const item = items.get(1)!
 
   item.filename = '/Users/review/Downloads/renamed-by-user.mp4'
@@ -288,7 +341,7 @@ test('reports renamed and uniquified native filenames without directory paths', 
 test('cancels and retries only owned failed downloads', async () => {
   const { manager, calls } = setup()
 
-  await manager.start(request)
+  await manager.enqueueDownload(request)
   assert.deepEqual(await manager.action(1, 'cancel'), { ok: true })
   assert.equal((await manager.list('123'))[0]?.state, 'cancelled')
   assert.deepEqual(await manager.action(1, 'retry'), {
@@ -303,7 +356,7 @@ test('cancels and retries only owned failed downloads', async () => {
 test('reports native byte totals as unknown and preserves network failures', async () => {
   const { manager, items } = setup()
 
-  await manager.start(request)
+  await manager.enqueueDownload(request)
   const item = items.get(1)!
 
   item.totalBytes = -1
@@ -410,17 +463,17 @@ test('keeps actual downloads manageable when a persistence write fails', async t
     },
   })
 
-  assert.equal((await manager.start(request)).ok, true)
+  assert.equal((await manager.enqueueDownload(request)).ok, true)
   assert.equal(warning.mock.callCount(), 1)
   assert.equal((await manager.list('123'))[0]?.id, 1)
-  await manager.start(request)
+  await manager.enqueueDownload(request)
   assert.equal(harness.calls.length, 1)
 })
 
 test('forgets erased browser records without controlling other downloads', async () => {
   const { manager, items } = setup()
 
-  await manager.start(request)
+  await manager.enqueueDownload(request)
   items.delete(1)
   assert.equal((await manager.list('123'))[0]?.state, 'missing')
   assert.equal((await manager.action(1, 'cancel')).ok, false)
@@ -515,7 +568,7 @@ test('serializes simultaneous admission so distinct requests cannot exceed the t
   })
   const results = await Promise.all(
     Array.from({ length: 6 }, (_, index) =>
-      manager.start({ ...request, postId: String(index + 1) }),
+      manager.enqueueDownload({ ...request, postId: String(index + 1) }),
     ),
   )
 
@@ -602,25 +655,43 @@ test('cancels queued work without native calls and preserves active tasks when c
 test('warns about completed media across quality URLs and requires explicit repeat confirmation', async () => {
   const { manager, items, calls } = setup()
 
-  await manager.start(request)
+  await manager.enqueueDownload(request)
   items.get(1)!.state = 'complete'
   assert.deepEqual(
-    await manager.start({
+    await manager.enqueueDownload({
       ...request,
       url: request.url.replace('1280x720', '1920x1080'),
     }),
     { ok: false, error: 'duplicateDownload' },
   )
   items.delete(1)
-  assert.deepEqual(await manager.start(request), {
+  assert.deepEqual(await manager.enqueueDownload(request), {
     ok: false,
     error: 'duplicateDownload',
   })
-  assert.deepEqual(await manager.start(request, true), {
+  assert.deepEqual(await manager.enqueueDownload(request, true), {
     ok: true,
     downloadId: 2,
   })
   assert.equal(calls.length, 2)
+})
+
+test('allows an explicit retry of a failed repeat while still prompting on new duplicate requests', async () => {
+  const { manager, items } = setup()
+
+  await manager.enqueueDownload(request)
+  items.get(1)!.state = 'complete'
+  await manager.enqueueDownload(request, true)
+  items.get(2)!.state = 'interrupted'
+
+  assert.deepEqual(await manager.enqueueDownload(request), {
+    ok: false,
+    error: 'duplicateDownload',
+  })
+  assert.deepEqual(await manager.action(2, 'retry'), {
+    ok: true,
+    downloadId: 3,
+  })
 })
 
 test('recovers an ambiguous native-start handoff as an explicit retry instead of duplicating it', async () => {
@@ -656,7 +727,7 @@ test('rejects queue admission before native effects when the initial storage wri
     },
   })
 
-  assert.deepEqual(await manager.start(request), {
+  assert.deepEqual(await manager.enqueueDownload(request), {
     ok: false,
     error: 'storage full',
   })
@@ -709,14 +780,23 @@ test('limits outstanding work to one thousand while allowing existing task reuse
   )
   const manager = createDownloadManager(ports)
 
-  assert.deepEqual(await manager.start({ ...request, postId: '1001' }), {
-    ok: false,
-    error: 'queueFull',
-  })
-  assert.equal((await manager.start({ ...request, postId: '1' })).ok, true)
+  assert.deepEqual(
+    await manager.enqueueDownload({ ...request, postId: '1001' }),
+    {
+      ok: false,
+      error: 'queueFull',
+    },
+  )
+  assert.equal(
+    (await manager.enqueueDownload({ ...request, postId: '1' })).ok,
+    true,
+  )
   assert.equal(calls.length, 0)
   await manager.action(-1, 'cancel')
-  assert.equal((await manager.start({ ...request, postId: '1001' })).ok, true)
+  assert.equal(
+    (await manager.enqueueDownload({ ...request, postId: '1001' })).ok,
+    true,
+  )
   assert.equal(calls.length, 1)
 })
 
@@ -734,7 +814,7 @@ test('recovers a failed handoff write on listing and retains queued action alias
       await ports.writeRecords(records)
     },
   })
-  const result = await manager.start(request)
+  const result = await manager.enqueueDownload(request)
 
   assert.ok(result.ok)
   assert.ok(result.downloadId < 0)
@@ -762,7 +842,7 @@ test('keeps a native transfer manageable when the browser refuses to resume it',
     },
   })
 
-  await manager.start(request)
+  await manager.enqueueDownload(request)
   await manager.action(1, 'pause')
   assert.deepEqual(await manager.action(1, 'resume'), {
     ok: false,
@@ -771,4 +851,43 @@ test('keeps a native transfer manageable when the browser refuses to resume it',
   assert.equal(items.get(1)?.paused, true)
   assert.equal(await manager.clear(), 0)
   assert.equal((await manager.list())[0]?.state, 'paused')
+})
+
+test('keeps admitted tasks and successful actions available during a preference read failure', async t => {
+  t.mock.method(console, 'warn', () => {})
+  const { ports, calls } = setup()
+  let reads = 0
+  let canRead = true
+  const manager = createDownloadManager({
+    ...ports,
+    async readPreferences() {
+      reads++
+
+      if (!canRead) {
+        throw new Error('temporary preference read failure')
+      }
+
+      return {
+        concurrency: 1,
+      }
+    },
+  })
+
+  const results = await manager.batch([request, { ...request, postId: '456' }])
+
+  assert.ok(results.every(({ result }) => result.ok))
+  assert.equal(reads, 1)
+  assert.equal(calls.length, 1)
+
+  canRead = false
+  assert.deepEqual(await manager.action(1, 'cancel'), { ok: true })
+  assert.deepEqual(
+    (await manager.list()).map(item => item.state),
+    ['queued', 'cancelled'],
+  )
+
+  canRead = true
+  await manager.refresh()
+  assert.equal(calls.length, 2)
+  assert.equal((await manager.list())[0]?.state, 'in_progress')
 })

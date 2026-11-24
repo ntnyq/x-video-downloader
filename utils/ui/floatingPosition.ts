@@ -5,16 +5,31 @@ import {
   FLOATING_PANEL_GAP,
   FLOATING_PANEL_MAX_HEIGHT,
   FLOATING_PANEL_MAX_WIDTH,
-} from '../constants/floatingPosition'
-import { isRecord } from './video'
+} from '../../constants/floatingPosition'
+import { isRecord } from '../isRecord'
 
+/**
+ * Viewport edge to which the floating launcher can dock.
+ */
 export type FloatingEdge = 'left' | 'right' | 'top' | 'bottom'
 
+/**
+ * Viewport-relative coordinates of the floating launcher's top-left corner.
+ */
 export interface FloatingPosition {
+  /**
+   * Horizontal distance from the viewport's left edge in CSS pixels.
+   */
   x: number
+  /**
+   * Vertical distance from the viewport's top edge in CSS pixels.
+   */
   y: number
 }
 
+/**
+ * Persisted launcher coordinates and the edge used to restore docking after a resize.
+ */
 export interface FloatingPlacement extends FloatingPosition {
   /**
    * Viewport edge selected by the last completed drag.
@@ -22,13 +37,25 @@ export interface FloatingPlacement extends FloatingPosition {
   edge: FloatingEdge
 }
 
+/**
+ * Viewport dimensions used to constrain the launcher and panel.
+ */
 export interface FloatingViewport {
+  /**
+   * Available horizontal space in CSS pixels.
+   */
   width: number
+  /**
+   * Available vertical space in CSS pixels.
+   */
   height: number
 }
 
 /**
  * Narrows an untrusted stored edge to one of the supported docking edges.
+ *
+ * @param value - Candidate edge from extension storage.
+ * @returns Whether the value is a supported viewport edge.
  */
 function isFloatingEdge(value: unknown): value is FloatingEdge {
   return isString(value) && ['left', 'right', 'top', 'bottom'].includes(value)

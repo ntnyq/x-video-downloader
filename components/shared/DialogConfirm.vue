@@ -16,13 +16,21 @@ import { useOverlayTarget } from '~/composables/useOverlayTarget'
 import type { VNode } from 'vue'
 
 interface Props {
-  /** Name of the pending operation. */
+  /**
+   * Name of the pending operation.
+   */
   title: string
-  /** Scope and consequence of confirming. */
+  /**
+   * Scope and consequence of confirming.
+   */
   description: string
-  /** Disables confirmation while the request is pending. */
+  /**
+   * Disables confirmation while the request is pending.
+   */
   disabled?: boolean
-  /** Persistent failure feedback shown inside the modal. */
+  /**
+   * Persistent failure feedback shown inside the modal.
+   */
   error?: string
 }
 
@@ -43,7 +51,9 @@ const overlayTarget = useOverlayTarget()
 
 <template>
   <AlertDialogRoot v-model:open="open">
-    <AlertDialogTrigger as-child><slot name="trigger" /></AlertDialogTrigger>
+    <AlertDialogTrigger as-child>
+      <slot name="trigger" />
+    </AlertDialogTrigger>
     <AlertDialogPortal
       :to="overlayTarget ?? undefined"
       :disabled="isNull(overlayTarget)"
@@ -71,18 +81,20 @@ const overlayTarget = useOverlayTarget()
           {{ error }}
         </p>
         <div class="mt-5 flex flex-wrap justify-end gap-2">
-          <AlertDialogCancel as-child
-            ><Button
+          <AlertDialogCancel as-child>
+            <Button
               :disabled
               variant="outline"
-              >{{ i18n.t('common.cancel') }}</Button
-            ></AlertDialogCancel
-          >
+            >
+              {{ i18n.t('common.cancel') }}
+            </Button>
+          </AlertDialogCancel>
           <Button
             @click="emit('confirm', $event)"
             :disabled
-            >{{ title }}</Button
           >
+            {{ title }}
+          </Button>
         </div>
       </AlertDialogContent>
     </AlertDialogPortal>

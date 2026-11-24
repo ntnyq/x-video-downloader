@@ -10,10 +10,11 @@ import {
   MAX_OUTSTANDING_DOWNLOADS,
   MAX_TERMINAL_RECORDS,
 } from '../../constants/download'
-import { normalizeDownloadRequest } from '../../utils/download'
+import { buildFilename } from '../../utils/download/filename'
+import { normalizePreferences } from '../../utils/download/preferences'
+import { normalizeDownloadRequest } from '../../utils/download/requests'
+import { isRecord } from '../../utils/isRecord'
 import { logger } from '../../utils/logger'
-import { buildFilename, normalizePreferences } from '../../utils/preferences'
-import { isRecord } from '../../utils/video'
 import type { DownloadRecord, DownloadStatus } from '../../types/download'
 import type { DownloadRequest, DownloadResult } from '../../types/video'
 
@@ -104,10 +105,11 @@ interface DownloadManagerPorts {
    * Looks up a native browser download by its identifier.
    *
    * @param id - Browser download identifier to search for.
-   * @returns Matching native records, or an empty array if the record was erased.
+   * @param url - Original URL of the extension-owned transfer.
+   * @returns Matching native records, or an empty array if ownership cannot be verified.
    * @throws When the browser search fails.
    */
-  search: (id: number) => Promise<NativeDownload[]>
+  search: (id: number, url: string) => Promise<NativeDownload[]>
   /**
    * Requests cancellation of a native browser download.
    *
@@ -137,12 +139,12 @@ function getDownloadState(item?: NativeDownload): DownloadStatus['state'] {
     return 'missing'
   }
 
-  if (item.state === 'interrupted' && item.error === 'USER_CANCELED') {
-    return 'cancelled'
+  if (item.paused && item.state !== 'complete') {
+    return 'paused'
   }
 
-  if (item.state === 'in_progress' && item.paused) {
-    return 'paused'
+  if (item.state === 'interrupted' && item.error === 'USER_CANCELED') {
+    return 'cancelled'
   }
 
   return item.state
@@ -159,7 +161,7 @@ const log = logger.withTag('downloads')
  */
 export function createDownloadManager(ports: DownloadManagerPorts) {
   let records: DownloadRecord[] | undefined
-  let nextQueueId = -Date.now()
+  let nextQueueId = -Math.max(1, Date.now())
   let operations = Promise.resolve()
 
   /**
@@ -182,7 +184,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
    *
    * @returns Mutable records owned exclusively by the serialized controller.
    */
-  async function load(): Promise<DownloadRecord[]> {
+  async function loadDownloadRecords(): Promise<DownloadRecord[]> {
     if (records) {
       return records
     }
@@ -211,7 +213,6 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
           const id = value['id']
 
           seen.add(id)
-          nextQueueId = Math.min(nextQueueId, id - 1)
           const validStates: DownloadStatus['state'][] = [
             'queued',
             'paused',
@@ -293,7 +294,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
    * @returns Completion of native-state reconciliation.
    */
   async function reconcile(id?: number) {
-    const owned = await load()
+    const owned = await loadDownloadRecords()
 
     for (const record of owned) {
       if (
@@ -303,7 +304,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
         continue
       }
 
-      const [item] = await ports.search(record.id)
+      const [item] = await ports.search(record.id, record.request.url)
 
       if (!item) {
         if (isActive(record)) {
@@ -319,7 +320,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
         record.state === 'queued' && state === 'paused' ? 'queued' : state
       record.bytesReceived = item.bytesReceived
       record.totalBytes = item.totalBytes
-      record.error = item.error
+      record.error = state === 'paused' ? undefined : item.error
       record.displayFilename = item.filename?.split(/[\\/]/).at(-1) || undefined
     }
   }
@@ -332,6 +333,19 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
    */
   function isActive(record: DownloadRecord) {
     return ['queued', 'in_progress', 'paused'].includes(record.state ?? '')
+  }
+
+  function allocateQueueId(owned: DownloadRecord[]) {
+    // A queue ID still accepts actions after its task receives a native ID.
+    while (
+      owned.some(
+        record => record.id === nextQueueId || record.queueId === nextQueueId,
+      )
+    ) {
+      nextQueueId--
+    }
+
+    return nextQueueId--
   }
 
   /**
@@ -360,20 +374,28 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
    * Fills available transfer slots from the persisted FIFO queue.
    * A persisted handoff marker prevents automatic duplication after worker termination.
    *
+   * @param concurrency - Limit already read during admission, when available.
    * @returns Completion of currently eligible native starts.
    */
-  async function drain() {
-    const owned = await load()
-    const preferences = normalizePreferences(await ports.readPreferences())
+  async function drain(concurrency?: number) {
+    const owned = await loadDownloadRecords()
+    const queued = owned.filter(record => record.state === 'queued')
+
+    if (queued.length && isUndefined(concurrency)) {
+      try {
+        concurrency = normalizePreferences(
+          await ports.readPreferences(),
+        ).concurrency
+      } catch (error) {
+        log.warn('Could not read the download queue limit', error)
+      }
+    }
+
     let active = owned.filter(record => record.state === 'in_progress').length
 
-    for (const record of owned) {
-      if (active >= preferences.concurrency) {
+    for (const record of queued) {
+      if (isUndefined(concurrency) || active >= concurrency) {
         break
-      }
-
-      if (record.state !== 'queued') {
-        continue
       }
 
       record.starting = true
@@ -390,12 +412,24 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
         if (record.id >= 0) {
           await ports.resume(record.id)
         } else {
-          record.id = await ports.download({
+          const nativeId = await ports.download({
             url: record.request.url,
             filename: record.filename,
             conflictAction: 'uniquify',
             saveAs: record.saveAs ?? false,
           })
+          const previous = owned.find(item => item.id === nativeId)
+
+          if (previous) {
+            // Firefox can assign a previous session's native ID to a new transfer.
+            previous.id = previous.queueId ?? allocateQueueId(owned)
+
+            if (isActive(previous)) {
+              previous.state = 'missing'
+            }
+          }
+
+          record.id = nativeId
         }
 
         record.state = 'in_progress'
@@ -442,7 +476,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
   async function enqueue(requests: DownloadRequest[], force: boolean) {
     await reconcile()
     pruneHistory()
-    const owned = await load()
+    const owned = await loadDownloadRecords()
     const preferences = normalizePreferences(await ports.readPreferences())
     const added = new Set<DownloadRecord>()
     let outstanding = owned.filter(isActive).length
@@ -475,7 +509,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
         }
       }
 
-      const id = nextQueueId--
+      const id = allocateQueueId(owned)
       const record: DownloadRecord = {
         id,
         queueId: id,
@@ -506,7 +540,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
       throw error
     }
 
-    await drain()
+    await drain(preferences.concurrency)
 
     return entries.map(({ request, record, error }) => ({
       postId: request.postId,
@@ -529,7 +563,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
    * @param force - Whether another completed download was explicitly confirmed.
    * @returns The accepted queue/native ID or a structured admission failure.
    */
-  function start(
+  function enqueueDownload(
     request: DownloadRequest,
     force = false,
   ): Promise<DownloadResult> {
@@ -573,7 +607,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
       await persist()
       await drain()
 
-      return (await load())
+      return (await loadDownloadRecords())
         .filter(record => !postId || record.request.postId === postId)
         .map(record => ({
           id: record.id,
@@ -605,7 +639,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
   ): Promise<DownloadResult | { ok: true }> {
     return serialize(async () => {
       await reconcile()
-      const record = (await load()).find(
+      const record = (await loadDownloadRecords()).find(
         record => record.id === id || record.queueId === id,
       )
 
@@ -625,7 +659,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
         }
 
         return (
-          (await enqueue([record.request], false))[0]?.result ?? {
+          (await enqueue([record.request], true))[0]?.result ?? {
             ok: false,
             error: 'downloadFailed',
           }
@@ -694,7 +728,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
   function clear(ids?: number[]) {
     return serialize(async () => {
       await reconcile()
-      const owned = await load()
+      const owned = await loadDownloadRecords()
       const selected = ids ? new Set(ids) : undefined
       const retained = owned.filter(
         record =>
@@ -726,7 +760,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
    */
   function refresh(id?: number) {
     return serialize(async () => {
-      const owned = await load()
+      const owned = await loadDownloadRecords()
 
       if (!isUndefined(id) && !owned.some(record => record.id === id)) {
         return
@@ -739,7 +773,7 @@ export function createDownloadManager(ports: DownloadManagerPorts) {
   }
 
   return {
-    start,
+    enqueueDownload,
     list,
     action,
     batch,

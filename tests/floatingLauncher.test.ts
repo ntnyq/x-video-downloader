@@ -7,9 +7,9 @@ import * as vueuse from '@vueuse/core'
 import ts from 'typescript'
 import * as vue from 'vue'
 import * as floatingConstants from '../constants/floatingPosition'
-import * as floatingPosition from '../utils/floatingPosition'
+import * as floatingPosition from '../utils/ui/floatingPosition'
 import type { useFloatingLauncher } from '../composables/useFloatingLauncher'
-import type { FloatingPlacement } from '../utils/floatingPosition'
+import type { FloatingPlacement } from '../utils/ui/floatingPosition'
 
 /**
  * Mounts the real composable with DOM geometry and extension storage adapters.
@@ -84,11 +84,11 @@ function createLauncher(
           return vueuse
         }
 
-        if (id === '../utils/floatingPosition') {
+        if (id === '../utils/ui/floatingPosition') {
           return floatingPosition
         }
 
-        if (id === '../utils/floatingLauncherSetting') {
+        if (id === '../utils/storage/floatingLauncherSetting') {
           return {
             floatingLauncherSetting: {
               getValue: read,

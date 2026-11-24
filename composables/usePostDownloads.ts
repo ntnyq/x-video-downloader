@@ -1,9 +1,9 @@
 import { isArray, isString, isUndefined } from '@ntnyq/utils'
 import { browser } from '#imports'
 import { DOWNLOAD_REFRESH_INTERVAL_MS } from '~/constants/download'
-import { isDownloadStatus } from '~/utils/downloadHistory'
+import { isDownloadStatus } from '~/utils/download/history'
 import { localizeDownloadError } from '~/utils/i18n'
-import { isRecord } from '~/utils/video'
+import { isRecord } from '~/utils/isRecord'
 import type { MaybeRefOrGetter } from 'vue'
 import type { DownloadStatus } from '~/types/download'
 import type { DownloadRequest } from '~/types/video'
@@ -28,7 +28,7 @@ export function usePostDownloads(
   const requestError = shallowRef('')
   const progressError = shallowRef('')
 
-  let isRefreshing = false
+  let refreshingVersion: number | undefined
   let isDisposed = false
   let scopeVersion = 0
 
@@ -39,13 +39,14 @@ export function usePostDownloads(
    * @returns A promise that settles after the refresh attempt or an overlapping-call skip.
    */
   async function refresh() {
-    if (isRefreshing || isDisposed) {
+    const version = scopeVersion
+
+    if (refreshingVersion === version || isDisposed) {
       return
     }
 
-    isRefreshing = true
+    refreshingVersion = version
     const id = toValue(postId)
-    const version = scopeVersion
 
     try {
       const response: unknown = await browser.runtime.sendMessage({
@@ -74,7 +75,9 @@ export function usePostDownloads(
         progressError.value = i18n.t('download.progressReadFailed')
       }
     } finally {
-      isRefreshing = false
+      if (refreshingVersion === version) {
+        refreshingVersion = undefined
+      }
     }
   }
 
@@ -85,7 +88,10 @@ export function usePostDownloads(
    * @param requests - Validated requests for the selected videos across the visible posts.
    * @returns A promise resolving after the batch attempt and progress refresh.
    */
-  async function start(requests: DownloadRequest[], force = false) {
+  async function submitDownloadRequests(
+    requests: DownloadRequest[],
+    force = false,
+  ) {
     if (!requests.length || isPending.value || isDisposed) {
       return
     }
@@ -281,7 +287,7 @@ export function usePostDownloads(
    * Repeats only the completed downloads explicitly confirmed by the user.
    */
   function confirmDuplicates() {
-    return start([...duplicateRequests.value], true)
+    return submitDownloadRequests([...duplicateRequests.value], true)
   }
 
   /**
@@ -326,7 +332,7 @@ export function usePostDownloads(
     requestError,
     progressError,
 
-    start,
+    submitDownloadRequests,
     action,
     refresh,
     clear,

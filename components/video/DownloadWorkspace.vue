@@ -24,6 +24,10 @@ interface Props {
    * Current-tab access error; history remains independently available.
    */
   requestError?: string
+  /**
+   * Whether the popup can reconnect by reloading the selected X tab.
+   */
+  canReloadTab?: boolean
 }
 
 const props = defineProps<Props>()
@@ -33,16 +37,22 @@ const emit = defineEmits<{
    * Refreshes page video detection.
    */
   refresh: []
+  /** Reloads the selected X tab. */
+  reloadTab: []
   /**
    * Shows all captured posts.
    */
   showAll: []
 }>()
 
-const mediaCount = computed(() =>
-  props.snapshot.posts.reduce((count, post) => count + post.media.length, 0),
-)
 const view = shallowRef<'videos' | 'history'>('videos')
+
+const mediaCount = computed(() =>
+  props.snapshot.posts.reduce(
+    (count, post) => count + (post.broadcastId ? 1 : post.media.length),
+    0,
+  ),
+)
 
 watch(
   () => props.selectedPostId,
@@ -68,8 +78,8 @@ watch(
             mediaCount
           }}</span></TabsTrigger
         >
-        <TabsTrigger value="history"
-          ><UiIcon
+        <TabsTrigger value="history">
+          <UiIcon
             name="history"
             class="size-4"
           />{{ i18n.t('history.tab') }}</TabsTrigger
@@ -98,12 +108,20 @@ watch(
         :description="requestError"
       >
         <Button
+          @click="emit('reloadTab')"
+          v-if="canReloadTab"
+        >
+          {{ i18n.t('page.reloadTab') }}
+        </Button>
+        <Button
+          v-else
           as="a"
           href="https://x.com"
           target="_blank"
           rel="noreferrer"
-          >{{ i18n.t('common.openX') }}</Button
         >
+          {{ i18n.t('common.openX') }}
+        </Button>
       </EmptyState>
       <DownloadPanel
         @refresh="emit('refresh')"

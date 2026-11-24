@@ -36,6 +36,7 @@ declare module 'vue' {
     PopupDownloader: typeof import('./../components/video/PopupDownloader.vue')['default']
     Progress: typeof import('./../components/ui/progress/Progress.vue')['default']
     ReleaseHistory: typeof import('./../components/changelog/ReleaseHistory.vue')['default']
+    ReplayDownloadButton: typeof import('./../components/video/ReplayDownloadButton.vue')['default']
     SelectContent: typeof import('./../components/ui/select/SelectContent.vue')['default']
     SelectItem: typeof import('./../components/ui/select/SelectItem.vue')['default']
     SelectScrollDownButton: typeof import('./../components/ui/select/SelectScrollDownButton.vue')['default']

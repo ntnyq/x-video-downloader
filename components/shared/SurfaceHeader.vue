@@ -2,7 +2,9 @@
 import type { VNode } from 'vue'
 
 defineProps<{
-  /** Name of the extension or surface. */
+  /**
+   * Name of the extension or surface.
+   */
   title: string
 }>()
 

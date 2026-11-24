@@ -4,14 +4,14 @@ import {
   createSelectedVideoRequests,
   createVideoSelectionRows,
   setVideoSelectionChecked,
-} from '~/utils/videoSelection'
+} from '~/utils/download/selection'
 import type { MaybeRefOrGetter } from 'vue'
 import type { QualityPreference } from '~/types/download'
 import type { VideoPost } from '~/types/video'
 import type {
   VideoSelectionScope,
   VideoSelectionState,
-} from '~/utils/videoSelection'
+} from '~/utils/download/selection'
 
 /**
  * Shares per-media quality and selection state between page and post actions.
@@ -32,29 +32,16 @@ export function usePageVideoSelection(
     createVideoSelectionRows(toValue(posts), toValue(quality), selection.value),
   )
   const groups = computed(() =>
-    toValue(posts).map(post => {
-      const postRows = rows.value.filter(row => row.post.id === post.id)
-      const downloadableCount = postRows.filter(row => row.variant).length
-      const selectedCount = postRows.filter(row => row.checked).length
-
-      return {
-        post,
-        rows: postRows,
-        downloadableCount,
-        selectedCount,
-        allSelected:
-          downloadableCount > 0 && downloadableCount === selectedCount,
-      }
-    }),
+    toValue(posts).map(post => ({
+      post,
+      rows: rows.value.filter(row => row.post.id === post.id),
+    })),
   )
   const downloadableCount = computed(
     () => rows.value.filter(row => row.variant).length,
   )
   const selectedCount = computed(
     () => rows.value.filter(row => row.checked).length,
-  )
-  const selectedPostCount = computed(
-    () => groups.value.filter(group => group.selectedCount > 0).length,
   )
   const allSelected = computed(
     () =>
@@ -127,7 +114,6 @@ export function usePageVideoSelection(
   return {
     groups,
     selectedCount,
-    selectedPostCount,
     downloadableCount,
     allSelected,
     isOverLimit,

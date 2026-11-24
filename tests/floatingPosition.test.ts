@@ -5,7 +5,7 @@ import {
   dockFloatingPosition,
   getFloatingPanelStyle,
   getNearestFloatingEdge,
-} from '../utils/floatingPosition'
+} from '../utils/ui/floatingPosition'
 
 const viewport = { width: 1000, height: 800 }
 

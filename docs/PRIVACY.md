@@ -1,19 +1,19 @@
 # Privacy Policy / 隐私政策
 
 X Video Downloader / X 视频下载器  
-Last updated / 最后更新：2026-10-05
+Last updated / 最后更新：2026-11-25
 
 ## English
 
 ### What the extension does
 
-X Video Downloader is an independent browser extension maintained by ntnyq. It helps you save MP4 videos from X / Twitter posts you can already access. It does not bypass login or access restrictions.
+X Video Downloader is an independent browser extension maintained by ntnyq. It helps you save videos and supported live replays from X / Twitter as MP4 files. It does not bypass login or access restrictions.
 
 ### Information processed on your device
 
 The extension processes information from the current X / Twitter page to find videos and provide download controls. This includes the page or post URL, post ID, post text, the author's username, the post's creation date when available, media identifiers, MP4 URLs, resolutions, bitrates, and the presence of HLS variants. Author usernames may identify individuals. The extension does not use them to identify or profile the person who installed the extension.
 
-A script observes eligible responses to requests that the X page already makes. It does not make its own requests to X's private API. It extracts video-related post data and excludes direct-message API paths. A direct MP4 URL exposed by a page video player may also be used. The extension does not extract or store passwords, authentication cookies, or login tokens.
+A script observes eligible responses to requests that the X page already makes. It does not make its own requests to X's private API. It extracts video-related post data and excludes direct-message API paths. A direct MP4 URL exposed by a page video player may also be used. Replay detection reads the broadcast ID, media identifier, and HLS playlist URL exposed by the page. The extension does not extract or store passwords, authentication cookies, or login tokens.
 
 Detected posts are held in page memory, with a cache of up to 250 posts. The extension does not create a general history of websites you visit.
 
@@ -21,13 +21,15 @@ Detected posts are held in page memory, with a cache of up to 250 posts. The ext
 
 The extension uses local extension storage for your preferred quality, concurrency limit, save-location prompt preference, filename template, appearance setting, and floating button position. It also stores records of downloads it initiated: queue identifiers, task creation times, queue states, byte counts, browser download IDs, requested filenames, video URLs, post IDs, media indexes, and author/date metadata when available. These records reflect download actions you requested and allow history search, duplicate reminders, queue restoration, pause/resume, cancellation, and retry after the background service worker restarts.
 
-The extension queries the browser for the state, filename, and byte counts of its own recorded download IDs. It does not enumerate or display unrelated browser download history. Settings and records are not synchronized through the extension's storage.sync API.
+The extension queries the browser for the state, filename, and byte counts of its recorded download IDs. It verifies the download's extension ID and original URL before using the result. Settings and records are not synchronized through the extension's storage.sync API.
 
 ### Network requests and sharing
 
 The extension has no developer-operated data collection server and contains no advertising or analytics tracking. It does not upload post information, local preferences, or download records to the developer or to third-party parsing/download services. The developer does not sell this data or use it for advertising, profiling, or credit decisions.
 
-When you request a download, the browser connects directly to video.twimg.com over HTTPS to retrieve the selected MP4. As with a normal connection, the destination receives the requested URL and network information such as your IP address, along with any request metadata the browser sends. X handles those requests under its own policies. Opening X or a post link from the extension also navigates to X. The extension does not add authentication credentials extracted from the page to download requests.
+When you request a direct download, the browser connects to video.twimg.com over HTTPS. For a live replay, it retrieves the requested playlist and segments over HTTPS from video.twimg.com or prod-fastly-p.video.pscp.tv. As with a normal connection, the destination receives the requested URL and network information such as your IP address, along with any request metadata the browser sends. X handles those requests under its own policies. Opening X or a post link from the extension also navigates to X. The extension does not add authentication credentials extracted from the page to download requests.
+
+A replay task uses temporary files in the extension’s origin-private file system and removes them after the save, cancellation, or a failed attempt. Interrupted browser sessions can leave files that are cleared when the next replay download starts. Replay URLs stay in memory.
 
 Downloaded files are stored in the location selected by you or your browser. Normal browser download history is managed by the browser separately from the extension's local records.
 
@@ -41,7 +43,7 @@ You can search and clear finished records under History & queue. Clearing record
 
 The extension uses the information described above only to provide its video detection, saving, customization, and download management features. Its use of information received from Google APIs follows the Chrome Web Store User Data Policy, including the Limited Use requirements. It does not sell or transfer user data for unrelated purposes or use it to determine creditworthiness or eligibility for lending.
 
-Download requests are validated to accept only HTTPS MP4 URLs on video.twimg.com. Local data is stored using browser extension storage; the extension does not add its own encryption layer to that storage. Access to your browser profile and downloaded files depends on your device and browser security.
+Direct download requests accept HTTPS MP4 URLs on video.twimg.com. Replay tasks validate every playlist and segment against the captured HTTPS media host, which can be video.twimg.com or prod-fastly-p.video.pscp.tv. They fetch without credentials or redirects. Local data is stored using browser extension storage; the extension does not add its own encryption layer to that storage. Access to your browser profile and downloaded files depends on your device and browser security.
 
 ### Changes and contact
 
@@ -51,13 +53,13 @@ This policy may be updated when the extension's behavior changes. The revision d
 
 ### 扩展用途
 
-X 视频下载器是由 ntnyq 维护的独立浏览器扩展，用于保存你已有权限访问的 X / Twitter 帖子中的 MP4 视频，不绕过登录或访问限制。
+X 视频下载器是由 ntnyq 维护的独立浏览器扩展，用于将你有权访问的 X / Twitter 视频和受支持的直播回放保存为 MP4 文件，不绕过登录或访问限制。
 
 ### 在设备上处理的信息
 
 扩展读取当前 X / Twitter 页面中的视频相关信息，以检测视频并提供下载入口，包括页面或帖子链接、帖子 ID、帖子文字、作者用户名、可用的发帖日期、媒体 ID、MP4 地址、分辨率、码率和是否存在 HLS 版本。作者用户名可能识别个人；扩展不会据此识别安装者或建立安装者画像。
 
-捕获脚本观察 X 页面本身已发起请求的符合条件的响应，不自行请求 X 私有 API，只提取视频相关帖子信息，并排除直接消息 API 路径。页面播放器暴露的直接 MP4 地址也可能作为补充来源。扩展不提取或保存密码、认证 Cookie 或登录令牌。
+捕获脚本观察 X 页面本身已发起请求的符合条件的响应，不自行请求 X 私有 API，只提取视频相关帖子信息，并排除直接消息 API 路径。页面播放器暴露的直接 MP4 地址也可能作为补充来源。回放检测读取页面已经获取的直播 ID、媒体标识和 HLS 播放列表地址。扩展不提取或保存密码、认证 Cookie 或登录令牌。
 
 已检测帖子保存在当前页面内存中，最多缓存 250 条，不建立全站浏览历史。
 
@@ -65,13 +67,15 @@ X 视频下载器是由 ntnyq 维护的独立浏览器扩展，用于保存你�
 
 扩展在本地扩展存储中保存画质偏好、并发数量、是否每次选择保存位置、文件名模板、外观设置和悬浮球位置。还会保存本扩展发起的下载记录，包括队列标识、任务创建时间、队列状态、字节数、浏览器下载 ID、请求的文件名、视频 URL、帖子 ID、视频序号以及可用的作者和日期信息。这些记录反映你发起的下载操作，用于搜索记录、重复下载提醒、后台服务重启后恢复队列及进度、暂停、继续、取消和重试。
 
-扩展只按自身记录的下载 ID 向浏览器查询状态、文件名和字节数，不遍历或显示其他来源的下载历史。设置和任务记录不会通过扩展的 storage.sync API 同步。
+扩展按自身记录的下载 ID 向浏览器查询状态、文件名和字节数，并核对下载所属的扩展 ID 和原始地址后才使用查询结果。设置和任务记录不会通过扩展的 storage.sync API 同步。
 
 ### 网络请求与信息共享
 
 扩展没有开发者运营的数据收集服务器，不包含广告或分析追踪。不将帖子信息、偏好或下载记录上传给开发者或第三方解析、下载服务；开发者不出售这些数据，也不将其用于广告、画像或信贷决策。
 
-你点击下载后，由浏览器通过 HTTPS 直接连接 video.twimg.com 获取 MP4。与普通网络连接相同，目标服务器会接收请求 URL、IP 地址等网络信息以及浏览器发送的请求元数据。X 根据其自身政策处理这些请求。从扩展打开 X 或帖子链接也会导航到 X。扩展不会从页面提取认证凭据并添加到下载请求中。
+下载直链时，浏览器通过 HTTPS 连接 video.twimg.com。下载直播回放时，浏览器通过 HTTPS 从 video.twimg.com 或 prod-fastly-p.video.pscp.tv 获取所请求的播放列表和媒体分片。与普通网络连接相同，目标服务器会接收请求 URL、IP 地址等网络信息以及浏览器发送的请求元数据。X 根据其自身政策处理这些请求。从扩展打开 X 或帖子链接也会导航到 X。扩展不会从页面提取认证凭据并添加到下载请求中。
+
+回放任务在扩展的源私有文件系统中使用临时文件，并在保存、取消或失败后清理。浏览器会话中断时，遗留的文件会在下次下载回放时清理。回放地址保存在内存中。
 
 视频文件保存到你或浏览器选择的位置。浏览器自身的下载历史由浏览器独立管理，不等同于扩展的本地任务记录。
 
@@ -85,7 +89,7 @@ X 视频下载器是由 ntnyq 维护的独立浏览器扩展，用于保存你�
 
 上述信息仅用于视频检测、保存、设置定制和下载管理。扩展对从 Google API 获得信息的使用遵循 Chrome Web Store 用户数据政策及有限使用要求，不为无关用途出售或转让数据，不用于判断信用状况或贷款资格。
 
-下载请求经过校验，只接受 video.twimg.com 的 HTTPS MP4 地址。本地数据使用浏览器扩展存储保存，扩展未额外实现存储加密。浏览器配置及下载文件的访问保护依赖你的设备和浏览器安全措施。
+直链下载请求只接受 video.twimg.com 的 HTTPS MP4 地址。回放任务逐一校验播放列表及分片是否来自捕获的同一 HTTPS 主机，支持 video.twimg.com 和 prod-fastly-p.video.pscp.tv，获取时不使用凭据或重定向。本地数据使用浏览器扩展存储保存，扩展未额外实现存储加密。浏览器配置及下载文件的访问保护依赖你的设备和浏览器安全措施。
 
 ### 更新与联系
 

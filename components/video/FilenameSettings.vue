@@ -10,8 +10,11 @@ import {
   FILENAME_PREVIEW_REQUEST,
   MAX_FILENAME_TEMPLATE_LENGTH,
 } from '~/constants/preferences'
-import { buildFilename, validateFilenameTemplate } from '~/utils/preferences'
-import { filenameSetting } from '~/utils/settings'
+import {
+  buildFilename,
+  validateFilenameTemplate,
+} from '~/utils/download/filename'
+import { filenameSetting } from '~/utils/storage/downloadPreferences'
 
 const props = defineProps<{
   /**
@@ -24,11 +27,13 @@ const props = defineProps<{
   disabled: boolean
 }>()
 
+const inputRef = useTemplateRef('inputRef')
+
 const draft = shallowRef(props.template)
 const isSaving = shallowRef(false)
 const saveError = shallowRef('')
 const savedTemplate = shallowRef(props.template)
-const inputRef = useTemplateRef('inputRef')
+
 const isDirty = computed(() => draft.value.trim() !== savedTemplate.value)
 
 useEventListener(window, 'beforeunload', event => {

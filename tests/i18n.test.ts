@@ -10,8 +10,9 @@ import { CHANGELOG_ENTRIES } from '../constants/changelog'
 import { DOWNLOAD_STATE_LABELS } from '../constants/download'
 import { QUALITY_OPTIONS } from '../constants/preferences'
 import { THEME_PRESETS } from '../constants/theme'
-import { formatBytes, validateFilenameTemplate } from '../utils/preferences'
-import { formatVariant } from '../utils/video'
+import { validateFilenameTemplate } from '../utils/download/filename'
+import { formatBytes } from '../utils/formatBytes'
+import { formatVariant } from '../utils/video/variants'
 
 const manifestMessageKeys = [
   ...readFileSync(

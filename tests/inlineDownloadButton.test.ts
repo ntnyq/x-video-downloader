@@ -5,8 +5,9 @@ import { runInNewContext } from 'node:vm'
 import ts from 'typescript'
 import * as vue from 'vue'
 import { compileScript, parse } from 'vue/compiler-sfc'
-import { normalizePreferences } from '../utils/preferences'
-import * as preferences from '../utils/preferences'
+import { normalizePreferences } from '../utils/download/preferences'
+import * as requests from '../utils/download/requests'
+import * as variants from '../utils/video/variants'
 import type { DownloadRequest, VideoPost } from '../types/video'
 
 const post: VideoPost = {
@@ -81,8 +82,12 @@ function createButton(value: VideoPost | undefined = post) {
           }
         }
 
-        if (id === '~/utils/preferences') {
-          return preferences
+        if (id === '~/utils/download/requests') {
+          return requests
+        }
+
+        if (id === '~/utils/video/variants') {
+          return variants
         }
 
         if (id === '~/composables/useDownloadPreferences') {

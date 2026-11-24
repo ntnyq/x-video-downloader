@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import { formatVariant } from '~/utils/video'
+import { formatVariant } from '~/utils/video/variants'
 import type { VNode } from 'vue'
 import type { VideoMedia, VideoVariant } from '~/types/video'
 
@@ -39,7 +39,9 @@ interface Props {
    * Whether download and selection controls are temporarily unavailable.
    */
   disabled: boolean
-  /** Hides the row action when the footer is sufficient. */
+  /**
+   * Hides the row action when the footer is sufficient.
+   */
   hideDownload?: boolean
 }
 

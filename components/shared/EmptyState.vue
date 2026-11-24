@@ -2,9 +2,13 @@
 import type { VNode } from 'vue'
 
 defineProps<{
-  /** Short description of the current state. */
+  /**
+   * Short description of the current state.
+   */
   title: string
-  /** Next step, when the state needs explanation. */
+  /**
+   * Next step, when the state needs explanation.
+   */
   description?: string
 }>()
 

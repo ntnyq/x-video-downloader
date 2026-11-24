@@ -1,15 +1,18 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { DEFAULT_FILENAME_TEMPLATE } from '../constants/preferences'
-import { normalizeBatchRequest } from '../utils/download'
 import {
   buildFilename,
-  formatBytes,
-  normalizePreferences,
-  selectPreferredVariant,
   validateFilenameTemplate,
-} from '../utils/preferences'
-import { extractVideoPosts, normalizeVariants } from '../utils/video'
+} from '../utils/download/filename'
+import { normalizePreferences } from '../utils/download/preferences'
+import { normalizeBatchRequest } from '../utils/download/requests'
+import { formatBytes } from '../utils/formatBytes'
+import { extractVideoPosts } from '../utils/video/posts'
+import {
+  normalizeVariants,
+  selectPreferredVariant,
+} from '../utils/video/variants'
 
 /**
  * Creates a raw video-version fixture with dimensions embedded in its URL.

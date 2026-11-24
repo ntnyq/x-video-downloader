@@ -6,7 +6,38 @@ import * as utils from '@ntnyq/utils'
 import ts from 'typescript'
 import { shallowRef } from 'vue'
 import * as constants from '../constants/video'
-import * as video from '../utils/video'
+import { getArticlePostId } from '../entrypoints/content/pageVideos'
+import { isRecord } from '../utils/isRecord'
+import * as broadcast from '../utils/replay/broadcast'
+import * as replayUrl from '../utils/replay/url'
+import * as identity from '../utils/video/identity'
+import * as posts from '../utils/video/posts'
+import * as variants from '../utils/video/variants'
+import type { createPageVideos } from '../entrypoints/content/pageVideos'
+
+test('skips unrelated timestamps and malformed media links when locating a post', () => {
+  const timestamp = (href: string) => ({
+    closest: (selector: string) => (selector === 'a[href]' ? { href } : null),
+  })
+  const timestamps = [
+    timestamp('https://x.com/home'),
+    timestamp('https://x.com/author/status/123'),
+  ]
+  const links = [
+    { href: 'https://[invalid/status/999/video/1' },
+    { href: 'https://x.com/author/status/456/video/1' },
+  ]
+  const article = {
+    querySelector: () => null,
+    querySelectorAll(selector: string) {
+      return selector === 'time' ? timestamps : links
+    },
+  } as unknown as Element
+
+  assert.equal(getArticlePostId(article), '123')
+  timestamps.pop()
+  assert.equal(getArticlePostId(article), '456')
+})
 
 /**
  * Creates a controllable WXT context with observable timers and invalidation callbacks.
@@ -122,34 +153,18 @@ function compile(filename: string) {
   ).outputText
 }
 
-test('repeated scans keep cleanup bounded and cancel pending work on invalidation', () => {
+function createPageHarness(
+  href = 'https://x.com/home',
+  metadata = new Map<string, string>(),
+) {
   const harness = createContext()
   /**
    * Provides an inert mutation callback until the observer fixture is constructed.
    */
   let mutationCallback = () => {}
-  let scans = 0
   let disconnected = false
-  const exports: {
-    /**
-     * Factory exported by the transpiled page-video module.
-     *
-     * @param ctx - Simulated content-script context.
-     * @returns Page observation and scan operations.
-     */
-    createPageVideos?: (ctx: typeof harness.ctx) => {
-      /**
-       * Registers the test subscriber notified after each scan.
-       *
-       * @param callback - Subscriber counting completed scans.
-       */
-      observe: (callback: () => void) => void
-      /**
-       * Runs a page scan immediately using the simulated DOM.
-       */
-      scan: () => void
-    }
-  } = {}
+  const location = { href, origin: 'https://x.com' }
+  const exports: { createPageVideos?: typeof createPageVideos } = {}
 
   runInNewContext(compile('../entrypoints/content/pageVideos.ts'), {
     exports,
@@ -169,6 +184,13 @@ test('repeated scans keep cleanup bounded and cancel pending work on invalidatio
     },
     document: {
       body: {},
+      head: {
+        querySelector(selector: string) {
+          const content = metadata.get(selector)
+
+          return content === undefined ? null : { content }
+        },
+      },
       /**
        * Simulates a page with no timeline articles or video elements.
        *
@@ -176,7 +198,7 @@ test('repeated scans keep cleanup bounded and cancel pending work on invalidatio
        */
       querySelectorAll: () => [],
     },
-    location: { href: 'https://x.com/home', origin: 'https://x.com' },
+    location,
     MutationObserver: class {
       /**
        * Captures the mutation observer callback for explicit test delivery.
@@ -219,23 +241,108 @@ test('repeated scans keep cleanup bounded and cancel pending work on invalidatio
         return constants
       }
 
-      if (id === '~/utils/video') {
-        return video
+      if (id === '~/utils/replay/broadcast') {
+        return broadcast
+      }
+
+      if (id === '~/utils/replay/url') {
+        return replayUrl
+      }
+
+      if (id === '~/utils/isRecord') {
+        return {
+          isRecord,
+        }
+      }
+
+      if (id === '~/utils/video/identity') {
+        return identity
+      }
+
+      if (id === '~/utils/video/posts') {
+        return posts
+      }
+
+      if (id === '~/utils/video/variants') {
+        return variants
       }
 
       throw new Error(id)
     },
   })
   assert.ok(exports.createPageVideos)
-  const videos = exports.createPageVideos(harness.ctx)
+  const videos = exports.createPageVideos(
+    harness.ctx as unknown as Parameters<typeof createPageVideos>[0],
+  )
+
+  return {
+    ...harness,
+    location,
+    videos,
+    mutate: () => mutationCallback(),
+    isDisconnected: () => disconnected,
+  }
+}
+
+test('shows and opens a standalone broadcast replay from the page metadata before playback', () => {
+  const id = '2ZBKOYylEAJRgV'
+  const playlist =
+    'https://prod-fastly-p.video.pscp.tv/replay/master.m3u8?source=example'
+  const state = 'meta[name="twitter:string:broadcast_state"]'
+  const source = 'meta[property="og:video:secure_url"]'
+  const metadata = new Map([
+    ['meta[name="twitter:text:broadcast_id"]', id],
+    ['meta[name="twitter:text:broadcast_title"]', 'A broadcast replay'],
+    ['meta[name="twitter:text:broadcaster_username"]', 'streamer'],
+    [state, 'ENDED'],
+    [source, playlist],
+  ])
+  const { location, videos } = createPageHarness(
+    `https://x.com/i/broadcasts/${id}`,
+    metadata,
+  )
+
+  videos.scan()
+  const [post] = videos.snapshot.value.posts
+
+  assert.equal(post?.broadcastId, id)
+  assert.equal(post.text, 'A broadcast replay')
+  assert.equal(post.author, 'streamer')
+  assert.equal(videos.getReplay(id)?.playlist, playlist)
+
+  metadata.set(state, 'RUNNING')
+  assert.equal(videos.getReplay(id), undefined)
+  assert.equal(videos.snapshot.value.posts.length, 0)
+
+  metadata.set(state, 'ENDED')
+  metadata.set(
+    source,
+    'https://prod-fastly-p.video.pscp.tv.example/replay.m3u8',
+  )
+  assert.equal(videos.getReplay(id), undefined)
+  assert.equal(videos.snapshot.value.posts.length, 0)
+
+  metadata.set('meta[property="og:video:url"]', playlist)
+  assert.equal(videos.getReplay(id)?.playlist, playlist)
+
+  metadata.set(source, playlist)
+  location.href = 'https://x.com/i/broadcasts/DifferentBroadcast'
+  assert.equal(videos.getReplay(id), undefined)
+  assert.equal(videos.snapshot.value.posts.length, 0)
+})
+
+test('repeated scans keep cleanup bounded and cancel pending work on invalidation', () => {
+  const harness = createPageHarness()
+  const { videos } = harness
+  let scans = 0
 
   videos.observe(() => scans++)
   assert.equal(harness.timers.size, 0, 'initial scan cancels the replay timer')
   const initialCallbacks = harness.invalidationCallbacks.size
 
   for (let index = 0; index < 100; index++) {
-    mutationCallback()
-    mutationCallback()
+    harness.mutate()
+    harness.mutate()
     assert.equal(harness.timers.size, 1)
     harness.flushTimers()
   }
@@ -243,15 +350,15 @@ test('repeated scans keep cleanup bounded and cancel pending work on invalidatio
   assert.equal(scans, 101)
   assert.equal(harness.invalidationCallbacks.size, initialCallbacks)
 
-  mutationCallback()
+  harness.mutate()
   videos.scan()
   assert.equal(harness.timers.size, 0, 'manual scan cancels queued work')
-  mutationCallback()
+  harness.mutate()
   harness.invalidate()
   assert.equal(harness.timers.size, 0)
-  assert.equal(disconnected, true)
+  assert.equal(harness.isDisconnected(), true)
   harness.flushTimers()
-  mutationCallback()
+  harness.mutate()
   videos.scan()
   assert.equal(harness.timers.size, 0)
   assert.equal(scans, 102)

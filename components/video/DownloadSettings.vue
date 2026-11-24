@@ -14,22 +14,22 @@ import {
 import { Switch } from '~/components/ui/switch'
 import { useDownloadPreferences } from '~/composables/useDownloadPreferences'
 import { MAX_CONCURRENCY, QUALITY_OPTIONS } from '~/constants/preferences'
+import { normalizeQuality } from '~/utils/download/preferences'
 import { logger } from '~/utils/logger'
-import { normalizeQuality } from '~/utils/preferences'
 import {
   concurrencySetting,
   newUiSetting,
   qualitySetting,
   saveAsSetting,
-} from '~/utils/settings'
+} from '~/utils/storage/downloadPreferences'
 import FilenameSettings from './FilenameSettings.vue'
 
 const { preferences, isReady, preferenceError } = useDownloadPreferences()
 
-const log = logger.withTag('settings')
-
 const isSaving = shallowRef(false)
 const requestError = shallowRef('')
+
+const log = logger.withTag('settings')
 
 /**
  * Persists a setting while retaining the effective value when storage fails.

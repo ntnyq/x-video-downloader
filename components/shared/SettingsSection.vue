@@ -3,9 +3,13 @@ import type { VNode } from 'vue'
 import type { IconName } from '~/types/icon'
 
 defineProps<{
-  /** Section heading. */
+  /**
+   * Section heading.
+   */
   title: string
-  /** Section symbol. */
+  /**
+   * Section symbol.
+   */
   icon: IconName
 }>()
 

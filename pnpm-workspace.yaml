@@ -1,5 +1,8 @@
 overrides:
   esbuild: ^0.28.2
+  giget@1>tar: ^7.5.23
+  katex@<0.18.2: ^0.19.1
+  minimatch@<11.0.1: ^11.0.9
 
 allowBuilds:
   esbuild: true

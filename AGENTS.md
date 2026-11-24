@@ -37,7 +37,7 @@ Write all Git commit messages in English, including the subject and body. Follow
 
 ## Security Boundaries
 
-Preserve sender and payload validation. Accept downloads only from HTTPS MP4 URLs on `video.twimg.com`. Capture existing page responses without collecting authentication tokens or bypassing access restrictions.
+Preserve sender and payload validation. Accept direct downloads only from HTTPS MP4 URLs on `video.twimg.com`. Replay tasks may fetch HTTPS HLS resources from the captured playlist host when it is `video.twimg.com` or `prod-fastly-p.video.pscp.tv`. Capture existing page responses without collecting authentication tokens or bypassing access restrictions.
 
 ## Release Notes Workflow
 

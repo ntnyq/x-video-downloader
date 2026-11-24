@@ -6,10 +6,8 @@ import { useDownloadPreferences } from '~/composables/useDownloadPreferences'
 import { usePageTheme } from '~/composables/usePageTheme'
 import { useTheme } from '~/composables/useTheme'
 import { useVideoDownload } from '~/composables/useVideoDownload'
-import {
-  createDownloadRequest,
-  selectPreferredVariant,
-} from '~/utils/preferences'
+import { createDownloadRequest } from '~/utils/download/requests'
+import { selectPreferredVariant } from '~/utils/video/variants'
 import DuplicateDownloadNotice from './DuplicateDownloadNotice.vue'
 import type { VideoPost } from '~/types/video'
 
@@ -44,13 +42,17 @@ const downloadable = computed(
       return variant ? [{ variant, index: index + 1 }] : []
     }) ?? [],
 )
-const quickLabel = computed(() =>
-  downloadable.value.length === 1
+const quickLabel = computed(() => {
+  if (props.post?.broadcastId) {
+    return i18n.t('replay.download')
+  }
+
+  return downloadable.value.length === 1
     ? i18n.t('download.label')
     : downloadable.value.length > 1
       ? i18n.t('selection.videos')
-      : i18n.t('page.detect'),
-)
+      : i18n.t('page.detect')
+})
 
 /**
  * Handles a trusted quick-download click using the saved quality preference.

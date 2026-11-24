@@ -7,7 +7,13 @@ import {
   VIDEO_CHANNEL,
   X_MATCHES,
 } from '~/constants/video'
-import { extractVideoPosts, isRecord, isXUrl } from '~/utils/video'
+import { isRecord } from '~/utils/isRecord'
+import {
+  createBroadcastCapture,
+  getBroadcastMediaKey,
+} from '~/utils/replay/broadcast'
+import { isXUrl } from '~/utils/video/identity'
+import { extractVideoPosts } from '~/utils/video/posts'
 import type { VideoPost } from '~/types/video'
 
 interface XhrRequest {
@@ -31,6 +37,12 @@ export default defineContentScript({
    */
   main() {
     const posts = new Map<string, VideoPost>()
+    const broadcasts = createBroadcastCapture(replay => {
+      window.postMessage(
+        { channel: VIDEO_CHANNEL, type: 'broadcast-replay', replay },
+        location.origin,
+      )
+    })
     const xhrRequests = new WeakMap<XMLHttpRequest, XhrRequest>()
 
     /**
@@ -42,11 +54,16 @@ export default defineContentScript({
     function isPostResponse(input: string) {
       try {
         const url = new URL(input, location.href)
+        const path = decodeURIComponent(url.pathname)
 
         return (
           isXUrl(url.href)
-          && /\/(?:i\/api|1\.1|2)\//.test(url.pathname)
-          && !/direct_messages|\/dm\//i.test(url.pathname)
+          && (/^\/(?:i\/api|1\.1|2)\//.test(path)
+            || (url.hostname === 'api.x.com'
+              && /^\/graphql\/[^/]+\/BroadcastQuery$/.test(path)))
+          && !/direct[_-]?messages|\/dm(?:\/|$)|\/graphql\/[^/]+\/dm/i.test(
+            path,
+          )
         )
       } catch {
         return false
@@ -54,12 +71,42 @@ export default defineContentScript({
     }
 
     /**
+     * Allows playback status responses that omit their JSON content type.
+     *
+     * @param input - URL of an eligible X API request.
+     * @param contentType - Content-Type header supplied by the response.
+     * @returns Whether the response can be parsed as JSON.
+     */
+    function isJsonResponse(input: string, contentType: string | null) {
+      if (contentType !== null) {
+        return contentType.includes('json')
+      }
+
+      const url = new URL(input, location.href)
+
+      return Boolean(getBroadcastMediaKey(url.pathname))
+    }
+
+    /**
      * Extracts response videos, updates the bounded replay cache, and posts them to the page.
      *
+     * @param url - URL of the observed X request.
      * @param payload - Parsed JSON response body from an eligible fetch or XHR request.
      */
-    function publish(payload: unknown) {
+    function publish(url: string, payload: unknown) {
+      broadcasts.handleResponse(new URL(url, location.href).href, payload)
+
       for (const post of extractVideoPosts(payload)) {
+        const previous = posts.get(post.id)
+
+        if (previous) {
+          post.media = post.media.length ? post.media : previous.media
+
+          if (previous.relatedBroadcastId) {
+            post.relatedBroadcastId ??= previous.relatedBroadcastId
+          }
+        }
+
         posts.delete(post.id)
         posts.set(post.id, post)
 
@@ -95,14 +142,20 @@ export default defineContentScript({
       if (isPostResponse(url)) {
         promise
           .then(async response => {
+            const responseUrl = response.url || url
+
             if (
               !response.ok
-              || !response.headers.get('content-type')?.includes('json')
+              || !isPostResponse(responseUrl)
+              || !isJsonResponse(
+                responseUrl,
+                response.headers.get('content-type'),
+              )
             ) {
               return
             }
 
-            publish(await response.clone().json())
+            publish(responseUrl, await response.clone().json())
           })
           .catch(() => {
             // Best-effort capture must never alter the page's requests.
@@ -177,6 +230,7 @@ export default defineContentScript({
       /**
        * Releases observers after completion, failure, reopening, or a failed send.
        */
+      const url = request.url
       const cleanup = () => {
         this.removeEventListener('load', onLoad)
         this.removeEventListener('loadend', cleanup)
@@ -197,20 +251,29 @@ export default defineContentScript({
         }
 
         try {
-          if (this.status < 200 || this.status >= 300) {
+          const responseUrl = this.responseURL || url
+
+          if (
+            this.status < 200
+            || this.status >= 300
+            || !isPostResponse(responseUrl)
+          ) {
             return
           }
 
           if (this.responseType === 'json') {
-            publish(this.response)
+            publish(responseUrl, this.response)
           } else if (
             (!this.responseType || this.responseType === 'text')
-            && this.getResponseHeader('content-type')?.includes('json')
+            && isJsonResponse(
+              responseUrl,
+              this.getResponseHeader('content-type'),
+            )
           ) {
             const result = safeParse(this.responseText)
 
             if (result.success) {
-              publish(result.value)
+              publish(responseUrl, result.value)
             }
           }
         } catch {
@@ -250,6 +313,8 @@ export default defineContentScript({
         { channel: VIDEO_CHANNEL, type: 'capture-ready' },
         location.origin,
       )
+
+      broadcasts.republishCachedReplays()
 
       for (const post of posts.values()) {
         window.postMessage(

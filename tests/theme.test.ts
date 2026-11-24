@@ -6,7 +6,7 @@ import {
   getThemeStyle,
   normalizeTheme,
   parseThemeColor,
-} from '../utils/theme'
+} from '../utils/ui/theme'
 
 test('provides twelve distinct palettes and keeps Grok adaptive by default', () => {
   assert.equal(THEME_PRESETS.length, 12)

@@ -1,15 +1,15 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { MAX_DOWNLOAD_BATCH_SIZE } from '../constants/download'
-import { normalizeBatchRequest } from '../utils/download'
-import { normalizeVariants } from '../utils/video'
+import { normalizeBatchRequest } from '../utils/download/requests'
 import {
   createSelectedVideoRequests,
   createVideoSelectionRows,
   setVideoSelectionChecked,
-} from '../utils/videoSelection'
+} from '../utils/download/selection'
+import { normalizeVariants } from '../utils/video/variants'
 import type { VideoPost } from '../types/video'
-import type { VideoSelectionState } from '../utils/videoSelection'
+import type { VideoSelectionState } from '../utils/download/selection'
 
 /**
  * Creates a captured post with shared media IDs to expose cross-post collisions.

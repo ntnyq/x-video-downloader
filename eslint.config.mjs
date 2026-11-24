@@ -16,6 +16,8 @@ export default defineESLintConfig(
     },
     vue: {
       vuePerfectionist: {
+        autoImport: true,
+        vueuse: true,
         overrides: {
           'vue-perfectionist/prefer-define-model': 'off',
         },

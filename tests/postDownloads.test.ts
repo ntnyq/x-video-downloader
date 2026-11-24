@@ -7,8 +7,8 @@ import * as utils from '@ntnyq/utils'
 import ts from 'typescript'
 import * as vue from 'vue'
 import * as downloadConstants from '../constants/download'
-import * as downloadHistory from '../utils/downloadHistory'
-import * as video from '../utils/video'
+import * as downloadHistory from '../utils/download/history'
+import { isRecord } from '../utils/isRecord'
 import type { usePostDownloads } from '../composables/usePostDownloads'
 import type { DownloadStatus } from '../types/download'
 import type { DownloadRequest } from '../types/video'
@@ -129,12 +129,14 @@ function createDownloads(
         }
       }
 
-      if (id === '~/utils/downloadHistory') {
+      if (id === '~/utils/download/history') {
         return downloadHistory
       }
 
-      if (id === '~/utils/video') {
-        return video
+      if (id === '~/utils/isRecord') {
+        return {
+          isRecord,
+        }
       }
 
       if (id === '~/utils/i18n') {
@@ -269,7 +271,7 @@ test('duplicate confirmation resubmits only matching post-media pairs and preser
 
   t.after(() => harness.stop())
   await setImmediate()
-  await harness.state.start([request, duplicate, failed])
+  await harness.state.submitDownloadRequests([request, duplicate, failed])
   assert.deepEqual(
     [...harness.state.duplicateRequests.value].map(item => item.postId),
     ['456'],
@@ -306,7 +308,7 @@ test('dismissing duplicate confirmation never starts another download', async t 
 
   t.after(() => harness.stop())
   await setImmediate()
-  await harness.state.start([request])
+  await harness.state.submitDownloadRequests([request])
   harness.state.dismissDuplicates()
   await harness.state.confirmDuplicates()
   assert.equal(
@@ -430,13 +432,10 @@ test('late refreshes cannot replace the selected post after navigation', async t
   t.after(() => harness.stop())
   postId.value = '456'
   await vue.nextTick()
-  initial.resolve({ ok: true, downloads: [download] })
   await setImmediate()
-  assert.equal(
-    harness.state.downloads.value.some(item => item.postId === '123'),
-    false,
-  )
-  harness.poll()
+  assert.deepEqual(harness.state.downloads.value, [nextDownload])
+
+  initial.resolve({ ok: true, downloads: [download] })
   await setImmediate()
   assert.deepEqual(harness.state.downloads.value, [nextDownload])
 })
@@ -444,7 +443,13 @@ test('late refreshes cannot replace the selected post after navigation', async t
 test('a failed refresh for a previous post does not show an error for the current post', async t => {
   const initial = Promise.withResolvers<unknown>()
   const postId = vue.shallowRef('123')
-  const harness = createDownloads(() => initial.promise, postId)
+  const harness = createDownloads(
+    message =>
+      message['postId'] === '123'
+        ? initial.promise
+        : { ok: true, downloads: [] },
+    postId,
+  )
 
   t.after(() => harness.stop())
   postId.value = '456'
@@ -489,7 +494,7 @@ test('a pending batch cannot show old duplicates or errors after the selected po
 
     t.after(() => harness.stop())
     await setImmediate()
-    const pending = harness.state.start([request])
+    const pending = harness.state.submitDownloadRequests([request])
 
     postId.value = '456'
     await vue.nextTick()
@@ -558,7 +563,7 @@ test('finishing a batch after disposal does not repopulate prompts or start anot
   )
 
   await setImmediate()
-  const pending = harness.state.start([request])
+  const pending = harness.state.submitDownloadRequests([request])
 
   harness.stop()
   const messageAtDisposal = harness.state.message.value
@@ -594,7 +599,7 @@ test('changing the visible cross-post context invalidates a pending duplicate re
 
   t.after(() => harness.stop())
   await setImmediate()
-  const pending = harness.state.start([request])
+  const pending = harness.state.submitDownloadRequests([request])
 
   contextKey.value = '789'
   await vue.nextTick()
@@ -626,7 +631,7 @@ test('returning to the same post cannot revive a response from an earlier visit'
 
   t.after(() => harness.stop())
   await setImmediate()
-  const pending = harness.state.start([request])
+  const pending = harness.state.submitDownloadRequests([request])
 
   postId.value = '456'
   await vue.nextTick()
@@ -661,7 +666,7 @@ test('rescanning the same visible post IDs preserves pending replies and duplica
 
   t.after(() => harness.stop())
   await setImmediate()
-  const pending = harness.state.start([request])
+  const pending = harness.state.submitDownloadRequests([request])
 
   snapshot.value = { posts: [{ id: '123' }] }
   await vue.nextTick()

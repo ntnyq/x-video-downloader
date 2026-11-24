@@ -5,9 +5,13 @@ import type { HTMLAttributes } from 'vue'
 import type { IconName } from '~/types/icon'
 
 const props = defineProps<{
-  /** Semantic symbol to render. */
+  /**
+   * Semantic symbol to render.
+   */
   name: IconName
-  /** Size or color overrides. */
+  /**
+   * Size or color overrides.
+   */
   class?: HTMLAttributes['class']
 }>()
 </script>

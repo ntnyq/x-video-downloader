@@ -9,7 +9,7 @@ import FloatingDownloadLauncher from '~/components/video/FloatingDownloadLaunche
 import { provideOverlayTarget } from '~/composables/useOverlayTarget'
 import { usePageTheme } from '~/composables/usePageTheme'
 import { useTheme } from '~/composables/useTheme'
-import { isRecord } from '~/utils/video'
+import { isRecord } from '~/utils/isRecord'
 import type { PageVideos } from '~/types/video'
 
 interface Props {
@@ -51,12 +51,14 @@ const emit = defineEmits<{
 const pageTheme = usePageTheme()
 const { themeStyle } = useTheme()
 
-const panelId = useId()
 const surfaceRef = useTemplateRef('surfaceRef')
 const closeButtonRef = useTemplateRef('closeButtonRef')
 const toggleButtonRef = useTemplateRef('toggleButtonRef')
-const settingsError = shallowRef('')
 const overlayRef = useTemplateRef('overlayRef')
+
+const settingsError = shallowRef('')
+
+const panelId = useId()
 
 provideOverlayTarget(overlayRef)
 

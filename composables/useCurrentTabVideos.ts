@@ -1,7 +1,9 @@
 import { isArray, isUndefined } from '@ntnyq/utils'
 import { browser } from '#imports'
 import { PAGE_VIDEOS_REFRESH_INTERVAL_MS } from '~/constants/video'
-import { isRecord, isXUrl, normalizePost } from '~/utils/video'
+import { isRecord } from '~/utils/isRecord'
+import { isXUrl } from '~/utils/video/identity'
+import { normalizePost } from '~/utils/video/posts'
 import type { PageVideos } from '~/types/video'
 
 export function useCurrentTabVideos() {
@@ -11,6 +13,7 @@ export function useCurrentTabVideos() {
   })
   const isLoading = shallowRef(true)
   const requestError = shallowRef('')
+  const isDisconnected = shallowRef(false)
 
   let tabId: number | undefined
   let isRefreshing = false
@@ -42,11 +45,32 @@ export function useCurrentTabVideos() {
         captureReady: result['captureReady'] === true,
       }
       requestError.value = ''
+      isDisconnected.value = false
     } catch {
+      snapshot.value = { posts: [], captureReady: false }
       requestError.value = i18n.t('page.disconnected')
+      isDisconnected.value = true
     } finally {
       isLoading.value = false
       isRefreshing = false
+    }
+  }
+
+  /**
+   * Reloads the selected X tab so Chrome can inject the current content scripts.
+   */
+  async function reloadTab() {
+    if (isUndefined(tabId) || !isDisconnected.value) {
+      return
+    }
+
+    isLoading.value = true
+
+    try {
+      await browser.tabs.reload(tabId)
+      await refresh()
+    } catch {
+      isLoading.value = false
     }
   }
 
@@ -73,13 +97,17 @@ export function useCurrentTabVideos() {
       isLoading.value = false
     }
   })
-  onUnmounted(pause)
+  onUnmounted(() => {
+    pause()
+  })
 
   return {
     snapshot,
     isLoading,
     requestError,
+    isDisconnected,
 
     refresh,
+    reloadTab,
   }
 }

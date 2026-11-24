@@ -1,14 +1,13 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { isAllowedSender, normalizeDownloadRequest } from '../utils/download'
-import {
-  extractVideoPosts,
-  getPostId,
-  isRecord,
-  normalizeMediaUrl,
-  normalizePost,
-  normalizeVariants,
-} from '../utils/video'
+import { MAX_MEDIA_URL_LENGTH } from '../constants/video'
+import { normalizeDownloadRequest } from '../utils/download/requests'
+import { isAllowedSender } from '../utils/extension/sender'
+import { isRecord } from '../utils/isRecord'
+import { normalizeReplayUrl } from '../utils/replay/url'
+import { extractPostIdFromUrl } from '../utils/video/identity'
+import { extractVideoPosts, normalizePost } from '../utils/video/posts'
+import { normalizeMediaUrl, normalizeVariants } from '../utils/video/variants'
 
 const URL_HD =
   'https://video.twimg.com/ext_tw_video/1/pu/vid/avc1/1280x720/high.mp4?tag=12'
@@ -49,17 +48,22 @@ export function tweet(id: string, type = 'video') {
 
 test('keeps large snowflake IDs as strings and supports video routes', () => {
   assert.equal(
-    getPostId('https://x.com/ntnyq/status/2105974296740811141/video/2'),
+    extractPostIdFromUrl(
+      'https://x.com/ntnyq/status/2105974296740811141/video/2',
+    ),
     '2105974296740811141',
   )
-  assert.equal(getPostId('https://mobile.twitter.com/a/status/123'), '123')
+  assert.equal(
+    extractPostIdFromUrl('https://mobile.twitter.com/a/status/123'),
+    '123',
+  )
 
   for (const url of [
     'https://x.com.evil.test/a/status/123',
     'https://x.com/a/status/123abc',
     'http://x.com/a/status/123',
   ]) {
-    assert.equal(getPostId(url), undefined)
+    assert.equal(extractPostIdFromUrl(url), undefined)
   }
 })
 
@@ -77,6 +81,17 @@ test('only accepts HTTPS MP4 media from the exact video host', () => {
   ]) {
     assert.equal(normalizeMediaUrl(url), undefined, url)
   }
+})
+
+test('applies media URL limits after percent-encoding as well as before parsing', () => {
+  const query = `?label=${'界'.repeat(Math.ceil(MAX_MEDIA_URL_LENGTH / 8))}`
+
+  assert.equal(normalizeMediaUrl(`${URL_SD}${query}`), undefined)
+  assert.equal(normalizeReplayUrl(`${URL_HLS}${query}`, 'playlist'), undefined)
+  assert.equal(
+    normalizeMediaUrl(`${URL_SD}?label=界`),
+    `${URL_SD}?label=%E7%95%8C`,
+  )
 })
 
 test('deduplicates, excludes HLS and sorts MP4s by pixels then bitrate', () => {

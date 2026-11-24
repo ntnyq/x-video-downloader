@@ -6,17 +6,20 @@ import {
   FLOATING_DRAG_THRESHOLD,
   FLOATING_INITIAL_BOTTOM_GAP,
 } from '../constants/floatingPosition'
-import { floatingLauncherSetting } from '../utils/floatingLauncherSetting'
+import { logger } from '../utils/logger'
+import { floatingLauncherSetting } from '../utils/storage/floatingLauncherSetting'
 import {
   clampFloatingPosition,
   dockFloatingPosition,
   getFloatingPanelStyle,
   getNearestFloatingEdge,
   normalizeFloatingPlacement,
-} from '../utils/floatingPosition'
-import { logger } from '../utils/logger'
+} from '../utils/ui/floatingPosition'
 import type { ShallowRef } from 'vue'
-import type { FloatingEdge, FloatingPosition } from '../utils/floatingPosition'
+import type {
+  FloatingEdge,
+  FloatingPosition,
+} from '../utils/ui/floatingPosition'
 
 const log = logger.withTag('launcher')
 

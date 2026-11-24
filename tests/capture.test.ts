@@ -7,7 +7,10 @@ import { runInNewContext } from 'node:vm'
 import { safeParse } from '@ntnyq/utils'
 import ts from 'typescript'
 import * as constants from '../constants/video'
-import * as video from '../utils/video'
+import { isRecord } from '../utils/isRecord'
+import * as broadcast from '../utils/replay/broadcast'
+import * as identity from '../utils/video/identity'
+import * as posts from '../utils/video/posts'
 
 const mediaUrl =
   'https://video.twimg.com/ext_tw_video/1/pu/vid/1280x720/sample.mp4'
@@ -41,19 +44,21 @@ function createHarness(response: Response) {
   class MockXhr extends EventTarget {
     status = 200
     responseType = 'json'
+    responseURL = ''
     response = payload
     responseText = JSON.stringify(payload)
+    contentType: string | null = 'application/json'
     openArgs: unknown[] = []
     autoComplete = true
     sendError?: Error
     openError?: Error
     /**
-     * Supplies a JSON content type for the XHR response fixture.
+     * Supplies the configured content type for the XHR response.
      *
-     * @returns The application/json MIME type.
+     * @returns The response MIME type, when provided.
      */
     getResponseHeader() {
-      return 'application/json'
+      return this.contentType
     }
     /**
      * Records arguments passed through the capture script's XHR open wrapper.
@@ -167,8 +172,22 @@ function createHarness(response: Response) {
         return constants
       }
 
-      if (id === '~/utils/video') {
-        return video
+      if (id === '~/utils/replay/broadcast') {
+        return broadcast
+      }
+
+      if (id === '~/utils/isRecord') {
+        return {
+          isRecord,
+        }
+      }
+
+      if (id === '~/utils/video/identity') {
+        return identity
+      }
+
+      if (id === '~/utils/video/posts') {
+        return posts
       }
 
       throw new Error(id)
@@ -197,16 +216,48 @@ test('boots independently, preserves fetch promise and leaves response readable'
   await setImmediate()
   await setImmediate()
   assert.equal(
-    video.isRecord(harness.messages[0]) && harness.messages[0]['type'],
+    isRecord(harness.messages[0]) && harness.messages[0]['type'],
     'capture-ready',
   )
   assert.equal(
     harness.messages.some(
-      message => video.isRecord(message) && message['type'] === 'post',
+      message => isRecord(message) && message['type'] === 'post',
     ),
     true,
   )
   assert.deepEqual(await response.json(), payload)
+})
+
+test('ignores direct-message operations and responses redirected outside the capture scope', async () => {
+  const tweetUrl = 'https://x.com/i/api/graphql/hash/TweetDetail'
+  const messageUrl = 'https://x.com/i/api/graphql/hash/DmAllSearchSlice'
+  const redirected = Response.json(payload)
+
+  Object.defineProperty(redirected, 'url', {
+    value: 'https://example.org/i/api/graphql/hash/TweetDetail',
+  })
+
+  for (const [input, response] of [
+    [messageUrl, Response.json(payload)],
+    [tweetUrl, redirected],
+  ] as const) {
+    const harness = createHarness(response)
+    const captureFetch = harness.window.fetch as (
+      url: string,
+    ) => Promise<Response>
+    const xhr = new harness.MockXhr()
+
+    await captureFetch(input)
+    xhr.open('GET', input)
+    xhr.responseURL = response.url || input
+    xhr.send()
+    await setImmediate()
+    await setImmediate()
+    assert.deepEqual(
+      harness.messages.map(message => isRecord(message) && message['type']),
+      ['capture-ready'],
+    )
+  }
 })
 
 test('replays cached videos when the isolated script starts later', async () => {
@@ -223,7 +274,7 @@ test('replays cached videos when the isolated script starts later', async () => 
   })
   assert.equal(
     harness.messages.filter(
-      message => video.isRecord(message) && message['type'] === 'post',
+      message => isRecord(message) && message['type'] === 'post',
     ).length,
     1,
   )
@@ -231,6 +282,98 @@ test('replays cached videos when the isolated script starts later', async () => 
     'GET',
     'https://x.com/i/api/graphql/hash/TweetDetail',
   ])
+})
+
+test('joins a direct BroadcastQuery response with a Periscope playback response missing its content type', async () => {
+  const broadcastId = 'FixtureReplay'
+  const mediaKey = '28_1200'
+  const playlist = 'https://prod-fastly-p.video.pscp.tv/replay/master.m3u8'
+  const response = new Response(
+    new TextEncoder().encode(
+      JSON.stringify({ source: { location: playlist, streamType: 'HLS' } }),
+    ),
+  )
+  const harness = createHarness(response)
+  const fetch = harness.window.fetch as (url: string) => Promise<Response>
+  const xhr = new harness.MockXhr()
+
+  assert.equal(response.headers.get('content-type'), null)
+  await fetch(`https://api.x.com/1.1/live_video_stream/status/${mediaKey}`)
+
+  xhr.responseType = 'text'
+  xhr.responseText = JSON.stringify({
+    data: {
+      broadcast_by_rest_id: {
+        available_for_replay: true,
+        broadcast_id: broadcastId,
+        media_key: mediaKey,
+        state: 'Ended',
+      },
+    },
+  })
+  xhr.open('GET', 'https://api.x.com/graphql/hash/BroadcastQuery')
+  xhr.send()
+  await setImmediate()
+  await setImmediate()
+
+  const replay = harness.messages.find(
+    message => isRecord(message) && message['type'] === 'broadcast-replay',
+  )
+
+  assert.ok(isRecord(replay))
+  assert.equal(
+    broadcast.normalizeBroadcastReplay(replay['replay'])?.playlist,
+    playlist,
+  )
+  assert.equal(
+    broadcast.normalizeBroadcastReplay(replay['replay'])?.post.broadcastId,
+    broadcastId,
+  )
+})
+
+test('captures an X replay when the same-origin playback XHR has no content type', () => {
+  const harness = createHarness(Response.json(payload))
+  const xhr = new harness.MockXhr()
+  const broadcastId = 'FixtureReplay'
+  const mediaKey = '28_1200'
+  const playlist = 'https://prod-fastly-p.video.pscp.tv/replay/master.m3u8'
+
+  xhr.responseType = ''
+  xhr.open('GET', '/i/api/graphql/hash/BroadcastQuery')
+  xhr.responseURL = 'https://x.com/i/api/graphql/hash/BroadcastQuery'
+  xhr.responseText = JSON.stringify({
+    data: {
+      broadcast: {
+        available_for_replay: true,
+        broadcast_id: broadcastId,
+        media_key: mediaKey,
+        state: 'Ended',
+      },
+    },
+  })
+  xhr.send()
+
+  const playbackPath = `/i/api/1.1/live_video_stream/status/${mediaKey}`
+
+  xhr.open('GET', playbackPath)
+  xhr.responseURL = `https://x.com${playbackPath}`
+  xhr.contentType = null
+  xhr.responseText = JSON.stringify({ source: { location: playlist } })
+  xhr.send()
+
+  const replay = harness.messages.find(
+    message => isRecord(message) && message['type'] === 'broadcast-replay',
+  )
+
+  assert.ok(isRecord(replay))
+  assert.equal(
+    broadcast.normalizeBroadcastReplay(replay['replay'])?.playlist,
+    playlist,
+  )
+  assert.equal(
+    broadcast.normalizeBroadcastReplay(replay['replay'])?.post.broadcastId,
+    broadcastId,
+  )
 })
 
 test('captures text JSON while ignoring malformed and non-object XHR payloads', () => {
@@ -252,7 +395,7 @@ test('captures text JSON while ignoring malformed and non-object XHR payloads', 
   }
 
   const posts = harness.messages.filter(
-    message => video.isRecord(message) && message['type'] === 'post',
+    message => isRecord(message) && message['type'] === 'post',
   )
 
   assert.equal(posts.length, 1)

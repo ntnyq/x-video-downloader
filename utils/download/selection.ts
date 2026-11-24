@@ -1,13 +1,17 @@
 import { differenceBy, isUndefined, unique } from '@ntnyq/utils'
-import { createDownloadRequest, selectPreferredVariant } from './preferences'
-import type { QualityPreference } from '../types/download'
+import { selectPreferredVariant } from '../video/variants'
+import { createDownloadRequest } from './requests'
+import type { QualityPreference } from '../../types/download'
 import type {
   DownloadRequest,
   VideoMedia,
   VideoPost,
   VideoVariant,
-} from '../types/video'
+} from '../../types/video'
 
+/**
+ * Manual quality choices and batch selection exclusions for the current page.
+ */
 export interface VideoSelectionState {
   /**
    * Manual quality choices indexed by post identifier and one-based media position.
@@ -19,6 +23,9 @@ export interface VideoSelectionState {
   excludedKeys: string[]
 }
 
+/**
+ * Media entry with the quality and batch selection resolved for display.
+ */
 export interface VideoSelectionRow {
   /**
    * Stable post and media identity shared by selection and download requests.
@@ -46,6 +53,9 @@ export interface VideoSelectionRow {
   variant?: VideoVariant
 }
 
+/**
+ * Filters and quality override for a download action.
+ */
 export interface VideoSelectionScope {
   /**
    * Optional post filter for a per-post download action.

@@ -4,11 +4,12 @@ import { browser, defineContentScript } from '#imports'
 import InlineDownloadButton from '~/components/video/InlineDownloadButton.vue'
 import ToolbarDownloadButton from '~/components/video/ToolbarDownloadButton.vue'
 import { X_MATCHES } from '~/constants/video'
+import { stopExtensionListener } from '~/utils/extension/context'
+import { isRecord } from '~/utils/isRecord'
 import { logger } from '~/utils/logger'
-import { newUiSetting } from '~/utils/settings'
-import { isRecord } from '~/utils/video'
+import { newUiSetting } from '~/utils/storage/downloadPreferences'
 import App from './App.vue'
-import { createPageVideos, getArticlePostId } from './pageVideos'
+import { createPageVideos } from './pageVideos'
 import { createDisposableShadowRootUi } from './shadowUi'
 import type { ContentScriptContext } from '#imports'
 
@@ -57,6 +58,10 @@ export default defineContentScript({
      * @param postId - Optional post identifier used to focus the panel on an inline selection.
      */
     function open(postId?: string) {
+      if (ctx.isInvalid) {
+        return
+      }
+
       selectedPostId.value = postId
       isOpen.value = true
       videos.requestReplay()
@@ -80,6 +85,11 @@ export default defineContentScript({
         videos.scan()
         videos.requestReplay()
         respond(videos.snapshot.value)
+      } else if (message['type'] === 'get-captured-broadcast-replay') {
+        // Reserve playlist URLs for the background-to-content handoff.
+        if (!sender.tab) {
+          respond(videos.getReplay(message['broadcastId']) ?? null)
+        }
       } else if (message['type'] === 'toggle-panel') {
         if (isOpen.value) {
           isOpen.value = false
@@ -92,7 +102,11 @@ export default defineContentScript({
     }
 
     browser.runtime.onMessage.addListener(listener)
-    ctx.onInvalidated(() => browser.runtime.onMessage.removeListener(listener))
+    ctx.onInvalidated(() =>
+      stopExtensionListener(() =>
+        browser.runtime.onMessage.removeListener(listener),
+      ),
+    )
 
     await waitForBody(ctx)
 
@@ -185,7 +199,7 @@ export default defineContentScript({
       videos.scan()
     })
 
-    ctx.onInvalidated(stopUiSetting)
+    ctx.onInvalidated(() => stopExtensionListener(stopUiSetting))
 
     try {
       const value = await newUiSetting.getValue()
@@ -228,7 +242,7 @@ export default defineContentScript({
       pending.add(article)
       const version = uiVersion
       let removeButton: (() => void) | undefined
-      let hasAnchorChanged = false
+      let needsRescan = false
 
       try {
         const actions = getActions(article)
@@ -294,14 +308,17 @@ export default defineContentScript({
         })
 
         removeButton = () => button.remove()
-        hasAnchorChanged = getActions(article) !== actions
+        needsRescan =
+          !ctx.isInvalid
+          && article.isConnected
+          && (getActions(article) !== actions
+            || videos.getArticleVideoId(article) !== postId)
 
         if (
           ctx.isInvalid
           || version !== uiVersion
-          || hasAnchorChanged
           || !article.isConnected
-          || getArticlePostId(article) !== postId
+          || needsRescan
         ) {
           removeButton()
 
@@ -320,7 +337,7 @@ export default defineContentScript({
       } finally {
         pending.delete(article)
 
-        if ((version !== uiVersion || hasAnchorChanged) && !ctx.isInvalid) {
+        if ((version !== uiVersion || needsRescan) && !ctx.isInvalid) {
           videos.scan()
         }
       }
@@ -330,7 +347,7 @@ export default defineContentScript({
       for (const [article, control] of controls) {
         if (
           !article.isConnected
-          || getArticlePostId(article) !== control.id
+          || videos.getArticleVideoId(article) !== control.id
           || control.anchor !== (getActions(article) ?? article)
           || !article.querySelector('x-video-download-button')
         ) {
@@ -344,7 +361,7 @@ export default defineContentScript({
           continue
         }
 
-        const postId = getArticlePostId(article)
+        const postId = videos.getArticleVideoId(article)
 
         if (!postId) {
           continue

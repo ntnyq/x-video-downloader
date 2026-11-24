@@ -3,9 +3,13 @@ import { Button } from '~/components/ui/button'
 import type { IconName } from '~/types/icon'
 
 defineProps<{
-  /** Accessible action name, also shown as a native tooltip. */
+  /**
+   * Accessible action name, also shown as a native tooltip.
+   */
   label: string
-  /** Icon identifying the action. */
+  /**
+   * Icon identifying the action.
+   */
   icon: IconName
 }>()
 

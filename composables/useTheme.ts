@@ -1,7 +1,8 @@
 import { createSharedComposable } from '@vueuse/core'
 import { DEFAULT_THEME } from '~/constants/theme'
-import { getThemeStyle, normalizeTheme } from '~/utils/theme'
-import { themeSetting } from '~/utils/themeSetting'
+import { stopExtensionListener } from '~/utils/extension/context'
+import { themeSetting } from '~/utils/storage/themeSetting'
+import { getThemeStyle, normalizeTheme } from '~/utils/ui/theme'
 
 /**
  * Shares the saved accent and storage subscription within an extension context.
@@ -23,15 +24,21 @@ export const useTheme = createSharedComposable(() => {
   themeSetting
     .getValue()
     .then(value => {
-      if (!isDisposed && !hasChanged) {
+      if (isDisposed) {
+        return
+      }
+
+      if (!hasChanged) {
         theme.value = normalizeTheme(value)
       }
 
       isReady.value = true
     })
     .catch(() => {
-      themeError.value = i18n.t('theme.readFailed')
-      isReady.value = true
+      if (!isDisposed) {
+        themeError.value = i18n.t('theme.readFailed')
+        isReady.value = true
+      }
     })
 
   /**
@@ -66,7 +73,7 @@ export const useTheme = createSharedComposable(() => {
 
   onScopeDispose(() => {
     isDisposed = true
-    stop()
+    stopExtensionListener(stop)
   })
 
   return {
