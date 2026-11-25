@@ -22,6 +22,12 @@ changelog:
       bundledChangelog: 更新後自動顯示更新日誌，也可從設定頁查看，支援五種語言，並以 emoji 標示新功能、改進與修正。
       inlineDownloadStyle: 貼文下方的下載控制項採用更輕量的樣式，簡化下載文字，搭配灰色圖示與藍色懸停回饋，保留原有位置與互動。
       postActionDownloadUi: 可在設定中開啟新版下載UI，將下載圖示放入貼文操作列。按一下開啟下載面板，按兩下以最高畫質下載該貼文所有可下載的影片。舊版下載UI 暫時維持預設，即將棄用。
+    v0_0_5:
+      downloadQueueReliability: 修正 Firefox 中暫停後的下載無法正常繼續的問題。瀏覽器重複使用下載 ID 時，佇列操作與歷史紀錄仍能對應正確的下載。重複下載失敗後可從歷史紀錄重試。
+      liveReplayDownloads: 可從直播回放頁或時間軸卡片選擇畫質，將受支援的 X 直播回放儲存為 MP4。即使回放的音視訊軌道採用不同格式，儲存後的影音也會同步開始。
+      narrowPopupLayout: 下載彈出視窗可配合較小的瀏覽器可視區域，避免內容溢出。
+      postVideoCapture: 影片偵測會略過無關的時間連結與格式錯誤的媒體連結。擷取範圍也會排除私訊請求，以及重新導向至支援的端點之外的回應。
+      replayQualityFallback: 播放清單未為首選畫質指定可用音軌時，下載回放會自動選擇另一檔相容畫質。
   title: 更新日誌
   view: 查看更新日誌
 common:
@@ -114,7 +120,7 @@ filename:
   variables: 範本變數
 guide:
   description: 下載設定與使用說明
-  formatsHelp: 支援 MP4 影片與以影片形式儲存的 GIF；暫不支援僅有 HLS 分段的直播或影片。頁面中的 blob 網址不是可直接儲存的 MP4。
+  formatsHelp: 支援 MP4 影片、以影片形式儲存的 GIF，以及格式相容、已結束且未加密的 X 直播回放。頁面中的 blob 網址不是可直接儲存的 MP4。
   languageHelp: 介面跟隨瀏覽器語言，支援英文、簡體中文、繁體中文、日文與韓文。
   privacyHelp: 擴充功能在本機讀取頁面已載入的影片資訊，不需要 API Key，也不會將貼文、Cookie 或登入資訊傳送給第三方解析服務。
   shortcutHelp: '也可以點選工具列的擴充功能圖示，或按 Alt + O 開啟下載面板。'
@@ -179,7 +185,7 @@ replay:
   fetching: 正在下載分段（$1 / $2）…
   instructions: 選擇畫質，並在瀏覽器提示時允許存取 $1。請保持此分頁開啟，直到 MP4 儲存完成。
   limit: 此回放的播放清單或分段超過處理上限。
-  permissionDenied: 請允許存取 video.twimg.com 以下載回放。
+  permissionDenied: 請允許存取回放的媒體伺服器以下載回放。
   preferResolution: 優先 $1
   quality: 畫質
   renditionsFailed: 所有可用畫質均處理失敗，最後一檔在第 $1 個分段失敗。

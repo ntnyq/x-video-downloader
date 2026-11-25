@@ -6,6 +6,32 @@ import type { ChangelogEntry } from '../types/changelog'
  */
 export const CHANGELOG_ENTRIES = [
   {
+    date: '2026-11-26',
+    version: '0.0.5',
+    changes: [
+      {
+        key: 'changelog.releases.v0_0_5.liveReplayDownloads',
+        type: 'changelog.feature',
+      },
+      {
+        key: 'changelog.releases.v0_0_5.downloadQueueReliability',
+        type: 'changelog.fix',
+      },
+      {
+        key: 'changelog.releases.v0_0_5.replayQualityFallback',
+        type: 'changelog.fix',
+      },
+      {
+        key: 'changelog.releases.v0_0_5.postVideoCapture',
+        type: 'changelog.fix',
+      },
+      {
+        key: 'changelog.releases.v0_0_5.narrowPopupLayout',
+        type: 'changelog.fix',
+      },
+    ],
+  },
+  {
     date: '2026-11-14',
     version: '0.0.4',
     changes: [

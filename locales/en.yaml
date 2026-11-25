@@ -22,6 +22,12 @@ changelog:
       bundledChangelog: View release notes after updates or from Settings, in five languages, with emoji labels for new features, improvements and fixes.
       inlineDownloadStyle: Lighter post download controls use a shorter Download label, muted icons and blue hover feedback while keeping their existing position and behavior.
       postActionDownloadUi: Opt in to the new download UI to place a download icon in the post action row. Click to open the download panel or double-click to download every available video at the highest quality. The legacy UI remains the default for now and will be deprecated soon.
+    v0_0_5:
+      downloadQueueReliability: Paused downloads resume correctly in Firefox, and reused browser download IDs no longer mix up queue actions or history. Failed repeat downloads can be retried from history.
+      liveReplayDownloads: Save supported X live replays as MP4 from broadcast pages or timeline cards, with a choice of video quality. Video and audio start in sync even when the replay supplies them in different formats.
+      narrowPopupLayout: The download popup fits smaller browser viewports without overflowing.
+      postVideoCapture: Video detection skips unrelated timestamps and malformed media links. Capture also excludes direct-message requests and responses redirected outside supported endpoints.
+      replayQualityFallback: Replay downloads choose another compatible quality when the playlist does not specify a usable audio track for the preferred quality.
   title: Changelog
   view: View changelog
 common:
@@ -114,7 +120,7 @@ filename:
   variables: Template variables
 guide:
   description: Download settings and getting started
-  formatsHelp: Supports MP4 videos and GIFs stored as video. HLS-only streams are not supported yet. A blob URL is not a directly downloadable MP4.
+  formatsHelp: Supports MP4 videos, GIFs stored as video, and completed, unencrypted X live replays in compatible formats. A blob URL is not a directly downloadable MP4.
   languageHelp: 'The interface follows your browser language. Available in English, Simplified Chinese, Traditional Chinese, Japanese and Korean.'
   privacyHelp: 'The extension reads loaded video information locally. No API key is needed, and posts, cookies and login details are never sent to third-party download services.'
   shortcutHelp: 'You can also click the toolbar icon or press Alt + O to open the download panel.'
@@ -179,7 +185,7 @@ replay:
   fetching: Downloading segments ($1 / $2)…
   instructions: Choose a quality and allow access to $1 if prompted. Keep this tab open until the MP4 is saved.
   limit: The replay playlist or one of its parts exceeds a technical limit.
-  permissionDenied: Allow access to video.twimg.com to download the replay.
+  permissionDenied: Allow access to the replay’s media server to download the replay.
   preferResolution: Prefer $1
   quality: Quality
   renditionsFailed: All available qualities failed. Could not process segment $1 at the last quality.

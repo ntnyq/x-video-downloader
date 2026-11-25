@@ -22,6 +22,12 @@ changelog:
       bundledChangelog: 更新后自动展示更新日志，也可从设置页查看，支持五种语言，并以 emoji 标记新功能、改进和修复。
       inlineDownloadStyle: 帖子下方的下载控件采用更轻量的样式，简化下载文案，搭配灰色图标与蓝色悬停反馈，保留原有位置和交互。
       postActionDownloadUi: 可在设置中开启新版下载UI，将下载图标放入帖子操作栏。单击打开下载面板，双击以最高画质下载该帖所有可下载的视频。旧版下载UI 暂时保持默认，很快将废弃。
+    v0_0_5:
+      downloadQueueReliability: 修复 Firefox 中暂停后的下载无法正常继续的问题。浏览器复用下载 ID 时，队列操作和历史记录仍能对应正确的下载。重复下载失败后可从历史记录重试。
+      liveReplayDownloads: 可从直播回放页或时间线卡片选择画质，将受支持的 X 直播回放保存为 MP4。即使回放的音视频轨道采用不同格式，保存后的音画也会同步开始。
+      narrowPopupLayout: 下载弹窗适应较小的浏览器视口，避免内容溢出。
+      postVideoCapture: 视频检测会跳过无关的时间链接和格式错误的媒体链接。捕获范围还会排除私信请求以及重定向到受支持接口之外的响应。
+      replayQualityFallback: 播放列表未为首选画质指定可用音轨时，下载回放会自动选择另一档兼容画质。
   title: 更新日志
   view: 查看更新日志
 common:
@@ -114,7 +120,7 @@ filename:
   variables: 模板变量
 guide:
   description: 下载设置与使用说明
-  formatsHelp: 支持 MP4 视频和以视频形式存储的 GIF；暂不支持仅有 HLS 分片的直播或视频。页面中的 blob 地址不是可直接保存的 MP4。
+  formatsHelp: 支持 MP4 视频、以视频形式存储的 GIF，以及格式兼容、已结束且未加密的 X 直播回放。页面中的 blob 地址不是可直接保存的 MP4。
   languageHelp: 界面跟随浏览器语言，支持英文、简体中文、繁体中文、日文和韩文。
   privacyHelp: 插件在本机读取页面已加载的视频信息，不需要 API Key，也不会向第三方解析站发送帖子、Cookie 或登录信息。
   shortcutHelp: '也可以点击工具栏插件图标，或使用 Alt + O 打开下载面板。'
@@ -179,7 +185,7 @@ replay:
   fetching: 正在下载分片（$1 / $2）…
   instructions: 选择画质，并在浏览器提示时允许访问 $1。请保持此标签页打开，直到 MP4 保存完成。
   limit: 此回放的播放列表或分片超出处理限制。
-  permissionDenied: 请允许访问 video.twimg.com 以下载回放。
+  permissionDenied: 请允许访问回放的媒体服务器以下载回放。
   preferResolution: 优先 $1
   quality: 画质
   renditionsFailed: 所有可用画质均处理失败，最后一档在第 $1 个分片失败。
