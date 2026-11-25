@@ -19,7 +19,10 @@
     "lint": "eslint",
     "postinstall": "wxt prepare",
     "prepare": "husky",
+    "preversion": "tsx scripts/prepareRelease.ts --check && pnpm release:check",
     "release": "bumpp",
+    "release:check": "tsx --test tests/changelog.test.ts tests/i18n.test.ts",
+    "release:prepare": "tsx scripts/prepareRelease.ts",
     "test": "tsx --test tests/*.test.ts",
     "typecheck": "vue-tsc --noEmit",
     "zip": "wxt zip",
@@ -58,7 +61,8 @@
     "typescript": "^6.0.3",
     "unplugin-vue-components": "^32.1.0",
     "vue-tsc": "^3.3.14",
-    "wxt": "^0.21.5"
+    "wxt": "^0.21.5",
+    "yaml": "^2.9.1"
   },
   "nano-staged": {
     "*.{js,ts,mjs,tsx,vue,md,svg,yml,yaml,toml,json}": "eslint --fix",

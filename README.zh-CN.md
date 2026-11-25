@@ -201,7 +201,11 @@ AI 辅助提交按 `AGENTS.md` 的要求使用项目内的 [prepare-changelog �
 
 翻译使用嵌套的 YAML 命名空间，例如 `theme.title`、`filename.template` 和 `download.state.queued`。请保持五份语言文件的结构与占位符一致，通过 `i18n.t('theme.title')` 等方式访问。WXT 会生成带类型的点分键，并将浏览器消息键转换为以下划线连接的形式，因此清单文件使用 `__MSG_extension_name__` 等引用。
 
-发布前，在 `constants/changelog.ts` 顶部添加发布日期和变更，并在五个 `locales/*.yaml` 文件中添加对应的 `changelog.releases.<version>.*` 消息。版本与 `package.json` 一致，按新版本在前排列，说明用户可见的变更。测试会检查最新条目的版本和所有变更的翻译。
+发布前先审核并提交待发布日志及五种语言的翻译，然后在干净的工作区运行 `pnpm release`。也可用 `pnpm release --release 0.0.6` 指定版本。版本变更前会检查待发布日志和现有翻译，随后把待发布条目写入扩展内置日志和五个语言文件，清空已发布的条目。发布日期使用 UTC。
+
+版本号、内置日志、翻译和待发布草稿会纳入同一个发布提交。`pnpm release:check` 会在提交和打标签前检查内置版本、翻译键及占位符。GitHub Release 工作流还会核对标签与版本号是否一致。
+
+若已手动修改版本号，可运行 `pnpm release:prepare` 生成内置日志和翻译，再审阅改动并运行 `pnpm release:check`。
 
 更新日志随扩展打包，可以离线查看。首次安装打开欢迎页，版本更新打开 `changelog.html`。WXT 开发更新、同版本重新加载或单独更新浏览器时，扩展不会自动打开更新日志。
 

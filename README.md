@@ -201,7 +201,19 @@ You can also invoke `$prepare-changelog` explicitly to prepare notes from the cu
 
 Locale messages use nested YAML namespaces, for example `theme.title`, `filename.template`, and `download.state.queued`. Keep the same structure and placeholders in all five locale files, and access messages with `i18n.t('theme.title')`. WXT generates typed dotted keys and flattens them with underscores for browser messages; manifest references therefore use forms such as `__MSG_extension_name__`.
 
-Before publishing a version, prepend its release date and changes to `constants/changelog.ts` and add the referenced `changelog.releases.<version>.*` messages to all five `locales/*.yaml` files. Use the same version as `package.json`, keep entries newest first, and describe user-visible changes. Tests check that the latest entry matches the package version and that every change is translated.
+To release, first review and commit the pending notes and their five translations, then run from a clean working tree:
+
+```sh
+pnpm release
+# Or choose a version explicitly:
+pnpm release --release 0.0.6
+```
+
+The `preversion` check rejects empty notes, missing or blank translations, duplicate IDs, and an outdated `baseTag` before changing the version. `bump.config.ts` then promotes all pending items into a new entry in `constants/changelog.ts`, adds the corresponding messages to all five locale files, and clears the incorporated pending notes. The release date uses UTC. Existing releases and translations are preserved.
+
+The version bump, history, five locale files, and cleared draft are included in the same release commit. `pnpm release:check` must pass before bumpp creates the commit, tag, or push. It checks that the latest entry matches `package.json`, each release references its own messages, and all five translations have matching keys and placeholders. The tag-triggered Release workflow repeats these checks and verifies the tag matches the package version before creating a GitHub Release.
+
+For a manually bumped version, `pnpm release:prepare` performs the same promotion without committing, tagging, or pushing. Review the generated changes and run `pnpm release:check`. If a check fails after generation, the files remain available for correction and review; no release commit or tag is created.
 
 The changelog is packaged with the extension and makes no release-note network requests. First installation opens the welcome page; version updates open `changelog.html`. WXT development updates, same-version reloads and browser-only updates do not open the changelog.
 

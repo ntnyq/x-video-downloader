@@ -23,6 +23,9 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm release:check
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
       - run: pnpm exec changelogithub
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

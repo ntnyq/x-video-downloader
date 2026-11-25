@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import process from 'node:process'
 import { test } from 'node:test'
 import { CHANGELOG_ENTRIES } from '../constants/changelog'
 import { version } from '../package.json'
@@ -21,5 +22,22 @@ test('bundled release history starts with the package version and contains uniqu
     assert.match(entry.version, /^\d+\.\d+\.\d+(?:\.\d+)?$/)
     assert.equal(new Date(entry.date).toISOString().slice(0, 10), entry.date)
     assert.ok(entry.changes.length > 0)
+
+    for (const change of entry.changes) {
+      assert.ok(
+        change.key.startsWith(
+          `changelog.releases.v${entry.version.replaceAll('.', '_')}.`,
+        ),
+        `Release ${entry.version} must reference its own translated messages`,
+      )
+    }
+  }
+})
+
+test('the release tag matches the package version before publication', () => {
+  const tag = process.env['RELEASE_TAG']
+
+  if (tag) {
+    assert.equal(tag, `v${version}`, 'The release tag must match package.json')
   }
 })
