@@ -13,11 +13,19 @@ import {
 } from '~/components/ui/select'
 import { Switch } from '~/components/ui/switch'
 import { useDownloadPreferences } from '~/composables/useDownloadPreferences'
-import { MAX_CONCURRENCY, QUALITY_OPTIONS } from '~/constants/preferences'
-import { normalizeQuality } from '~/utils/download/preferences'
+import {
+  DOWNLOAD_BUTTON_POSITION_OPTIONS,
+  MAX_CONCURRENCY,
+  QUALITY_OPTIONS,
+} from '~/constants/preferences'
+import {
+  normalizeDownloadButtonPosition,
+  normalizeQuality,
+} from '~/utils/download/preferences'
 import { logger } from '~/utils/logger'
 import {
   concurrencySetting,
+  downloadButtonPositionSetting,
   newUiSetting,
   qualitySetting,
   saveAsSetting,
@@ -61,10 +69,21 @@ function updateSaveAs(value: boolean) {
 }
 
 /**
- * Persists the opt-in action-row UI without changing existing users' layout.
+ * Persists the opt-in icon UI without changing existing users' layout.
  */
 function updateNewUi(value: boolean) {
   return savePreference(() => newUiSetting.setValue(value))
+}
+
+/**
+ * Persists the selected icon placement for the current and future X tabs.
+ */
+function updateDownloadButtonPosition(value: string) {
+  return savePreference(() =>
+    downloadButtonPositionSetting.setValue(
+      normalizeDownloadButtonPosition(value),
+    ),
+  )
 }
 
 /**
@@ -115,6 +134,44 @@ function updateConcurrency(value: number) {
         aria-describedby="new-post-ui-help new-post-ui-deprecation"
         class="mt-0.5 shrink-0"
       />
+    </div>
+    <div
+      v-if="preferences.useNewUi"
+      class="grid grid-cols-[minmax(0,1fr)_minmax(7rem,40%)] items-center gap-4"
+    >
+      <Label
+        for="download-button-position"
+        class="text-sm"
+      >
+        {{ i18n.t('settings.downloadButtonPosition') }}
+      </Label>
+      <Select
+        @update:model-value="updateDownloadButtonPosition"
+        :model-value="preferences.downloadButtonPosition"
+        :disabled="!isReady || isSaving"
+      >
+        <SelectTrigger
+          id="download-button-position"
+          aria-describedby="download-button-position-help"
+          class="text-xs"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem
+            v-for="option in DOWNLOAD_BUTTON_POSITION_OPTIONS"
+            :key="option.value"
+            :value="option.value"
+            >{{ i18n.t(option.label) }}</SelectItem
+          >
+        </SelectContent>
+      </Select>
+      <p
+        id="download-button-position-help"
+        class="col-span-2 text-xs leading-relaxed text-muted-foreground"
+      >
+        {{ i18n.t('settings.downloadButtonPositionHelp') }}
+      </p>
     </div>
     <div
       class="grid grid-cols-[minmax(0,1fr)_minmax(7rem,40%)] items-center gap-4"

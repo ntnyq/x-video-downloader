@@ -3,15 +3,21 @@ import { createApp, h, shallowRef } from 'vue'
 import { browser, defineContentScript } from '#imports'
 import InlineDownloadButton from '~/components/video/InlineDownloadButton.vue'
 import ToolbarDownloadButton from '~/components/video/ToolbarDownloadButton.vue'
+import { DEFAULT_DOWNLOAD_BUTTON_POSITION } from '~/constants/preferences'
 import { X_MATCHES } from '~/constants/video'
+import { normalizeDownloadButtonPosition } from '~/utils/download/preferences'
 import { stopExtensionListener } from '~/utils/extension/context'
 import { isRecord } from '~/utils/isRecord'
 import { logger } from '~/utils/logger'
-import { newUiSetting } from '~/utils/storage/downloadPreferences'
+import {
+  downloadButtonPositionSetting,
+  newUiSetting,
+} from '~/utils/storage/downloadPreferences'
 import App from './App.vue'
 import { createPageVideos } from './pageVideos'
 import { createDisposableShadowRootUi } from './shadowUi'
 import type { ContentScriptContext } from '#imports'
+import type { DownloadButtonPosition } from '~/types/download'
 
 const log = logger.withTag('content')
 
@@ -39,7 +45,7 @@ export default defineContentScript({
          */
         id: string
         /**
-         * Native action group, or article fallback, used when this control was mounted.
+         * Native element used as the control's placement anchor.
          */
         anchor: Element
         /**
@@ -50,6 +56,8 @@ export default defineContentScript({
     >()
     const pending = new Set<Element>()
     let useNewUi = false
+    let downloadButtonPosition: DownloadButtonPosition =
+      DEFAULT_DOWNLOAD_BUTTON_POSITION
     let uiVersion = 0
 
     /**
@@ -179,7 +187,22 @@ export default defineContentScript({
 
     ui.mount()
 
+    /**
+     * Replaces controls after a layout change and invalidates pending mounts.
+     */
+    function remountControls() {
+      uiVersion++
+
+      for (const control of controls.values()) {
+        control.remove()
+      }
+
+      controls.clear()
+      videos.scan()
+    }
+
     let hasUiSettingChanged = false
+    let hasPositionChanged = false
     const stopUiSetting = newUiSetting.watch(value => {
       hasUiSettingChanged = true
       const nextUi = value === true
@@ -189,27 +212,48 @@ export default defineContentScript({
       }
 
       useNewUi = nextUi
-      uiVersion++
+      remountControls()
+    })
+    const stopPositionSetting = downloadButtonPositionSetting.watch(value => {
+      hasPositionChanged = true
+      const nextPosition = normalizeDownloadButtonPosition(value)
 
-      for (const control of controls.values()) {
-        control.remove()
+      if (nextPosition === downloadButtonPosition || ctx.isInvalid) {
+        return
       }
 
-      controls.clear()
-      videos.scan()
+      downloadButtonPosition = nextPosition
+
+      if (useNewUi) {
+        remountControls()
+      }
     })
 
     ctx.onInvalidated(() => stopExtensionListener(stopUiSetting))
+    ctx.onInvalidated(() => stopExtensionListener(stopPositionSetting))
 
-    try {
-      const value = await newUiSetting.getValue()
-
-      if (!hasUiSettingChanged) {
-        useNewUi = value === true
-      }
-    } catch (error) {
-      log.warn('Could not read the post UI setting', error)
-    }
+    await Promise.all([
+      newUiSetting
+        .getValue()
+        .then(value => {
+          if (!hasUiSettingChanged) {
+            useNewUi = value === true
+          }
+        })
+        .catch(error => {
+          log.warn('Could not read the post UI setting', error)
+        }),
+      downloadButtonPositionSetting
+        .getValue()
+        .then(value => {
+          if (!hasPositionChanged) {
+            downloadButtonPosition = normalizeDownloadButtonPosition(value)
+          }
+        })
+        .catch(error => {
+          log.warn('Could not read the download button position', error)
+        }),
+    ])
 
     if (ctx.isInvalid) {
       return
@@ -224,6 +268,63 @@ export default defineContentScript({
           '[data-testid="reply"], [data-testid="retweet"], [data-testid="like"]',
         )
         ?.closest('[role="group"]')
+    }
+
+    /**
+     * Finds a sibling slot immediately before the owning post's More control.
+     * Walk past column wrappers so the injected icon shares a horizontal row.
+     */
+    function getHeaderAnchor(article: Element) {
+      for (const menu of article.querySelectorAll('[data-testid="caret"]')) {
+        if (
+          menu.closest('article') !== article
+          || menu.closest('[data-testid="quoteTweet"], [role="link"]')
+        ) {
+          continue
+        }
+
+        let anchor = menu.closest('button, [role="button"]') ?? menu
+
+        while (anchor.parentElement && anchor.parentElement !== article) {
+          const parent = anchor.parentElement
+          const style = getComputedStyle(parent)
+
+          if (
+            (style.display === 'flex' || style.display === 'inline-flex')
+            && style.flexDirection === 'row'
+          ) {
+            return anchor
+          }
+
+          anchor = parent
+        }
+      }
+    }
+
+    /**
+     * Resolves the selected placement, falling back while a header is unavailable.
+     */
+    function getButtonPlacement(article: Element): {
+      anchor: Element
+      append: 'before' | 'after' | 'last'
+    } {
+      if (useNewUi && downloadButtonPosition === 'postHeader') {
+        const headerAnchor = getHeaderAnchor(article)
+
+        if (headerAnchor) {
+          return {
+            anchor: headerAnchor,
+            append: 'before',
+          }
+        }
+      }
+
+      const actions = getActions(article)
+
+      return {
+        anchor: actions ?? article,
+        append: useNewUi && actions ? 'last' : actions ? 'after' : 'last',
+      }
     }
 
     /**
@@ -245,17 +346,15 @@ export default defineContentScript({
       let needsRescan = false
 
       try {
-        const actions = getActions(article)
-        const isToolbar = useNewUi && !!actions
+        const placement = getButtonPlacement(article)
         const button = await createDisposableShadowRootUi(ctx, {
           name: 'x-video-download-button',
           position: 'inline',
-          anchor: actions ?? article,
-          append: isToolbar ? 'last' : actions ? 'after' : 'last',
+          ...placement,
           isolateEvents: ['click', 'dblclick', 'keydown', 'keyup', 'keypress'],
           // WXT resets the host with `all: initial !important`; keep the icon a fixed flex item.
           css: useNewUi
-            ? ':host { display: inline-flex !important; align-items: center !important; flex-shrink: 0 !important; } body { background: transparent; }'
+            ? `:host { display: inline-flex !important; align-items: center !important; flex-shrink: 0 !important;${placement.append === 'before' ? ' margin-inline-end: 8px !important;' : ''} } body { background: transparent; }`
             : undefined,
           /**
            * Mounts an inline download button inside its localized shadow container.
@@ -311,7 +410,7 @@ export default defineContentScript({
         needsRescan =
           !ctx.isInvalid
           && article.isConnected
-          && (getActions(article) !== actions
+          && (getButtonPlacement(article).anchor !== placement.anchor
             || videos.getArticleVideoId(article) !== postId)
 
         if (
@@ -328,7 +427,7 @@ export default defineContentScript({
         button.mount()
         controls.set(article, {
           id: postId,
-          anchor: actions ?? article,
+          anchor: placement.anchor,
           remove: removeButton,
         })
       } catch (error) {
@@ -348,7 +447,7 @@ export default defineContentScript({
         if (
           !article.isConnected
           || videos.getArticleVideoId(article) !== control.id
-          || control.anchor !== (getActions(article) ?? article)
+          || control.anchor !== getButtonPlacement(article).anchor
           || !article.querySelector('x-video-download-button')
         ) {
           control.remove()

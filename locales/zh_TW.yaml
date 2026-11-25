@@ -219,10 +219,14 @@ settings:
   concurrentDownloads: 同時下載數量
   confirmEachSave: 需逐一確認儲存位置。
   defaultQuality: 預設畫質
+  downloadButtonPosition: 下載按鈕位置
+  downloadButtonPositionHelp: 右上角位置顯示在貼文的「⋯」左側，切換後立即生效。
   downloads: 下載
   legacyUiDeprecated: 舊版下載UI 即將棄用，建議開啟新版下載UI。
   newUi: 新版下載UI
-  newUiHelp: 將下載圖示放入貼文操作列。按一下開啟下載面板，按兩下以最高畫質下載該貼文所有可下載的影片。
+  newUiHelp: 可選擇下載圖示的位置。按一下開啟下載面板，按兩下以最高畫質下載該貼文所有可下載的影片。
+  positionActionRow: 貼文操作列
+  positionPostHeader: 貼文右上角
   qualityHelp: 用於快速與批次下載的預設選擇。優先選擇不超過目標的解析度；直式影片以短邊計算。「節省空間」優先選擇低位元率。
   readFailed: 無法讀取下載設定，請重新開啟頁面。
   rules: 下載規則

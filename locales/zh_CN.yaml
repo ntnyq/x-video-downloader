@@ -219,10 +219,14 @@ settings:
   concurrentDownloads: 同时下载数量
   confirmEachSave: 需逐个确认保存位置。
   defaultQuality: 默认画质
+  downloadButtonPosition: 下载按钮位置
+  downloadButtonPositionHelp: 右上角位置显示在帖子的「⋯」左侧，切换后立即生效。
   downloads: 下载
   legacyUiDeprecated: 旧版下载UI 很快将废弃，建议开启新版下载UI。
   newUi: 新版下载UI
-  newUiHelp: 将下载图标放入帖子操作栏。单击打开下载面板，双击以最高画质下载该帖所有可下载的视频。
+  newUiHelp: 可选择下载图标的位置。单击打开下载面板，双击以最高画质下载该帖所有可下载的视频。
+  positionActionRow: 帖子操作栏
+  positionPostHeader: 帖子右上角
   qualityHelp: 用于快速下载与批量下载的默认选择。优先选择不超过目标的清晰度；竖屏按短边计算。节省空间优先选低码率。
   readFailed: 无法读取下载设置，请重新打开页面。
   rules: 下载规则

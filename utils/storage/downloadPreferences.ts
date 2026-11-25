@@ -1,11 +1,15 @@
 import { storage } from '#imports'
 import {
   DEFAULT_CONCURRENCY,
+  DEFAULT_DOWNLOAD_BUTTON_POSITION,
   DEFAULT_FILENAME_TEMPLATE,
   DEFAULT_QUALITY,
 } from '../../constants/preferences'
 import { normalizePreferences } from '../download/preferences'
-import type { QualityPreference } from '../../types/download'
+import type {
+  DownloadButtonPosition,
+  QualityPreference,
+} from '../../types/download'
 
 /**
  * Preference for prompting the user to choose a location for each download.
@@ -14,11 +18,18 @@ export const saveAsSetting = storage.defineItem<boolean>('local:saveAs', {
   fallback: false,
 })
 /**
- * Preference for showing the download icon in the post action row.
+ * Preference for enabling the post download icon with click and double-click actions.
  */
 export const newUiSetting = storage.defineItem<boolean>('local:useNewUi', {
   fallback: false,
 })
+/**
+ * Placement of the opt-in download icon in a post.
+ */
+export const downloadButtonPositionSetting =
+  storage.defineItem<DownloadButtonPosition>('local:downloadButtonPosition', {
+    fallback: DEFAULT_DOWNLOAD_BUTTON_POSITION,
+  })
 /**
  * Maximum number of downloads the queue can start concurrently.
  */
@@ -50,14 +61,21 @@ export const filenameSetting = storage.defineItem<string>(
  * @throws When reading any setting from extension storage fails.
  */
 export async function getDownloadPreferences() {
-  const [saveAs, quality, filenameTemplate, concurrency, useNewUi] =
-    await Promise.all([
-      saveAsSetting.getValue(),
-      qualitySetting.getValue(),
-      filenameSetting.getValue(),
-      concurrencySetting.getValue(),
-      newUiSetting.getValue(),
-    ])
+  const [
+    saveAs,
+    quality,
+    filenameTemplate,
+    concurrency,
+    useNewUi,
+    downloadButtonPosition,
+  ] = await Promise.all([
+    saveAsSetting.getValue(),
+    qualitySetting.getValue(),
+    filenameSetting.getValue(),
+    concurrencySetting.getValue(),
+    newUiSetting.getValue(),
+    downloadButtonPositionSetting.getValue(),
+  ])
 
   return normalizePreferences({
     saveAs,
@@ -65,5 +83,6 @@ export async function getDownloadPreferences() {
     filenameTemplate,
     concurrency,
     useNewUi,
+    downloadButtonPosition,
   })
 }

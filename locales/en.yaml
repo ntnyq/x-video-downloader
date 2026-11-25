@@ -219,10 +219,14 @@ settings:
   concurrentDownloads: Concurrent downloads
   confirmEachSave: Confirm each save location.
   defaultQuality: Default quality
+  downloadButtonPosition: Download button position
+  downloadButtonPositionHelp: The top-right position places the icon to the left of the post’s More (⋯) button. Changes apply immediately.
   downloads: Downloads
   legacyUiDeprecated: The legacy download UI will be deprecated soon. We recommend enabling the new download UI.
   newUi: New download UI
-  newUiHelp: Show the download icon in the post action row. Click to open the download panel; double-click to download every available video at the highest quality.
+  newUiHelp: Choose where the download icon appears. Click to open the download panel; double-click to download every available video at the highest quality.
+  positionActionRow: Post action row
+  positionPostHeader: Post top right
   qualityHelp: Used for quick and batch downloads. Chooses the best resolution within the target; portrait videos use the shorter edge. “Save space” prefers a lower bitrate.
   readFailed: Could not read download settings. Open the page again.
   rules: Download rules

@@ -2,11 +2,17 @@ import type { DownloadRequest } from './video'
 
 export type QualityPreference = '1080p' | '720p' | 'highest' | 'smallest'
 
+export type DownloadButtonPosition = 'actionRow' | 'postHeader'
+
 export interface DownloadPreferences {
   /**
    * Maximum number of transfers allowed to run concurrently, from 1 to 6.
    */
   concurrency: number
+  /**
+   * Placement of the opt-in download icon within each post.
+   */
+  downloadButtonPosition: DownloadButtonPosition
   /**
    * Filename pattern using author, date, postId, index, and quality tokens.
    */
@@ -20,7 +26,7 @@ export interface DownloadPreferences {
    */
   saveAs: boolean
   /**
-   * Whether post downloads use an icon in X's native action row.
+   * Whether post downloads use the icon UI with single- and double-click actions.
    */
   useNewUi: boolean
 }

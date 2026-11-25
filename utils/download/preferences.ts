@@ -1,6 +1,7 @@
 import { isBoolean, isInteger, isNumber, isString } from '@ntnyq/utils'
 import {
   DEFAULT_CONCURRENCY,
+  DEFAULT_DOWNLOAD_BUTTON_POSITION,
   DEFAULT_FILENAME_TEMPLATE,
   DEFAULT_QUALITY,
   MAX_CONCURRENCY,
@@ -9,6 +10,7 @@ import {
 import { isRecord } from '../isRecord'
 import { validateFilenameTemplate } from './filename'
 import type {
+  DownloadButtonPosition,
   DownloadPreferences,
   QualityPreference,
 } from '../../types/download'
@@ -42,6 +44,15 @@ export function normalizeQuality(value: unknown): QualityPreference {
 }
 
 /**
+ * Resolves the stored icon placement, defaulting to the action row.
+ */
+export function normalizeDownloadButtonPosition(
+  value: unknown,
+): DownloadButtonPosition {
+  return value === 'postHeader' ? value : DEFAULT_DOWNLOAD_BUTTON_POSITION
+}
+
+/**
  * Validates stored preferences and supplies safe defaults for invalid fields.
  *
  * @param value - Untrusted preferences read from extension storage.
@@ -53,6 +64,9 @@ export function normalizePreferences(value: unknown): DownloadPreferences {
 
   return {
     concurrency: normalizeConcurrency(input['concurrency']),
+    downloadButtonPosition: normalizeDownloadButtonPosition(
+      input['downloadButtonPosition'],
+    ),
     saveAs: isBoolean(input['saveAs']) ? input['saveAs'] : false,
     useNewUi: input['useNewUi'] === true,
     quality: normalizeQuality(input['quality']),

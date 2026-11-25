@@ -5,7 +5,10 @@ import {
   buildFilename,
   validateFilenameTemplate,
 } from '../utils/download/filename'
-import { normalizePreferences } from '../utils/download/preferences'
+import {
+  normalizeDownloadButtonPosition,
+  normalizePreferences,
+} from '../utils/download/preferences'
 import { normalizeBatchRequest } from '../utils/download/requests'
 import { formatBytes } from '../utils/formatBytes'
 import { extractVideoPosts } from '../utils/video/posts'
@@ -67,6 +70,34 @@ test('the new post UI is opt-in and only accepts an explicit boolean true', () =
   }
 
   assert.equal(normalizePreferences({ useNewUi: true }).useNewUi, true)
+})
+
+test('download icon placement retains the action row by default and accepts only supported positions', () => {
+  for (const value of [
+    undefined,
+    null,
+    '',
+    true,
+    1,
+    {},
+    'header',
+    'invalid',
+    'actionRow',
+  ]) {
+    assert.equal(normalizeDownloadButtonPosition(value), 'actionRow')
+    assert.equal(
+      normalizePreferences({ downloadButtonPosition: value })
+        .downloadButtonPosition,
+      'actionRow',
+    )
+  }
+
+  assert.equal(normalizePreferences({}).downloadButtonPosition, 'actionRow')
+  assert.equal(
+    normalizePreferences({ downloadButtonPosition: 'postHeader' })
+      .downloadButtonPosition,
+    'postHeader',
+  )
 })
 
 test('selects highest, capped and smallest versions deterministically', () => {

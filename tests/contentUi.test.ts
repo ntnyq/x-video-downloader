@@ -5,6 +5,8 @@ import { setImmediate } from 'node:timers/promises'
 import { runInNewContext } from 'node:vm'
 import ts from 'typescript'
 import { shallowRef } from 'vue'
+import { DEFAULT_DOWNLOAD_BUTTON_POSITION } from '../constants/preferences'
+import { normalizeDownloadButtonPosition } from '../utils/download/preferences'
 import * as extensionContext from '../utils/extension/context'
 
 interface UiOptions {
@@ -20,6 +22,10 @@ interface UiOptions {
    * Placement relative to the native anchor.
    */
   append?: string
+  /**
+   * Host styling applied outside the component's shadow root.
+   */
+  css?: string
   /**
    * Events stopped at the shadow boundary.
    */
@@ -37,7 +43,11 @@ interface UiOptions {
 /**
  * Executes the actual content entrypoint with a native-action-row and storage fixture.
  */
-async function createContent(useNewUi = false, deferFirstControl = false) {
+async function createContent(
+  useNewUi = false,
+  deferFirstControl = false,
+  position: unknown = 'actionRow',
+) {
   const attached = new Set<unknown>()
   const rendered: string[] = []
   const created: { options: UiOptions; mounted: boolean; removed: boolean }[] =
@@ -50,8 +60,14 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
   let scan = () => {}
   let extensionId: string | undefined = 'test'
   let changeSetting = (_value: boolean) => {}
+  let changePosition = (_value: unknown) => {}
+  const headerRow = { style: { display: 'flex', flexDirection: 'row' } }
+  let menu: ReturnType<typeof createMenu> | undefined
   const article = {
     isConnected: true,
+    querySelectorAll() {
+      return [createMenu(true), ...(menu ? [menu] : [])]
+    },
     querySelector(selector: string) {
       if (selector.startsWith('[data-testid="reply"]')) {
         return {
@@ -66,6 +82,33 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
       return {}
     },
   }
+
+  /**
+   * Models More controls inside column wrappers, including a quoted-post decoy.
+   */
+  function createMenu(isQuoted = false) {
+    const control = {
+      parentElement: {
+        parentElement: headerRow,
+        style: { display: 'flex', flexDirection: 'column' },
+      },
+      closest(selector: string): unknown {
+        if (selector === 'article') {
+          return article
+        }
+
+        if (selector === 'button, [role="button"]') {
+          return control
+        }
+
+        return isQuoted ? {} : null
+      },
+    }
+
+    return control
+  }
+
+  menu = createMenu()
   const ctx = {
     isInvalid: false,
     addEventListener() {},
@@ -99,6 +142,7 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
         querySelectorAll: () => (article.isConnected ? [article] : []),
       },
       window: {},
+      getComputedStyle: (element: { style: unknown }) => element.style,
       i18n: { t: (key: string) => key },
       require(id: string) {
         if (id === 'vue') {
@@ -139,6 +183,12 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
           }
         }
 
+        if (id === '~/constants/preferences') {
+          return {
+            DEFAULT_DOWNLOAD_BUTTON_POSITION,
+          }
+        }
+
         if (id === '~/constants/video') {
           return {
             X_MATCHES: [],
@@ -169,6 +219,16 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
 
         if (id === '~/utils/storage/downloadPreferences') {
           return {
+            downloadButtonPositionSetting: {
+              getValue: async () => position,
+              watch(callback: (value: unknown) => void) {
+                changePosition = callback
+
+                return () => {
+                  changePosition = () => {}
+                }
+              },
+            },
             newUiSetting: {
               getValue: async () => useNewUi,
               watch(callback: (value: boolean) => void) {
@@ -183,6 +243,12 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
                 }
               },
             },
+          }
+        }
+
+        if (id === '~/utils/download/preferences') {
+          return {
+            normalizeDownloadButtonPosition,
           }
         }
 
@@ -269,6 +335,14 @@ async function createContent(useNewUi = false, deferFirstControl = false) {
     attached,
     get actions() {
       return actions
+    },
+    get menuAnchor() {
+      return menu?.parentElement
+    },
+    changePosition: (value: unknown) => changePosition(value),
+    replaceMenu(isPresent = true) {
+      menu = isPresent ? createMenu() : undefined
+      scan()
     },
     changeUi: (value: boolean) => changeSetting(value),
     releaseControl: () => gate.resolve(),
@@ -373,5 +447,82 @@ test('mounts the new post control when a pending article is recycled', async t =
   assert.equal(content.created[1]?.mounted, false)
   assert.equal(content.created[1]?.removed, true)
   assert.equal(content.created[2]?.mounted, true)
+  assert.equal(content.attached.size, 1)
+})
+
+test('the header option places the icon before the owning More wrapper with space and isolated double-clicks', async t => {
+  const content = await createContent(true, false, 'postHeader')
+
+  t.after(() => content.stop())
+  const control = content.created[1]
+
+  assert.equal(control?.options.anchor, content.menuAnchor)
+  assert.equal(control?.options.append, 'before')
+  assert.match(control?.options.css ?? '', /margin-inline-end: 8px/)
+  assert.ok(control?.options.isolateEvents.includes('dblclick'))
+  assert.ok(
+    content.rendered.includes('~/components/video/ToolbarDownloadButton.vue'),
+  )
+})
+
+test('switching icon positions moves exactly one control and preserves the choice across legacy mode', async t => {
+  const content = await createContent(true)
+
+  t.after(() => content.stop())
+
+  content.changePosition('postHeader')
+  await setImmediate()
+  assert.equal(content.created[1]?.removed, true)
+  assert.equal(content.created[2]?.options.anchor, content.menuAnchor)
+  assert.equal(content.attached.size, 1)
+
+  content.changeUi(false)
+  await setImmediate()
+  assert.equal(content.created[3]?.options.anchor, content.actions)
+  assert.equal(content.created[3]?.options.append, 'after')
+
+  content.changeUi(true)
+  await setImmediate()
+  assert.equal(content.created[4]?.options.anchor, content.menuAnchor)
+  assert.equal(content.attached.size, 1)
+
+  content.changePosition('invalid')
+  await setImmediate()
+  assert.equal(content.created[5]?.options.anchor, content.actions)
+  assert.equal(content.created[5]?.options.append, 'last')
+})
+
+test('replaced or missing More controls remount without targeting quoted menus', async t => {
+  const content = await createContent(true, false, 'postHeader')
+
+  t.after(() => content.stop())
+
+  content.replaceMenu()
+  await setImmediate()
+  assert.equal(content.created[1]?.removed, true)
+  assert.equal(content.created[2]?.options.anchor, content.menuAnchor)
+
+  content.replaceMenu(false)
+  await setImmediate()
+  assert.equal(content.created[3]?.options.anchor, content.actions)
+  assert.equal(content.created[3]?.options.append, 'last')
+
+  content.replaceMenu()
+  await setImmediate()
+  assert.equal(content.created[4]?.options.anchor, content.menuAnchor)
+  assert.equal(content.attached.size, 1)
+})
+
+test('a position change discards an older pending mount', async t => {
+  const content = await createContent(true, true)
+
+  t.after(() => content.stop())
+
+  content.changePosition('postHeader')
+  content.releaseControl()
+  await setImmediate()
+  assert.equal(content.created[1]?.mounted, false)
+  assert.equal(content.created[1]?.removed, true)
+  assert.equal(content.created[2]?.options.anchor, content.menuAnchor)
   assert.equal(content.attached.size, 1)
 })

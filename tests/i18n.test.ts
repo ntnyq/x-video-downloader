@@ -8,7 +8,10 @@ import { generateChromeMessages, parseMessagesFile } from '@wxt-dev/i18n/build'
 import ts from 'typescript'
 import { CHANGELOG_ENTRIES } from '../constants/changelog'
 import { DOWNLOAD_STATE_LABELS } from '../constants/download'
-import { QUALITY_OPTIONS } from '../constants/preferences'
+import {
+  DOWNLOAD_BUTTON_POSITION_OPTIONS,
+  QUALITY_OPTIONS,
+} from '../constants/preferences'
 import { THEME_PRESETS } from '../constants/theme'
 import { validateFilenameTemplate } from '../utils/download/filename'
 import { formatBytes } from '../utils/formatBytes'
@@ -106,6 +109,7 @@ for (const locale of LOCALES) {
     for (const key of [
       ...Object.values(DOWNLOAD_STATE_LABELS),
       ...QUALITY_OPTIONS.map(option => option.label),
+      ...DOWNLOAD_BUTTON_POSITION_OPTIONS.map(option => option.label),
       ...THEME_PRESETS.map(preset => preset.label),
     ]) {
       assert.ok(t(key))

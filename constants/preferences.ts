@@ -1,4 +1,7 @@
-import type { QualityPreference } from '../types/download'
+import type {
+  DownloadButtonPosition,
+  QualityPreference,
+} from '../types/download'
 import type { DownloadRequest } from '../types/video'
 
 /**
@@ -21,6 +24,29 @@ export const MAX_CONCURRENCY = 6
  * Quality preference used when the saved choice is missing or invalid.
  */
 export const DEFAULT_QUALITY = 'highest' satisfies QualityPreference
+
+/**
+ * Keeps the existing icon placement when no valid position has been saved.
+ */
+export const DEFAULT_DOWNLOAD_BUTTON_POSITION =
+  'actionRow' satisfies DownloadButtonPosition
+
+/**
+ * Available placements for the opt-in download icon, in display order.
+ */
+export const DOWNLOAD_BUTTON_POSITION_OPTIONS: Array<{
+  /**
+   * Stored placement represented by this option.
+   */
+  value: DownloadButtonPosition
+  /**
+   * Translation key describing where the icon appears.
+   */
+  label: 'settings.positionActionRow' | 'settings.positionPostHeader'
+}> = [
+  { label: 'settings.positionActionRow', value: 'actionRow' },
+  { label: 'settings.positionPostHeader', value: 'postHeader' },
+]
 
 /**
  * Maximum filename template length in UTF-16 code units.

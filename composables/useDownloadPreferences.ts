@@ -3,6 +3,7 @@ import { normalizePreferences } from '~/utils/download/preferences'
 import { stopExtensionListener } from '~/utils/extension/context'
 import {
   concurrencySetting,
+  downloadButtonPositionSetting,
   filenameSetting,
   getDownloadPreferences,
   newUiSetting,
@@ -19,6 +20,13 @@ export const useDownloadPreferences = createSharedComposable(() => {
   let isDisposed = false
 
   const stops = [
+    downloadButtonPositionSetting.watch(downloadButtonPosition => {
+      changed.add('downloadButtonPosition')
+      preferences.value = normalizePreferences({
+        ...preferences.value,
+        downloadButtonPosition,
+      })
+    }),
     newUiSetting.watch(useNewUi => {
       changed.add('useNewUi')
       preferences.value = normalizePreferences({
@@ -60,6 +68,9 @@ export const useDownloadPreferences = createSharedComposable(() => {
       }
 
       preferences.value = {
+        downloadButtonPosition: changed.has('downloadButtonPosition')
+          ? preferences.value.downloadButtonPosition
+          : value.downloadButtonPosition,
         useNewUi: changed.has('useNewUi')
           ? preferences.value.useNewUi
           : value.useNewUi,
