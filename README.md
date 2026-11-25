@@ -1,40 +1,31 @@
-# X Video Downloader
+<p align="center">
+  <img src="./assets/images/downloader.svg" width="80" height="80" alt="X Video Downloader icon" />
+</p>
 
-<img src="assets/images/downloader.svg" width="80" height="80" alt="X Video Downloader icon" />
+<h1 align="center">X Video Downloader</h1>
 
-> Save videos from X / Twitter as MP4 files, with quality selection, batch downloads, and a persistent queue.
+<p align="center">
+  English | <a href="./README.zh-CN.md">简体中文</a>
+</p>
 
-Built with **WXT + Vue 3 + TypeScript + Tailwind CSS + shadcn-vue**. Supports English, 简体中文, 繁體中文, 日本語, and 한국어.
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/x-video-downloader/jpialchpmmppdegagfhibhmpfaocjiep"><img src="https://img.shields.io/chrome-web-store/v/jpialchpmmppdegagfhibhmpfaocjiep?label=Chrome%20Web%20Store" alt="Chrome Web Store version" /></a>
+  <a href="https://github.com/ntnyq/x-video-downloader/releases"><img src="https://img.shields.io/github/v/release/ntnyq/x-video-downloader" alt="GitHub Release" /></a>
+  <a href="https://github.com/ntnyq/x-video-downloader/actions/workflows/ci.yml"><img src="https://github.com/ntnyq/x-video-downloader/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/github/license/ntnyq/x-video-downloader" alt="MIT license" /></a>
+</p>
+
+<p align="center">
+  Save videos from X / Twitter as MP4 files, with quality selection, batch downloads, and a persistent queue.
+</p>
 
 ## 📦 Install
 
 [**Install from the Chrome Web Store**][chrome-store] · Chrome, Edge, and other Chromium browsers (111+)
 
-[![Chrome Web Store version](https://img.shields.io/chrome-web-store/v/jpialchpmmppdegagfhibhmpfaocjiep?label=Chrome%20Web%20Store)][chrome-store]
-
 After installing or updating, **reload any open X pages**.
 
 Version updates open the bundled changelog in a new tab. You can also open it from **Settings → Changelog → View changelog**. Release notes follow your browser language and are available offline.
-
-<details>
-<summary>Build from source · Chrome / Edge and Firefox</summary>
-
-Use Node.js LTS and the pnpm version pinned in `package.json`.
-
-```sh
-pnpm install
-pnpm build
-```
-
-For **Chrome / Edge**, enable **Developer mode** on the browser's extensions page, select **Load unpacked**, and choose `dist/chrome-mv3`.
-
-For **Firefox 140+**, run `pnpm build:firefox`, then load `dist/firefox-mv3/manifest.json` at `about:debugging#/runtime/this-firefox`. This is a temporary installation and is removed when Firefox restarts; permanent installation requires Mozilla signing.
-
-After changing the source, rebuild, reload the extension, and refresh X. Disable older copies if duplicate download buttons appear.
-
-Use `pnpm zip` or `pnpm zip:firefox` to create distributable archives in `dist/`.
-
-</details>
 
 ## ✨ Features
 
@@ -44,7 +35,7 @@ Use `pnpm zip` or `pnpm zip:firefox` to create distributable archives in `dist/`
 - **Download in batches** — select videos across posts, with up to 100 videos per batch.
 - **Manage your queue** — run 1–6 transfers at once (default: 3), follow progress, and pause, resume, cancel, or retry downloads.
 - **Find past downloads** — search by filename, post ID, or author, filter by author, and get a reminder before downloading completed videos again.
-- **Make it yours** — customize filename templates, save-location prompts, appearance, and the floating button's position. The interface follows your browser's language.
+- **Make it yours** — customize filename templates, save-location prompts, appearance, and the floating button's position. The interface follows your browser's language and supports English, Simplified Chinese, Traditional Chinese, Japanese, and Korean.
 
 ## 🚀 Quick Start
 
@@ -139,6 +130,28 @@ While a panel is open, progress is polled once per second. When the total size i
 </details>
 
 ## 🛠️ Development
+
+Built with **WXT + Vue 3 + TypeScript + Tailwind CSS + shadcn-vue**.
+
+<details>
+<summary>Build from source · Chrome / Edge and Firefox</summary>
+
+Use Node.js LTS and the pnpm version pinned in `package.json`.
+
+```sh
+pnpm install
+pnpm build
+```
+
+For **Chrome / Edge**, enable **Developer mode** on the browser's extensions page, select **Load unpacked**, and choose `dist/chrome-mv3`.
+
+For **Firefox 140+**, run `pnpm build:firefox`, then load `dist/firefox-mv3/manifest.json` at `about:debugging#/runtime/this-firefox`. This is a temporary installation and is removed when Firefox restarts; permanent installation requires Mozilla signing.
+
+After changing the source, rebuild, reload the extension, and refresh X. Disable older copies if duplicate download buttons appear.
+
+Use `pnpm zip` or `pnpm zip:firefox` to create distributable archives in `dist/`.
+
+</details>
 
 <details>
 <summary>Development commands and checks</summary>
